@@ -32,16 +32,19 @@ function CallsPage() {
                   ["Jordan Mei", "Marcus Reid", "Outbound", "01:08", "live", PhoneOutgoing, "primary"],
                   ["Riya Patel", "Diego Alvarez", "Inbound", "00:42", "hold", Phone, "warning"],
                   ["Alex Kim", "Olivia Bennett", "Inbound", "00:15", "ringing", PhoneIncoming, "success"],
-                ].map((r: any, i) => (
+                ].map((r: any, i) => {
+                  const Icon = r[5];
+                  return (
                   <tr key={i} className="border-t border-border hover:bg-surface-2">
                     <td className="px-5 py-3"><div className="flex items-center gap-2"><Avatar name={r[0]} /><span className="text-foreground">{r[0]}</span></div></td>
                     <td className="px-3 py-3 text-foreground/90">{r[1]}</td>
                     <td className="px-3 py-3 text-muted-foreground">{r[2]}</td>
                     <td className="px-3 py-3 font-mono text-foreground">{r[3]}</td>
-                    <td className="px-3 py-3"><Badge tone={r[6]}><r[5] className="h-3 w-3" />{r[4]}</Badge></td>
+                    <td className="px-3 py-3"><Badge tone={r[6]}><Icon className="h-3 w-3" />{r[4]}</Badge></td>
                     <td className="px-5 text-right"><button className="text-xs font-medium text-primary hover:underline">Listen</button></td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </Panel>
