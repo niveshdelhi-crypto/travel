@@ -114,14 +114,14 @@ function Heatmap() {
           <div key={h} className="text-center">{h % 4 === 0 ? h : ""}</div>
         ))}
         {days.map((d, i) => (
-          <>
-            <div key={`l${i}`} className="pr-1 text-right">{d}</div>
+          <div key={i} className="contents">
+            <div className="pr-1 text-right">{d}</div>
             {Array.from({ length: 24 }).map((_, h) => {
               const v = (Math.sin((i + 1) * (h + 1) * 0.21) + 1) / 2;
               const op = 0.08 + v * 0.85;
-              return <div key={`${i}-${h}`} className="aspect-square rounded-sm" style={{ background: `oklch(0.86 0.17 92 / ${op})` }} />;
+              return <div key={h} className="aspect-square rounded-sm" style={{ background: `oklch(0.86 0.17 92 / ${op})` }} />;
             })}
-          </>
+          </div>
         ))}
       </div>
     </div>
