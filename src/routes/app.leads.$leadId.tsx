@@ -22,8 +22,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/leads/$leadId")({
-  head: () => ({ meta: [{ title: "Lead detail — RentOps CRM" }] }),
-  component: LeadDetail,
+    component: LeadDetail,
 });
 
 function LeadDetail() {

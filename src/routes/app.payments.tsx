@@ -4,8 +4,7 @@ import { Avatar, Badge, Panel, PanelHeader, StatCard } from "@/components/app/pr
 import { ArrowDownLeft, ArrowUpRight, CircleDollarSign, RotateCcw, Wallet, Filter } from "lucide-react";
 
 export const Route = createFileRoute("/app/payments")({
-  head: () => ({ meta: [{ title: "Payments — RentOps CRM" }] }),
-  component: PaymentsPage,
+    component: PaymentsPage,
 });
 
 function PaymentsPage() {

@@ -13,13 +13,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/payment")({
-  head: () => ({
-    meta: [
-      { title: "Secure payment — FleetNexus" },
-      { name: "description", content: "Complete your car rental payment securely." },
-    ],
-  }),
-  component: PaymentPage,
+    component: PaymentPage,
 });
 
 const steps = [

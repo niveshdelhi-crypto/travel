@@ -17,8 +17,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/")({
-  head: () => ({ meta: [{ title: "Dashboard — RentOps CRM" }] }),
-  component: Dashboard,
+    component: Dashboard,
 });
 
 function Dashboard() {

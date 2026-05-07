@@ -225,13 +225,15 @@ const STATUS_DOT_COLORS = {
 export function StatusDot({
   status,
   pulse = false,
+  className = "",
 }: {
   status: keyof typeof STATUS_DOT_COLORS;
   pulse?: boolean;
+  className?: string;
 }) {
   return (
     <span
-      className={`inline-block h-1.5 w-1.5 rounded-full ${STATUS_DOT_COLORS[status]} ${pulse ? "pulse-dot" : ""}`}
+      className={`inline-block h-1.5 w-1.5 rounded-full ${STATUS_DOT_COLORS[status]} ${pulse ? "pulse-dot" : ""} ${className}`}
     />
   );
 }

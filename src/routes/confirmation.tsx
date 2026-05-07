@@ -21,13 +21,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/confirmation")({
-  head: () => ({
-    meta: [
-      { title: "Booking confirmed — FleetNexus" },
-      { name: "description", content: "Your car rental booking is confirmed." },
-    ],
-  }),
-  component: ConfirmationPage,
+    component: ConfirmationPage,
 });
 
 function ConfirmationPage() {

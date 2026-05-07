@@ -29,8 +29,7 @@ import {
 import type { Provider } from "@/types";
 
 export const Route = createFileRoute("/app/providers")({
-  head: () => ({ meta: [{ title: "Providers — FleetNexus CRM" }] }),
-  component: ProvidersPage,
+    component: ProvidersPage,
 });
 
 const providers: Provider[] = [

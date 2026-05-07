@@ -22,13 +22,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/booking")({
-  head: () => ({
-    meta: [
-      { title: "Complete your booking — FleetNexus" },
-      { name: "description", content: "Complete your car rental reservation securely." },
-    ],
-  }),
-  component: BookingPage,
+    component: BookingPage,
 });
 
 const steps = [

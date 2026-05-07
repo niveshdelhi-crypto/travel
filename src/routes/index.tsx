@@ -26,19 +26,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "RentOps — Car Rental Marketplace & Assisted Booking CRM" },
-      {
-        name: "description",
-        content:
-          "Compare, reserve and manage rental cars across USA & Canada. Powered by an enterprise CRM, cloud telephony and operational intelligence.",
-      },
-      { property: "og:title", content: "RentOps — Car Rental Marketplace & Assisted Booking CRM" },
-      { property: "og:description", content: "Enterprise car rental marketplace and operations platform across USA & Canada." },
-    ],
-  }),
-  component: LandingPage,
+    component: LandingPage,
 });
 
 function LandingPage() {

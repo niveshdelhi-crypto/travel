@@ -17,8 +17,7 @@ import {
 import type { Notification, NotificationType } from "@/types";
 
 export const Route = createFileRoute("/app/notifications")({
-  head: () => ({ meta: [{ title: "Notifications — FleetNexus CRM" }] }),
-  component: NotificationsPage,
+    component: NotificationsPage,
 });
 
 const notifications: Notification[] = [

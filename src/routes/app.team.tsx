@@ -26,8 +26,7 @@ import {
 import type { Agent } from "@/types";
 
 export const Route = createFileRoute("/app/team")({
-  head: () => ({ meta: [{ title: "Team — FleetNexus CRM" }] }),
-  component: TeamPage,
+    component: TeamPage,
 });
 
 const team: Agent[] = [

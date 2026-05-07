@@ -4,8 +4,7 @@ import { Avatar, Badge } from "@/components/app/primitives";
 import { Filter, MoreHorizontal, Plus, Search, Star, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/app/leads")({
-  head: () => ({ meta: [{ title: "Leads — RentOps CRM" }] }),
-  component: LeadsPage,
+    component: LeadsPage,
 });
 
 type Lead = {

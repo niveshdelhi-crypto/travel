@@ -26,8 +26,7 @@ import {
 import type { BookingStatus } from "@/types";
 
 export const Route = createFileRoute("/app/bookings")({
-  head: () => ({ meta: [{ title: "Bookings — FleetNexus CRM" }] }),
-  component: BookingsPage,
+    component: BookingsPage,
 });
 
 interface BookingRow {

@@ -8,8 +8,7 @@ import evImg from "@/assets/car-ev.jpg";
 import { Fuel, Users, Cog, MapPin, Star, Plane, Filter, Map } from "lucide-react";
 
 export const Route = createFileRoute("/search")({
-  head: () => ({ meta: [{ title: "Search vehicles — RentOps" }] }),
-  component: SearchPage,
+    component: SearchPage,
 });
 
 const cars = [

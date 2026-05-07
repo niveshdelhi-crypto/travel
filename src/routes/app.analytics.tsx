@@ -4,8 +4,7 @@ import { Panel, PanelHeader, StatCard, Badge } from "@/components/app/primitives
 import { CircleDollarSign, Phone, TrendingUp, Users2 } from "lucide-react";
 
 export const Route = createFileRoute("/app/analytics")({
-  head: () => ({ meta: [{ title: "Analytics — RentOps CRM" }] }),
-  component: AnalyticsPage,
+    component: AnalyticsPage,
 });
 
 function AnalyticsPage() {

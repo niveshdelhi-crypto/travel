@@ -15,8 +15,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/settings")({
-  head: () => ({ meta: [{ title: "Settings — FleetNexus CRM" }] }),
-  component: SettingsPage,
+    component: SettingsPage,
 });
 
 const settingsSections = [

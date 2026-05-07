@@ -4,8 +4,7 @@ import { Avatar, Badge, Panel, PanelHeader, StatCard } from "@/components/app/pr
 import { Phone, PhoneIncoming, PhoneMissed, PhoneOutgoing, PhoneCall, Play, Disc, Clock, Users2 } from "lucide-react";
 
 export const Route = createFileRoute("/app/calls")({
-  head: () => ({ meta: [{ title: "Calls — RentOps CRM" }] }),
-  component: CallsPage,
+    component: CallsPage,
 });
 
 function CallsPage() {

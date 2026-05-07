@@ -4,8 +4,7 @@ import { Avatar, Badge, Panel, PanelHeader, StatCard } from "@/components/app/pr
 import { Activity, AlertTriangle, CheckCircle2, Phone, Server, Users2, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/app/admin")({
-  head: () => ({ meta: [{ title: "Live operations — RentOps Admin" }] }),
-  component: AdminOps,
+    component: AdminOps,
 });
 
 function AdminOps() {
