@@ -72,14 +72,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "FleetNexus — Car Rental Marketplace & Assisted Booking CRM" },
+      {
+        name: "description",
+        content:
+          "Enterprise car rental marketplace and CRM platform. Compare, reserve and manage rentals across USA & Canada with 24/7 assisted booking support.",
+      },
+      { name: "theme-color", content: "#0B1220" },
+      { property: "og:title", content: "FleetNexus — Car Rental Marketplace & CRM" },
+      { property: "og:description", content: "Enterprise car rental marketplace and CRM across USA & Canada." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { property: "og:site_name", content: "FleetNexus" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "index, follow" },
     ],
     links: [
       {
