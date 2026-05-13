@@ -4,7 +4,7 @@
 // token refresh, and error normalisation
 // ============================================================
 
-import type { ApiResponse, ApiError } from "@/types";
+import type { ApiError } from "@/types";
 import { API_BASE_URL, API_TIMEOUT_MS, API_RETRY_ATTEMPTS, API_RETRY_DELAY_MS, STORAGE_KEYS } from "@/constants";
 
 // ─── Request Config ───────────────────────────────────────────
@@ -14,6 +14,7 @@ export interface RequestConfig extends RequestInit {
   skipAuth?: boolean;
   retries?: number;
   timeout?: number;
+  debugLabel?: string;
 }
 
 // ─── Error normalisation ─────────────────────────────────────
@@ -25,8 +26,15 @@ export function normaliseApiError(res: Response, body: unknown): ApiError {
     message:
       typeof data?.message === "string"
         ? data.message
+        : Array.isArray(data?.message)
+        ? data.message.join(", ")
         : res.statusText || "An unexpected error occurred",
-    code: typeof data?.code === "string" ? data.code : undefined,
+    code:
+      typeof data?.code === "string"
+        ? data.code
+        : typeof data?.error === "string"
+          ? data.error
+          : undefined,
     details: typeof data?.details === "object" && data.details != null
       ? (data.details as Record<string, string>)
       : undefined,
@@ -55,31 +63,57 @@ function clearTokens(): void {
   } catch { /* noop */ }
 }
 
+function getCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = document.cookie.match(new RegExp(`(?:^|; )${escapedName}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function ensureCsrfToken(): Promise<string | null> {
+  const existing = getCookie("csrf_token");
+  if (existing) return existing;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/csrf`, {
+      method: "GET",
+      credentials: "include",
+      headers: { "Accept": "application/json", "X-Client": "fleetnexus-web/1.0" },
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { csrfToken?: string };
+    return body.csrfToken ?? getCookie("csrf_token");
+  } catch {
+    return null;
+  }
+}
+
 let isRefreshing = false;
 let refreshQueue: Array<(token: string | null) => void> = [];
 
-async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-  if (!refreshToken) return null;
-
+async function refreshSession(): Promise<boolean> {
   try {
+    const csrfToken = await ensureCsrfToken();
     const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "X-Client": "fleetnexus-web/1.0",
+        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
+      },
+      credentials: "include",
     });
 
     if (!res.ok) {
       clearTokens();
-      return null;
+      return false;
     }
 
-    const { data } = (await res.json()) as { data: { accessToken: string; refreshToken: string } };
-    setTokens(data.accessToken, data.refreshToken);
-    return data.accessToken;
+    return true;
   } catch {
     clearTokens();
-    return null;
+    return false;
   }
 }
 
@@ -95,18 +129,23 @@ async function request<T>(
   endpoint: string,
   config: RequestConfig = {},
   attempt = 1,
-): Promise<ApiResponse<T>> {
+): Promise<T> {
   const {
     params,
     skipAuth = false,
     retries = API_RETRY_ATTEMPTS,
     timeout = API_TIMEOUT_MS,
     headers: configHeaders = {},
+    debugLabel,
     ...rest
   } = config;
 
   // Build URL with query params
-  const url = new URL(`${API_BASE_URL}${endpoint}`);
+  const baseURL =
+    typeof window !== "undefined" && API_BASE_URL.startsWith("/")
+      ? window.location.origin
+      : undefined;
+  const url = new URL(`${API_BASE_URL}${endpoint}`, baseURL);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined) url.searchParams.set(k, String(v));
@@ -126,38 +165,61 @@ async function request<T>(
     if (token) headers["Authorization"] = `Bearer ${token}`;
   }
 
+  const method = (rest.method ?? "GET").toUpperCase();
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    const csrfToken = await ensureCsrfToken();
+    if (csrfToken) headers["X-CSRF-Token"] = csrfToken;
+  }
+
   // Abort controller for timeout
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
+    console.debug("[FleetNexus API] request", {
+      method: rest.method ?? "GET",
+      endpoint,
+      url: url.toString(),
+      attempt,
+      debugLabel,
+    });
+
     const res = await fetch(url.toString(), {
       ...rest,
       headers,
       signal: controller.signal,
+      credentials: rest.credentials ?? "include",
     });
 
     clearTimeout(timeoutId);
+    console.debug("[FleetNexus API] response", {
+      method: rest.method ?? "GET",
+      endpoint,
+      status: res.status,
+      ok: res.ok,
+      requestId: res.headers.get("x-request-id"),
+      debugLabel,
+    });
 
     // Handle 401 — attempt token refresh once
-    if (res.status === 401 && !skipAuth && attempt === 1) {
+    if (res.status === 401 && !skipAuth && endpoint !== "/auth/refresh" && attempt === 1) {
       if (!isRefreshing) {
         isRefreshing = true;
-        refreshAccessToken().then((token) => {
-          refreshQueue.forEach((cb) => cb(token));
+        refreshSession().then((ok) => {
+          refreshQueue.forEach((cb) => cb(ok ? "cookie-session" : null));
           refreshQueue = [];
           isRefreshing = false;
         });
       }
 
-      return new Promise<ApiResponse<T>>((resolve, reject) => {
+      return new Promise<T>((resolve, reject) => {
         refreshQueue.push(async (newToken) => {
           if (!newToken) {
             reject({ status: 401, message: "Session expired. Please sign in again." } as ApiError);
             return;
           }
           try {
-            resolve(await request<T>(endpoint, { ...config, headers: { ...configHeaders, Authorization: `Bearer ${newToken}` } }, 2));
+            resolve(await request<T>(endpoint, config, 2));
           } catch (e) {
             reject(e);
           }
@@ -187,9 +249,16 @@ async function request<T>(
       throw apiError;
     }
 
-    return body as ApiResponse<T>;
+    return body as T;
   } catch (err: unknown) {
     clearTimeout(timeoutId);
+    console.error("[FleetNexus API] failure", {
+      method: rest.method ?? "GET",
+      endpoint,
+      attempt,
+      debugLabel,
+      error: err,
+    });
 
     // Network error retry
     if ((err as { name?: string })?.name === "AbortError") {

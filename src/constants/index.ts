@@ -74,13 +74,13 @@ export const PROVIDER_TIER_COLORS = {
 } as const;
 
 // ─── API ──────────────────────────────────────────────────────
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "https://api.fleetnexus.io/v1";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 export const API_TIMEOUT_MS = 15_000;
 export const API_RETRY_ATTEMPTS = 3;
 export const API_RETRY_DELAY_MS = 1_000;
 
 // ─── Socket ───────────────────────────────────────────────────
-export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? "wss://realtime.fleetnexus.io";
+export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? "http://localhost:4000/leads";
 export const SOCKET_RECONNECT_ATTEMPTS = 5;
 
 // ─── Pagination ───────────────────────────────────────────────

@@ -1,238 +1,303 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { AppShell } from "@/components/app/app-shell";
+import { Badge, EmptyState, Panel } from "@/components/app/primitives";
+import { Building2, Trash2, Plus, Pencil } from "lucide-react";
 import {
-  Badge,
-  Panel,
-  PanelHeader,
-  StatCard,
-  ProgressBar,
-  Avatar,
-  MetricWidget,
-} from "@/components/app/primitives";
-import {
-  Building2,
-  Star,
-  MapPin,
-  TrendingUp,
-  TrendingDown,
-  CheckCircle2,
-  AlertTriangle,
-  Users,
-  Car,
-  Globe,
-  Plus,
-  Search,
-  Filter,
-  MoreHorizontal,
-  ArrowUpRight,
-} from "lucide-react";
-import type { Provider } from "@/types";
+  marketplaceAdminService,
+  marketplaceService,
+} from "@/services";
+import type { MarketplaceSupplier } from "@/types/marketplace";
+import { marketplaceQueryKeys } from "@/lib/marketing/query-keys";
+import { useAuthStore } from "@/store/auth.store";
 
 export const Route = createFileRoute("/app/providers")({
-    component: ProvidersPage,
+  component: ProvidersPage,
 });
 
-const providers: Provider[] = [
-  { id: "p1", name: "Hertz",      tier: "A+", vehicleCount: 4218, fillRate: "98.4%", fillRateValue: 98.4, rating: 4.9, status: "active",   locations: 142, monthlyRevenue: "$284k", slaScore: 96 },
-  { id: "p2", name: "Enterprise", tier: "A",  vehicleCount: 3870, fillRate: "94.2%", fillRateValue: 94.2, rating: 4.8, status: "active",   locations: 108, monthlyRevenue: "$220k", slaScore: 92 },
-  { id: "p3", name: "Sixt",       tier: "A",  vehicleCount: 2210, fillRate: "92.7%", fillRateValue: 92.7, rating: 4.8, status: "active",   locations: 84,  monthlyRevenue: "$168k", slaScore: 90 },
-  { id: "p4", name: "Avis",       tier: "A-", vehicleCount: 2902, fillRate: "89.1%", fillRateValue: 89.1, rating: 4.7, status: "degraded", locations: 97,  monthlyRevenue: "$145k", slaScore: 81 },
-  { id: "p5", name: "Budget",     tier: "B+", vehicleCount: 1820, fillRate: "84.0%", fillRateValue: 84.0, rating: 4.5, status: "active",   locations: 72,  monthlyRevenue: "$112k", slaScore: 78 },
-  { id: "p6", name: "Alamo",      tier: "B",  vehicleCount: 1402, fillRate: "78.6%", fillRateValue: 78.6, rating: 4.4, status: "active",   locations: 58,  monthlyRevenue: "$88k",  slaScore: 74 },
-  { id: "p7", name: "National",   tier: "B+", vehicleCount: 1180, fillRate: "86.2%", fillRateValue: 86.2, rating: 4.6, status: "active",   locations: 63,  monthlyRevenue: "$102k", slaScore: 80 },
-  { id: "p8", name: "Thrifty",    tier: "B-", vehicleCount: 890,  fillRate: "72.1%", fillRateValue: 72.1, rating: 4.2, status: "degraded", locations: 41,  monthlyRevenue: "$64k",  slaScore: 68 },
-];
-
-const TIER_TONE = {
-  "A+": "success", "A": "success", "A-": "info",
-  "B+": "warning", "B": "warning", "B-": "danger", "C": "danger",
-} as const;
-
 function ProvidersPage() {
-  const active    = providers.filter((p) => p.status === "active").length;
-  const degraded  = providers.filter((p) => p.status === "degraded").length;
-  const totalVehicles = providers.reduce((a, p) => a + p.vehicleCount, 0);
+  const user = useAuthStore((state) => state.user);
+  const isAdmin = user?.role === "admin";
+  const queryClient = useQueryClient();
+
+  const suppliersQuery = useQuery({
+    queryKey: marketplaceQueryKeys.suppliers(),
+    queryFn: () => marketplaceService.suppliers(),
+  });
+
+  const [editing, setEditing] = useState<MarketplaceSupplier | null>(null);
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [website, setWebsite] = useState("");
+  const [logo, setLogo] = useState("");
+  const [sortOrder, setSortOrder] = useState("100");
+
+  const resetForm = () => {
+    setEditing(null);
+    setName("");
+    setSlug("");
+    setWebsite("");
+    setLogo("");
+    setSortOrder("100");
+  };
+
+  const createMutation = useMutation({
+    mutationFn: () =>
+      marketplaceAdminService.createSupplier({
+        name: name.trim(),
+        slug: slug.trim() || undefined,
+        website_url: website.trim() || undefined,
+        logo_url: logo.trim() || undefined,
+        sort_order: Number.parseInt(sortOrder, 10) || 100,
+      }),
+    onSuccess: async () => {
+      resetForm();
+      await queryClient.invalidateQueries({ queryKey: marketplaceQueryKeys.all });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: () => {
+      if (!editing) throw new Error("No supplier selected");
+      return marketplaceAdminService.updateSupplier(editing.id, {
+        name: name.trim(),
+        slug: slug.trim(),
+        website_url: website.trim() || null,
+        logo_url: logo.trim() || null,
+        sort_order: Number.parseInt(sortOrder, 10) || 0,
+      });
+    },
+    onSuccess: async () => {
+      resetForm();
+      await queryClient.invalidateQueries({ queryKey: marketplaceQueryKeys.all });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => marketplaceAdminService.deleteSupplier(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: marketplaceQueryKeys.all });
+    },
+  });
+
+  const startEdit = (s: MarketplaceSupplier) => {
+    setEditing(s);
+    setName(s.name);
+    setSlug(s.slug);
+    setWebsite(s.website_url ?? "");
+    setLogo(s.logo_url ?? "");
+    setSortOrder(String(s.sort_order ?? 100));
+  };
+
+  const submit = () => {
+    if (editing) updateMutation.mutate();
+    else createMutation.mutate();
+  };
+
+  const busy = createMutation.isPending || updateMutation.isPending;
 
   return (
     <AppShell title="Providers">
-      <div className="space-y-6 p-6">
-
-        {/* KPI row */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <StatCard label="Total providers"  value={String(providers.length)} delta="+2 this quarter" icon={Building2} spark={[6,7,7,8,8,8,8,8,8,8]} />
-          <StatCard label="Active"           value={String(active)}           delta="Operational"      icon={CheckCircle2} spark={[5,6,6,6,6,6,6,6,6,6]} />
-          <StatCard label="Fleet vehicles"   value={totalVehicles.toLocaleString()} delta="+840 added" icon={Car} spark={[14000,15000,15400,16200,16800,17200,17600,17900,18100,18420]} />
-          <StatCard label="Avg fill rate"    value="88.2%"                    delta="+1.4%"           icon={TrendingUp} spark={[82,83,84,84,85,86,86,87,87,88]} />
+      <div className="space-y-8 p-6">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Partner marketplace</h2>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Suppliers listed here power the public logo rail on the home page. Changes apply immediately after
+            save (TanStack cache + Postgres).
+          </p>
+          {!isAdmin ? (
+            <p className="mt-2 text-sm text-amber-200/90">
+              Only administrators can create or edit partners. You can still review the live catalog below.
+            </p>
+          ) : null}
         </div>
 
-        {/* Search / filter bar */}
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <input
-              placeholder="Search providers…"
-              className="h-8 w-64 rounded-md border border-border bg-surface pl-8 pr-3 text-sm focus:outline-none"
-            />
-          </div>
-          <button className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs hover:bg-surface-2">
-            <Filter className="h-3.5 w-3.5" /> All tiers
-          </button>
-          <button className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs hover:bg-surface-2">
-            All regions
-          </button>
-          {degraded > 0 && (
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-warning/20 bg-warning/10 px-2.5 py-1.5 text-xs text-warning">
-              <AlertTriangle className="h-3 w-3" />
-              {degraded} degraded
-            </span>
-          )}
-          <div className="ml-auto">
-            <button className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90">
-              <Plus className="h-3.5 w-3.5" /> Add provider
-            </button>
-          </div>
-        </div>
-
-        {/* Provider grid */}
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {providers.map((p) => (
-            <ProviderCard key={p.id} provider={p} />
-          ))}
-        </div>
-
-        {/* Performance table */}
-        <Panel>
-          <PanelHeader
-            title="Performance benchmarks"
-            subtitle="SLA scoring and fill rate trends"
-            right={
-              <button className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-                Export <ArrowUpRight className="h-3 w-3" />
+        {isAdmin ? (
+          <Panel className="p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-sm font-semibold text-foreground">
+                {editing ? "Edit partner" : "Add partner"}
+              </h3>
+              {editing ? (
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                  onClick={resetForm}
+                >
+                  Cancel edit
+                </button>
+              ) : null}
+            </div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <label className="block text-xs font-medium text-muted-foreground">
+                Display name
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="mt-1.5 flex h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground shadow-sm focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="e.g. National Car Rental"
+                />
+              </label>
+              <label className="block text-xs font-medium text-muted-foreground">
+                Slug (optional — auto-generated from name)
+                <input
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  className="mt-1.5 flex h-11 w-full rounded-lg border border-border bg-surface px-3 font-mono text-sm text-foreground shadow-sm focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="national"
+                />
+              </label>
+              <label className="block text-xs font-medium text-muted-foreground">
+                Website URL
+                <input
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  className="mt-1.5 flex h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground shadow-sm focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="https://www.example.com"
+                />
+              </label>
+              <label className="block text-xs font-medium text-muted-foreground">
+                Logo URL (square favicon or brand asset)
+                <input
+                  value={logo}
+                  onChange={(e) => setLogo(e.target.value)}
+                  className="mt-1.5 flex h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground shadow-sm focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="https://…/logo.png"
+                />
+              </label>
+              <label className="block text-xs font-medium text-muted-foreground sm:col-span-2">
+                Sort order (lower appears first in API lists)
+                <input
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  className="mt-1.5 flex h-11 w-full max-w-xs rounded-lg border border-border bg-surface px-3 text-sm text-foreground shadow-sm focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </label>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={busy || !name.trim()}
+                onClick={() => submit()}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                <Plus className="h-4 w-4" />
+                {editing ? "Save changes" : "Add partner"}
               </button>
-            }
-          />
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                <th className="px-5 py-2.5">Provider</th>
-                <th className="px-3 py-2.5">Tier</th>
-                <th className="px-3 py-2.5">Fill rate</th>
-                <th className="px-3 py-2.5">SLA score</th>
-                <th className="px-3 py-2.5">Vehicles</th>
-                <th className="px-3 py-2.5">Locations</th>
-                <th className="px-3 py-2.5">Rev. / mo</th>
-                <th className="px-3 py-2.5">Status</th>
-                <th className="px-5 py-2.5" />
-              </tr>
-            </thead>
-            <tbody>
-              {providers.map((p) => (
-                <tr key={p.id} className="border-t border-border hover:bg-surface-2">
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="grid h-8 w-8 place-items-center rounded-md border border-border bg-surface-2">
-                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-foreground">{p.name}</div>
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <MapPin className="h-2.5 w-2.5" />
-                          {p.locations} locations
+            </div>
+          </Panel>
+        ) : null}
+
+        <Panel className="overflow-hidden p-0">
+          <div className="border-b border-border px-6 py-4">
+            <h3 className="text-sm font-semibold">Catalog ({suppliersQuery.data?.length ?? "…"})</h3>
+          </div>
+          {suppliersQuery.isLoading ? (
+            <div className="p-6 text-sm text-muted-foreground">Loading suppliers…</div>
+          ) : suppliersQuery.isError ? (
+            <div className="p-6">
+              <EmptyState
+                icon={Building2}
+                title="Could not load suppliers"
+                description="Confirm the API is running and you are authenticated."
+              />
+            </div>
+          ) : !suppliersQuery.data?.length ? (
+            <div className="p-6">
+              <EmptyState
+                icon={Building2}
+                title="No suppliers yet"
+                description="Seed the catalog or add partners above (admin)."
+              />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead className="border-b border-border bg-surface-2/60 text-xs uppercase tracking-wide text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3">Partner</th>
+                    <th className="px-4 py-3">Slug</th>
+                    <th className="px-4 py-3">Order</th>
+                    <th className="px-4 py-3">Site</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {suppliersQuery.data.map((s) => (
+                    <tr key={s.id} className="border-b border-border/60 hover:bg-surface-2/40">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {s.logo_url ? (
+                            <img
+                              src={s.logo_url}
+                              alt=""
+                              className="h-9 w-[100px] object-contain"
+                            />
+                          ) : (
+                            <Badge tone="neutral">{s.name.slice(0, 2).toUpperCase()}</Badge>
+                          )}
+                          <span className="font-medium text-foreground">{s.name}</span>
                         </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-3 py-3">
-                    <Badge tone={TIER_TONE[p.tier]}>{p.tier}</Badge>
-                  </td>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-2">
-                      <ProgressBar value={p.fillRateValue} className="w-20" />
-                      <span className="text-xs text-foreground">{p.fillRate}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-2">
-                      <ProgressBar value={p.slaScore ?? 0} className="w-16" />
-                      <span className="text-xs text-foreground">{p.slaScore}</span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-3 text-foreground">{p.vehicleCount.toLocaleString()}</td>
-                  <td className="px-3 py-3">
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                      <Globe className="h-3 w-3" />
-                      {p.locations}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 font-medium text-foreground">{p.monthlyRevenue}</td>
-                  <td className="px-3 py-3">
-                    <Badge tone={p.status === "active" ? "success" : "warning"}>
-                      {p.status === "active" ? "Active" : "Degraded"}
-                    </Badge>
-                  </td>
-                  <td className="px-5 py-3 text-right">
-                    <button className="text-muted-foreground hover:text-foreground">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{s.slug}</td>
+                      <td className="px-4 py-3">{s.sort_order}</td>
+                      <td className="px-4 py-3">
+                        {s.website_url ? (
+                          <a
+                            href={s.website_url}
+                            className="text-primary hover:underline"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Open
+                          </a>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {isAdmin ? (
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-surface-2"
+                              onClick={() => startEdit(s)}
+                            >
+                              <Pencil className="h-3.5 w-3.5" /> Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-1 rounded-md border border-destructive/40 px-2 py-1 text-xs text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                              disabled={deleteMutation.isPending}
+                              onClick={() => {
+                                if (window.confirm(`Delete ${s.name} from the catalog?`)) {
+                                  deleteMutation.mutate(s.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">View only</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Panel>
+
+        <p className="text-center text-xs text-muted-foreground">
+          Public site:{" "}
+          <Link to="/" className="text-primary hover:underline">
+            Home page partner strip
+          </Link>
+        </p>
       </div>
     </AppShell>
-  );
-}
-
-function ProviderCard({ provider: p }: { provider: Provider }) {
-  return (
-    <div className="group rounded-xl border border-border bg-surface p-5 transition hover:border-border-strong hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/30">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-lg border border-border bg-surface-2">
-            <Building2 className="h-4.5 w-4.5 text-muted-foreground" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm font-semibold text-foreground">{p.name}</span>
-              <Badge tone={TIER_TONE[p.tier]}>{p.tier}</Badge>
-            </div>
-            <div className="text-[11px] text-muted-foreground">
-              {p.vehicleCount.toLocaleString()} vehicles
-            </div>
-          </div>
-        </div>
-        {p.status === "degraded" && (
-          <AlertTriangle className="h-4 w-4 text-warning" />
-        )}
-      </div>
-
-      <div className="mt-4 grid grid-cols-3 gap-2">
-        <MetricWidget label="Fill rate" value={p.fillRate} tone={p.fillRateValue >= 90 ? "success" : p.fillRateValue >= 80 ? "neutral" : "warning"} />
-        <MetricWidget label="Rating"    value={`${p.rating}★`} tone="neutral" />
-        <MetricWidget label="Locations" value={p.locations}  tone="neutral" />
-      </div>
-
-      <div className="mt-4">
-        <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
-          <span>Fill rate</span>
-          <span>{p.fillRate}</span>
-        </div>
-        <ProgressBar value={p.fillRateValue} tone={p.fillRateValue >= 90 ? "success" : "primary"} />
-      </div>
-
-      <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Star className="h-3 w-3 fill-primary text-primary" />
-          <span className="text-foreground">{p.rating}</span>
-          <span className="text-muted-foreground">·</span>
-          <span>{p.monthlyRevenue}/mo</span>
-        </div>
-        <button className="text-xs font-medium text-primary hover:underline">
-          View details
-        </button>
-      </div>
-    </div>
   );
 }

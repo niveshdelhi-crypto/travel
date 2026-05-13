@@ -6,9 +6,17 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "npm run dev:full",
+    "dev:web": "vite",
+    "dev:api": "npm --prefix apps/api run start:dev",
+    "dev:full": "concurrently -n api,web -c magenta,cyan \"npm run dev:api\" \"wait-on -t 120000 tcp:127.0.0.1:4000 && npm run dev:web\"",
     "build": "vite build",
     "preview": "vite preview",
+    "test:api": "npm --prefix apps/api run test:api",
+    "test:e2e": "npm --prefix apps/web run test:e2e",
+    "test:load:leads": "k6 run tests/load/lead-submissions.k6.js",
+    "test:load:auth": "k6 run tests/load/auth-bursts.k6.js",
+    "test:load:ws": "k6 run tests/load/websocket-connections.k6.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "type-check": "tsc --noEmit"
@@ -45,6 +53,7 @@
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-router": "^1.168.25",
     "@tanstack/router-plugin": "^1.167.28",
+    "@types/react-datepicker": "^6.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -54,6 +63,7 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.575.0",
     "react": "^19.2.0",
+    "react-datepicker": "^9.1.0",
     "react-day-picker": "^9.14.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.2",
@@ -75,6 +85,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.6",
@@ -84,6 +95,7 @@
     "prettier": "^3.7.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^7.3.3"
+    "vite": "^7.3.3",
+    "wait-on": "^8.0.3"
   }
 }

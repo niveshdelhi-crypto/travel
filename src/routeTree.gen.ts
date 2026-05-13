@@ -9,13 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsAndConditionsRouteImport } from './routes/terms-and-conditions'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SalesRouteImport } from './routes/sales'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as PaymentRouteImport } from './routes/payment'
+import { Route as OperationsRouteImport } from './routes/operations'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as HelpCenterRouteImport } from './routes/help-center'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CountriesRouteImport } from './routes/countries'
 import { Route as ConfirmationRouteImport } from './routes/confirmation'
+import { Route as ConditionsRouteImport } from './routes/conditions'
 import { Route as BookingRouteImport } from './routes/booking'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as CountriesCountrySlugRouteImport } from './routes/countries.$countrySlug'
+import { Route as BookingSuccessRouteImport } from './routes/booking.success'
+import { Route as BookingDetailsRouteImport } from './routes/booking.details'
+import { Route as BookingCheckoutRouteImport } from './routes/booking.checkout'
 import { Route as AppTeamRouteImport } from './routes/app.team'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppProvidersRouteImport } from './routes/app.providers'
@@ -26,11 +40,28 @@ import { Route as AppCallsRouteImport } from './routes/app.calls'
 import { Route as AppBookingsRouteImport } from './routes/app.bookings'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 import { Route as AppAdminRouteImport } from './routes/app.admin'
+import { Route as CarRentalCitySlugRouteImport } from './routes/car-rental.city.$slug'
+import { Route as CarRentalAirportSlugRouteImport } from './routes/car-rental.airport.$slug'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
 
+const TermsAndConditionsRoute = TermsAndConditionsRouteImport.update({
+  id: '/terms-and-conditions',
+  path: '/terms-and-conditions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalesRoute = SalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PaymentRoute = PaymentRouteImport.update({
@@ -38,9 +69,39 @@ const PaymentRoute = PaymentRouteImport.update({
   path: '/payment',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OperationsRoute = OperationsRouteImport.update({
+  id: '/operations',
+  path: '/operations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpCenterRoute = HelpCenterRouteImport.update({
+  id: '/help-center',
+  path: '/help-center',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CountriesRoute = CountriesRouteImport.update({
+  id: '/countries',
+  path: '/countries',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConfirmationRoute = ConfirmationRouteImport.update({
   id: '/confirmation',
   path: '/confirmation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConditionsRoute = ConditionsRouteImport.update({
+  id: '/conditions',
+  path: '/conditions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookingRoute = BookingRouteImport.update({
@@ -53,6 +114,11 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -62,6 +128,26 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const CountriesCountrySlugRoute = CountriesCountrySlugRouteImport.update({
+  id: '/$countrySlug',
+  path: '/$countrySlug',
+  getParentRoute: () => CountriesRoute,
+} as any)
+const BookingSuccessRoute = BookingSuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => BookingRoute,
+} as any)
+const BookingDetailsRoute = BookingDetailsRouteImport.update({
+  id: '/details',
+  path: '/details',
+  getParentRoute: () => BookingRoute,
+} as any)
+const BookingCheckoutRoute = BookingCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => BookingRoute,
 } as any)
 const AppTeamRoute = AppTeamRouteImport.update({
   id: '/team',
@@ -113,6 +199,16 @@ const AppAdminRoute = AppAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AppRoute,
 } as any)
+const CarRentalCitySlugRoute = CarRentalCitySlugRouteImport.update({
+  id: '/car-rental/city/$slug',
+  path: '/car-rental/city/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarRentalAirportSlugRoute = CarRentalAirportSlugRouteImport.update({
+  id: '/car-rental/airport/$slug',
+  path: '/car-rental/airport/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   id: '/$leadId',
   path: '/$leadId',
@@ -121,11 +217,21 @@ const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/app': typeof AppRouteWithChildren
-  '/booking': typeof BookingRoute
+  '/booking': typeof BookingRouteWithChildren
+  '/conditions': typeof ConditionsRoute
   '/confirmation': typeof ConfirmationRoute
+  '/countries': typeof CountriesRouteWithChildren
+  '/dashboard': typeof DashboardRoute
+  '/help-center': typeof HelpCenterRoute
+  '/login': typeof LoginRoute
+  '/operations': typeof OperationsRoute
   '/payment': typeof PaymentRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/sales': typeof SalesRoute
   '/search': typeof SearchRoute
+  '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/app/admin': typeof AppAdminRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/bookings': typeof AppBookingsRoute
@@ -136,15 +242,31 @@ export interface FileRoutesByFullPath {
   '/app/providers': typeof AppProvidersRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/team': typeof AppTeamRoute
+  '/booking/checkout': typeof BookingCheckoutRoute
+  '/booking/details': typeof BookingDetailsRoute
+  '/booking/success': typeof BookingSuccessRoute
+  '/countries/$countrySlug': typeof CountriesCountrySlugRoute
   '/app/': typeof AppIndexRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/car-rental/airport/$slug': typeof CarRentalAirportSlugRoute
+  '/car-rental/city/$slug': typeof CarRentalCitySlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/booking': typeof BookingRoute
+  '/admin': typeof AdminRoute
+  '/booking': typeof BookingRouteWithChildren
+  '/conditions': typeof ConditionsRoute
   '/confirmation': typeof ConfirmationRoute
+  '/countries': typeof CountriesRouteWithChildren
+  '/dashboard': typeof DashboardRoute
+  '/help-center': typeof HelpCenterRoute
+  '/login': typeof LoginRoute
+  '/operations': typeof OperationsRoute
   '/payment': typeof PaymentRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/sales': typeof SalesRoute
   '/search': typeof SearchRoute
+  '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/app/admin': typeof AppAdminRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/bookings': typeof AppBookingsRoute
@@ -155,17 +277,33 @@ export interface FileRoutesByTo {
   '/app/providers': typeof AppProvidersRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/team': typeof AppTeamRoute
+  '/booking/checkout': typeof BookingCheckoutRoute
+  '/booking/details': typeof BookingDetailsRoute
+  '/booking/success': typeof BookingSuccessRoute
+  '/countries/$countrySlug': typeof CountriesCountrySlugRoute
   '/app': typeof AppIndexRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/car-rental/airport/$slug': typeof CarRentalAirportSlugRoute
+  '/car-rental/city/$slug': typeof CarRentalCitySlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/app': typeof AppRouteWithChildren
-  '/booking': typeof BookingRoute
+  '/booking': typeof BookingRouteWithChildren
+  '/conditions': typeof ConditionsRoute
   '/confirmation': typeof ConfirmationRoute
+  '/countries': typeof CountriesRouteWithChildren
+  '/dashboard': typeof DashboardRoute
+  '/help-center': typeof HelpCenterRoute
+  '/login': typeof LoginRoute
+  '/operations': typeof OperationsRoute
   '/payment': typeof PaymentRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/sales': typeof SalesRoute
   '/search': typeof SearchRoute
+  '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/app/admin': typeof AppAdminRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/bookings': typeof AppBookingsRoute
@@ -176,18 +314,34 @@ export interface FileRoutesById {
   '/app/providers': typeof AppProvidersRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/team': typeof AppTeamRoute
+  '/booking/checkout': typeof BookingCheckoutRoute
+  '/booking/details': typeof BookingDetailsRoute
+  '/booking/success': typeof BookingSuccessRoute
+  '/countries/$countrySlug': typeof CountriesCountrySlugRoute
   '/app/': typeof AppIndexRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/car-rental/airport/$slug': typeof CarRentalAirportSlugRoute
+  '/car-rental/city/$slug': typeof CarRentalCitySlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/app'
     | '/booking'
+    | '/conditions'
     | '/confirmation'
+    | '/countries'
+    | '/dashboard'
+    | '/help-center'
+    | '/login'
+    | '/operations'
     | '/payment'
+    | '/privacy-policy'
+    | '/sales'
     | '/search'
+    | '/terms-and-conditions'
     | '/app/admin'
     | '/app/analytics'
     | '/app/bookings'
@@ -198,15 +352,31 @@ export interface FileRouteTypes {
     | '/app/providers'
     | '/app/settings'
     | '/app/team'
+    | '/booking/checkout'
+    | '/booking/details'
+    | '/booking/success'
+    | '/countries/$countrySlug'
     | '/app/'
     | '/app/leads/$leadId'
+    | '/car-rental/airport/$slug'
+    | '/car-rental/city/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/booking'
+    | '/conditions'
     | '/confirmation'
+    | '/countries'
+    | '/dashboard'
+    | '/help-center'
+    | '/login'
+    | '/operations'
     | '/payment'
+    | '/privacy-policy'
+    | '/sales'
     | '/search'
+    | '/terms-and-conditions'
     | '/app/admin'
     | '/app/analytics'
     | '/app/bookings'
@@ -217,16 +387,32 @@ export interface FileRouteTypes {
     | '/app/providers'
     | '/app/settings'
     | '/app/team'
+    | '/booking/checkout'
+    | '/booking/details'
+    | '/booking/success'
+    | '/countries/$countrySlug'
     | '/app'
     | '/app/leads/$leadId'
+    | '/car-rental/airport/$slug'
+    | '/car-rental/city/$slug'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/app'
     | '/booking'
+    | '/conditions'
     | '/confirmation'
+    | '/countries'
+    | '/dashboard'
+    | '/help-center'
+    | '/login'
+    | '/operations'
     | '/payment'
+    | '/privacy-policy'
+    | '/sales'
     | '/search'
+    | '/terms-and-conditions'
     | '/app/admin'
     | '/app/analytics'
     | '/app/bookings'
@@ -237,26 +423,65 @@ export interface FileRouteTypes {
     | '/app/providers'
     | '/app/settings'
     | '/app/team'
+    | '/booking/checkout'
+    | '/booking/details'
+    | '/booking/success'
+    | '/countries/$countrySlug'
     | '/app/'
     | '/app/leads/$leadId'
+    | '/car-rental/airport/$slug'
+    | '/car-rental/city/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   AppRoute: typeof AppRouteWithChildren
-  BookingRoute: typeof BookingRoute
+  BookingRoute: typeof BookingRouteWithChildren
+  ConditionsRoute: typeof ConditionsRoute
   ConfirmationRoute: typeof ConfirmationRoute
+  CountriesRoute: typeof CountriesRouteWithChildren
+  DashboardRoute: typeof DashboardRoute
+  HelpCenterRoute: typeof HelpCenterRoute
+  LoginRoute: typeof LoginRoute
+  OperationsRoute: typeof OperationsRoute
   PaymentRoute: typeof PaymentRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  SalesRoute: typeof SalesRoute
   SearchRoute: typeof SearchRoute
+  TermsAndConditionsRoute: typeof TermsAndConditionsRoute
+  CarRentalAirportSlugRoute: typeof CarRentalAirportSlugRoute
+  CarRentalCitySlugRoute: typeof CarRentalCitySlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms-and-conditions': {
+      id: '/terms-and-conditions'
+      path: '/terms-and-conditions'
+      fullPath: '/terms-and-conditions'
+      preLoaderRoute: typeof TermsAndConditionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sales': {
+      id: '/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof SalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/payment': {
@@ -266,11 +491,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/operations': {
+      id: '/operations'
+      path: '/operations'
+      fullPath: '/operations'
+      preLoaderRoute: typeof OperationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help-center': {
+      id: '/help-center'
+      path: '/help-center'
+      fullPath: '/help-center'
+      preLoaderRoute: typeof HelpCenterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/countries': {
+      id: '/countries'
+      path: '/countries'
+      fullPath: '/countries'
+      preLoaderRoute: typeof CountriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/confirmation': {
       id: '/confirmation'
       path: '/confirmation'
       fullPath: '/confirmation'
       preLoaderRoute: typeof ConfirmationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conditions': {
+      id: '/conditions'
+      path: '/conditions'
+      fullPath: '/conditions'
+      preLoaderRoute: typeof ConditionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/booking': {
@@ -287,6 +554,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -300,6 +574,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/countries/$countrySlug': {
+      id: '/countries/$countrySlug'
+      path: '/$countrySlug'
+      fullPath: '/countries/$countrySlug'
+      preLoaderRoute: typeof CountriesCountrySlugRouteImport
+      parentRoute: typeof CountriesRoute
+    }
+    '/booking/success': {
+      id: '/booking/success'
+      path: '/success'
+      fullPath: '/booking/success'
+      preLoaderRoute: typeof BookingSuccessRouteImport
+      parentRoute: typeof BookingRoute
+    }
+    '/booking/details': {
+      id: '/booking/details'
+      path: '/details'
+      fullPath: '/booking/details'
+      preLoaderRoute: typeof BookingDetailsRouteImport
+      parentRoute: typeof BookingRoute
+    }
+    '/booking/checkout': {
+      id: '/booking/checkout'
+      path: '/checkout'
+      fullPath: '/booking/checkout'
+      preLoaderRoute: typeof BookingCheckoutRouteImport
+      parentRoute: typeof BookingRoute
     }
     '/app/team': {
       id: '/app/team'
@@ -371,6 +673,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAdminRouteImport
       parentRoute: typeof AppRoute
     }
+    '/car-rental/city/$slug': {
+      id: '/car-rental/city/$slug'
+      path: '/car-rental/city/$slug'
+      fullPath: '/car-rental/city/$slug'
+      preLoaderRoute: typeof CarRentalCitySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/car-rental/airport/$slug': {
+      id: '/car-rental/airport/$slug'
+      path: '/car-rental/airport/$slug'
+      fullPath: '/car-rental/airport/$slug'
+      preLoaderRoute: typeof CarRentalAirportSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/leads/$leadId': {
       id: '/app/leads/$leadId'
       path: '/$leadId'
@@ -423,13 +739,52 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface BookingRouteChildren {
+  BookingCheckoutRoute: typeof BookingCheckoutRoute
+  BookingDetailsRoute: typeof BookingDetailsRoute
+  BookingSuccessRoute: typeof BookingSuccessRoute
+}
+
+const BookingRouteChildren: BookingRouteChildren = {
+  BookingCheckoutRoute: BookingCheckoutRoute,
+  BookingDetailsRoute: BookingDetailsRoute,
+  BookingSuccessRoute: BookingSuccessRoute,
+}
+
+const BookingRouteWithChildren =
+  BookingRoute._addFileChildren(BookingRouteChildren)
+
+interface CountriesRouteChildren {
+  CountriesCountrySlugRoute: typeof CountriesCountrySlugRoute
+}
+
+const CountriesRouteChildren: CountriesRouteChildren = {
+  CountriesCountrySlugRoute: CountriesCountrySlugRoute,
+}
+
+const CountriesRouteWithChildren = CountriesRoute._addFileChildren(
+  CountriesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   AppRoute: AppRouteWithChildren,
-  BookingRoute: BookingRoute,
+  BookingRoute: BookingRouteWithChildren,
+  ConditionsRoute: ConditionsRoute,
   ConfirmationRoute: ConfirmationRoute,
+  CountriesRoute: CountriesRouteWithChildren,
+  DashboardRoute: DashboardRoute,
+  HelpCenterRoute: HelpCenterRoute,
+  LoginRoute: LoginRoute,
+  OperationsRoute: OperationsRoute,
   PaymentRoute: PaymentRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
+  SalesRoute: SalesRoute,
   SearchRoute: SearchRoute,
+  TermsAndConditionsRoute: TermsAndConditionsRoute,
+  CarRentalAirportSlugRoute: CarRentalAirportSlugRoute,
+  CarRentalCitySlugRoute: CarRentalCitySlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

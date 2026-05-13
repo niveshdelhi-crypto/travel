@@ -5,7 +5,7 @@
 
 // ─── Auth & RBAC ────────────────────────────────────────────
 
-export type UserRole = "admin" | "sales_manager" | "sales_agent" | "support";
+export type UserRole = "admin" | "sales_agent";
 
 export interface User {
   id: string;
@@ -16,6 +16,8 @@ export interface User {
   initials: string;
   status: AgentStatus;
   teamId?: string;
+  isActive?: boolean;
+  createdAt?: string;
 }
 
 export interface AuthState {
@@ -303,11 +305,14 @@ export interface SearchFilters {
 // ─── Socket Events ────────────────────────────────────────────
 
 export interface SocketEvents {
-  "lead:updated": { leadId: string; changes: Partial<Lead> };
-  "call:started": { call: ActiveCall };
-  "call:ended": { callId: string };
-  "call:status_changed": { callId: string; status: CallStatus };
-  "notification:new": { notification: Notification };
-  "agent:status_changed": { agentId: string; status: AgentStatus };
-  "metric:updated": { key: string; value: number };
+  "lead.created": unknown;
+  "lead.assigned": unknown;
+  "lead.updated": unknown;
+  "lead.deleted": { id?: string };
+  "lead.note.created": unknown;
+  "metrics.changed": unknown;
+  "notification.created": { type?: string; leadId?: string; message?: string };
+  "call.started": { call: ActiveCall };
+  "call.ended": { callId: string };
+  "call.status_changed": { callId: string; status: CallStatus };
 }

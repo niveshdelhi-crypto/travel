@@ -357,3 +357,23 @@ export function SectionHeader({
     </div>
   );
 }
+
+// ─── Glass Card ───────────────────────────────────────────────
+
+export function GlassCard({
+  className = "",
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl transition-all hover:border-white/20 ${className}`}
+    >
+      {/* Glossy Gradient Overlay */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/5" />
+      <div className="relative z-10">{children}</div>
+    </div>
+  );
+}

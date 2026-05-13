@@ -22,23 +22,10 @@ const initialState: AuthState = {
   isLoading: false,
 };
 
-// Seed user for development
-const DEV_USER: User = {
-  id: "usr_dev_001",
-  name: "Alex Kim",
-  email: "alex.kim@fleetnexus.io",
-  role: "sales_manager",
-  initials: "AK",
-  status: "available",
-};
-
 export const useAuthStore = create<AuthState & AuthActions>()(
   persist(
     (set, get) => ({
       ...initialState,
-      // Seed with a dev user so the UI renders without a real backend
-      user: DEV_USER,
-      isAuthenticated: true,
 
       setUser: (user) =>
         set({ user, isAuthenticated: user !== null }),
@@ -64,8 +51,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({
         user: s.user,
-        accessToken: s.accessToken,
-        refreshToken: s.refreshToken,
         isAuthenticated: s.isAuthenticated,
       }),
     },

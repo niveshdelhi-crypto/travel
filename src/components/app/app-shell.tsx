@@ -1,9 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { Brand } from "@/components/brand";
 import { useAuthStore } from "@/store/auth.store";
 import { useNotificationStore } from "@/store/notifications.store";
 import { useCallStore } from "@/store/call.store";
+import { authService } from "@/services";
+import { disconnectSocket } from "@/services/socket";
 import { StatusDot } from "@/components/app/primitives";
 import {
   LayoutDashboard,
@@ -26,6 +30,7 @@ import {
   ShieldCheck,
   PhoneCall,
   X,
+  LogOut,
 } from "lucide-react";
 
 const navSections = [
@@ -76,10 +81,22 @@ export function AppShell({
   const [statusOpen, setStatusOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
 
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const path      = useRouterState({ select: (s) => s.location.pathname });
   const user      = useAuthStore((s) => s.user);
+  const signOutStore = useAuthStore((s) => s.signOut);
   const unread    = useNotificationStore((s) => s.unreadCount);
   const activeCall = useCallStore((s) => s.activeCall);
+  const logoutMutation = useMutation({
+    mutationFn: authService.signOut,
+    onSettled: async () => {
+      signOutStore();
+      disconnectSocket();
+      queryClient.clear();
+      await navigate({ to: "/login", replace: true });
+    },
+  });
 
   useEffect(() => {
     try { localStorage.setItem("fn_sidebar_collapsed", String(collapsed)); }
@@ -157,7 +174,9 @@ export function AppShell({
                 </div>
               )}
               <ul className="space-y-0.5">
-                {section.items.map((n) => {
+                {section.items
+                  .filter((n) => n.to !== "/app/admin" || user?.role === "admin")
+                  .map((n) => {
                   const active =
                     path === n.to || (n.to !== "/app" && path.startsWith(n.to));
                   return (
@@ -304,6 +323,14 @@ export function AppShell({
                 {user?.initials ?? "??"}
               </span>
               <ChevronDown className="hidden h-3 w-3 text-muted-foreground md:block" />
+            </button>
+            <button
+              onClick={() => logoutMutation.mutate()}
+              disabled={logoutMutation.isPending}
+              className="grid h-9 w-9 place-items-center rounded-md border border-border bg-surface text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+              aria-label="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
             </button>
           </div>
         </header>

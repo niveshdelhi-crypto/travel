@@ -5,7 +5,7 @@ import suvImg from "@/assets/car-suv.jpg";
 import sedanImg from "@/assets/car-sedan.jpg";
 import sportsImg from "@/assets/car-sports.jpg";
 import evImg from "@/assets/car-ev.jpg";
-import { Fuel, Users, Cog, MapPin, Star, Plane, Filter, Map } from "lucide-react";
+import { Fuel, Users, Cog, MapPin, Star, Plane, Filter, Map as MapIcon } from "lucide-react";
 
 export const Route = createFileRoute("/search")({
     component: SearchPage,
@@ -54,7 +54,7 @@ function SearchPage() {
         <main className="lg:col-span-9">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-foreground">{cars.length * 47} vehicles available</h2>
-            <button className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-2"><Map className="h-3.5 w-3.5" /> Show map</button>
+            <button className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-2"><MapIcon className="h-3.5 w-3.5" /> Show map</button>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {cars.map((c) => (

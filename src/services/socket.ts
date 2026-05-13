@@ -5,7 +5,7 @@
 // ============================================================
 
 import { io, Socket } from "socket.io-client";
-import { SOCKET_URL, SOCKET_RECONNECT_ATTEMPTS, STORAGE_KEYS } from "@/constants";
+import { SOCKET_URL, SOCKET_RECONNECT_ATTEMPTS } from "@/constants";
 import type { SocketEvents } from "@/types";
 
 type SocketEvent = keyof SocketEvents;
@@ -15,10 +15,8 @@ let socket: Socket | null = null;
 
 function getSocket(): Socket {
   if (!socket || !socket.connected) {
-    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-
     socket = io(SOCKET_URL, {
-      auth: { token },
+      withCredentials: true,
       reconnectionAttempts: SOCKET_RECONNECT_ATTEMPTS,
       reconnectionDelay: 1_000,
       reconnectionDelayMax: 5_000,

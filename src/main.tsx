@@ -19,7 +19,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const router = getRouter();
+const router = getRouter(queryClient);
 
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Root element #root not found");
