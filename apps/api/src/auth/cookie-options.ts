@@ -1,17 +1,27 @@
 import type { CookieOptions } from "express";
 
-type CookieConfig = {
+type SameSiteMode = "lax" | "strict" | "none";
+
+export type CookieConfig = {
   nodeEnv: string;
   domain?: string;
   accessTtlSeconds: number;
   refreshTtlDays: number;
+  /** Cross-origin SPA (different site than API): use `"none"` with HTTPS. */
+  sameSite?: SameSiteMode;
 };
 
+function resolveSameSite(config: Pick<CookieConfig, "sameSite">): SameSiteMode {
+  return config.sameSite ?? "lax";
+}
+
 function baseCookie(config: CookieConfig): CookieOptions {
+  const sameSite = resolveSameSite(config);
+  const production = config.nodeEnv === "production";
   return {
     httpOnly: true,
-    secure: config.nodeEnv === "production",
-    sameSite: "lax",
+    secure: sameSite === "none" ? true : production,
+    sameSite,
     domain: config.domain || undefined,
   };
 }
@@ -32,11 +42,13 @@ export function refreshCookieOptions(config: CookieConfig): CookieOptions {
   };
 }
 
-export function csrfCookieOptions(config: Pick<CookieConfig, "nodeEnv" | "domain">): CookieOptions {
+export function csrfCookieOptions(config: Pick<CookieConfig, "nodeEnv" | "domain" | "sameSite">): CookieOptions {
+  const sameSite = resolveSameSite(config);
+  const production = config.nodeEnv === "production";
   return {
     httpOnly: false,
-    secure: config.nodeEnv === "production",
-    sameSite: "lax",
+    secure: sameSite === "none" ? true : production,
+    sameSite,
     path: "/",
     domain: config.domain || undefined,
   };

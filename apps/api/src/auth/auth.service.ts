@@ -6,7 +6,12 @@ import { randomBytes, randomUUID } from "crypto";
 import { Request, Response } from "express";
 import { PrismaService } from "../prisma/prisma.service";
 import { UsersService } from "../users/users.service";
-import { accessCookieOptions, csrfCookieOptions, refreshCookieOptions } from "./cookie-options";
+import {
+  accessCookieOptions,
+  csrfCookieOptions,
+  refreshCookieOptions,
+  type CookieConfig,
+} from "./cookie-options";
 import type { LoginDto } from "./dto/login.dto";
 import type { AuthenticatedUser } from "./types/authenticated-user";
 
@@ -220,12 +225,19 @@ export class AuthService {
     return this.config.get<number>("REFRESH_TOKEN_TTL_DAYS", 30);
   }
 
-  private get cookieConfig() {
+  private get cookieConfig(): CookieConfig {
+    const sameSiteRaw = this.config.get<string>("COOKIE_SAME_SITE")?.trim().toLowerCase();
+    const parsedSameSite =
+      sameSiteRaw === "none" || sameSiteRaw === "strict" || sameSiteRaw === "lax"
+        ? sameSiteRaw
+        : undefined;
+
     return {
       nodeEnv: this.config.get<string>("NODE_ENV", "development"),
       domain: this.config.get<string>("COOKIE_DOMAIN") || undefined,
       accessTtlSeconds: this.accessTtlSeconds,
       refreshTtlDays: this.refreshTtlDays,
+      ...(parsedSameSite !== undefined ? { sameSite: parsedSameSite } : {}),
     };
   }
 }
