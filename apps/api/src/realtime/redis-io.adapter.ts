@@ -12,7 +12,8 @@ export class RedisIoAdapter extends IoAdapter {
   private subClient?: RedisClientType;
 
   async connectToRedis(config: ConfigService) {
-    const redisUrl = config.get<string>("REDIS_URL");
+    const redisUrlRaw = config.get<string>("REDIS_URL");
+    const redisUrl = redisUrlRaw?.trim();
 
     if (!redisUrl || redisUrl.startsWith("YOUR_")) {
       this.logger.warn(

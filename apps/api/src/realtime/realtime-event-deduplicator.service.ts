@@ -14,7 +14,8 @@ export class RealtimeEventDeduplicator implements OnModuleInit, OnModuleDestroy 
   constructor(private readonly config: ConfigService) {}
 
   async onModuleInit() {
-    const redisUrl = this.config.get<string>("REDIS_URL");
+    const redisUrlRaw = this.config.get<string>("REDIS_URL");
+    const redisUrl = redisUrlRaw?.trim();
     if (!redisUrl || redisUrl.startsWith("YOUR_")) {
       this.logger.warn(
         JSON.stringify({
