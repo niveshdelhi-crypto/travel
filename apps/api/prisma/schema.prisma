@@ -1,0 +1,239 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  sales_agent
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  NEGOTIATING
+  CONFIRMED
+  COMPLETED
+}
+
+enum LeadActivityAction {
+  LEAD_CREATED
+  LEAD_ASSIGNED
+  STATUS_UPDATED
+  NOTE_ADDED
+  CALL_LOGGED
+  BOOKING_RECORDED
+}
+
+enum MarketplaceDestinationKind {
+  CITY
+  AIRPORT
+}
+
+model MarketplaceSupplier {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String   @unique
+  website_url String?
+  logo_url    String?
+  sort_order  Int      @default(0)
+  created_at  DateTime @default(now())
+
+  @@index([sort_order])
+  @@map("marketplace_suppliers")
+}
+
+model MarketplaceCountry {
+  id          String                   @id @default(uuid()) @db.Uuid
+  slug        String                   @unique
+  name        String
+  iso_code    String                   @db.VarChar(2)
+  headline    String?
+  created_at  DateTime                 @default(now())
+  destinations MarketplaceDestination[]
+
+  @@index([name])
+  @@map("marketplace_countries")
+}
+
+model MarketplaceDestination {
+  id              String                     @id @default(uuid()) @db.Uuid
+  slug            String
+  kind            MarketplaceDestinationKind
+  name            String
+  subtitle        String?
+  iata_code       String?                    @db.VarChar(3)
+  country_id      String                     @db.Uuid
+  country         MarketplaceCountry         @relation(fields: [country_id], references: [id], onDelete: Cascade)
+  seo_title       String?
+  seo_description String?
+  trend_score     Int                        @default(0)
+  created_at      DateTime                   @default(now())
+
+  @@unique([slug, kind])
+  @@index([country_id, kind])
+  @@index([kind, trend_score])
+  @@map("marketplace_destinations")
+}
+
+model MarketplaceTestimonial {
+  id               String   @id @default(uuid()) @db.Uuid
+  seed_key         String?  @unique
+  quote            String
+  author_display   String
+  meta_line        String?
+  rating           Int      @default(5)
+  is_editorial     Boolean  @default(true)
+  sort_order       Int      @default(0)
+  created_at       DateTime @default(now())
+
+  @@index([is_editorial, sort_order])
+  @@map("marketplace_testimonials")
+}
+
+model User {
+  id                 String           @id @default(uuid()) @db.Uuid
+  name               String
+  email              String           @unique
+  password_hash      String
+  role               UserRole         @default(sales_agent)
+  is_active          Boolean          @default(true)
+  current_lead_count Int              @default(0)
+  created_at         DateTime         @default(now())
+  sessions           RefreshSession[]
+  assigned_leads     Lead[]           @relation("AssignedLeads")
+  notes              LeadNote[]
+  lead_activities    LeadActivity[]
+  bookings_recorded  Booking[]        @relation("BookingRecordedBy")
+  payments_recorded  Payment[]        @relation("PaymentRecordedBy")
+
+  @@index([role, is_active, current_lead_count, created_at])
+  @@map("users")
+}
+
+model RefreshSession {
+  id                 String    @id @default(uuid()) @db.Uuid
+  user_id            String    @db.Uuid
+  refresh_token_hash String
+  user_agent         String?
+  ip_address         String?
+  expires_at         DateTime
+  rotated_at         DateTime?
+  revoked_at         DateTime?
+  created_at         DateTime  @default(now())
+  user               User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([expires_at])
+  @@map("refresh_sessions")
+}
+
+model Lead {
+  id                String     @id @default(uuid()) @db.Uuid
+  pickup_location   String
+  drop_location     String
+  pickup_datetime   DateTime
+  return_datetime   DateTime
+  customer_name     String
+  customer_email    String
+  customer_phone    String
+  status            LeadStatus @default(NEW)
+  assigned_to       String?    @db.Uuid
+  booking_value     Decimal?   @db.Decimal(12, 2)
+  last_contacted_at DateTime?
+  follow_up_at      DateTime?
+  created_at        DateTime   @default(now())
+  updated_at        DateTime   @updatedAt
+  assigned_agent    User?      @relation("AssignedLeads", fields: [assigned_to], references: [id], onDelete: SetNull)
+  notes             LeadNote[]
+  activities         LeadActivity[]
+  submissions        LeadSubmission[]
+  booking            Booking?
+
+  @@index([customer_email, customer_phone, created_at])
+  @@index([assigned_to, status])
+  @@index([status, created_at])
+  @@index([created_at])
+  @@map("leads")
+}
+
+model LeadSubmission {
+  id           String   @id @default(uuid()) @db.Uuid
+  key          String   @unique
+  request_hash String
+  response     Json?
+  lead_id      String?  @db.Uuid
+  created_at   DateTime @default(now())
+  lead         Lead?    @relation(fields: [lead_id], references: [id], onDelete: SetNull)
+
+  @@index([lead_id])
+  @@index([created_at])
+  @@map("lead_submissions")
+}
+
+model LeadActivity {
+  id           String             @id @default(uuid()) @db.Uuid
+  lead_id      String             @db.Uuid
+  action       LeadActivityAction
+  performed_by String?            @db.Uuid
+  metadata     Json?
+  created_at   DateTime           @default(now())
+  lead         Lead               @relation(fields: [lead_id], references: [id], onDelete: Cascade)
+  performer    User?              @relation(fields: [performed_by], references: [id], onDelete: SetNull)
+
+  @@index([lead_id, created_at])
+  @@index([performed_by, created_at])
+  @@map("lead_activities")
+}
+
+model LeadNote {
+  id         String   @id @default(uuid()) @db.Uuid
+  lead_id    String   @db.Uuid
+  author_id  String   @db.Uuid
+  body       String
+  created_at DateTime @default(now())
+  lead       Lead     @relation(fields: [lead_id], references: [id], onDelete: Cascade)
+  author     User     @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@index([lead_id, created_at])
+  @@map("lead_notes")
+}
+
+model Booking {
+  id                       String    @id @default(uuid()) @db.Uuid
+  lead_id                  String    @unique @db.Uuid
+  gross_revenue            Decimal   @db.Decimal(12, 2)
+  currency                 String    @default("USD") @db.VarChar(3)
+  partner_name             String?
+  confirmation_reference   String?
+  notes                    String?
+  recorded_by              String?   @db.Uuid
+  created_at               DateTime  @default(now())
+  lead                     Lead      @relation(fields: [lead_id], references: [id], onDelete: Cascade)
+  recorder                 User?     @relation("BookingRecordedBy", fields: [recorded_by], references: [id], onDelete: SetNull)
+  payments                 Payment[]
+
+  @@index([created_at])
+  @@map("bookings")
+}
+
+model Payment {
+  id           String    @id @default(uuid()) @db.Uuid
+  booking_id   String    @db.Uuid
+  amount       Decimal   @db.Decimal(12, 2)
+  currency     String    @default("USD") @db.VarChar(3)
+  kind         String    @default("booking_revenue")
+  memo         String?
+  recorded_by  String?   @db.Uuid
+  created_at   DateTime  @default(now())
+  booking      Booking   @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+  recorder     User?     @relation("PaymentRecordedBy", fields: [recorded_by], references: [id], onDelete: SetNull)
+
+  @@index([booking_id])
+  @@index([created_at])
+  @@map("payments")
+}

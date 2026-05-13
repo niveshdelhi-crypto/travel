@@ -1,0 +1,40 @@
+{
+  "name": "@fleetnexus/web",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "playwright:install": "playwright install --with-deps chromium"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
+    "@tanstack/react-query": "^5.100.9",
+    "@types/js-cookie": "^3.0.6",
+    "axios": "^1.16.0",
+    "framer-motion": "^12.38.0",
+    "gsap": "^3.15.0",
+    "jose": "^5.9.6",
+    "js-cookie": "^3.0.5",
+    "lucide-react": "^1.14.0",
+    "next": "^15.0.0",
+    "postcss": "^8.5.14",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "socket.io-client": "^4.8.1",
+    "tailwindcss": "^4.3.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.8.0"
+  }
+}

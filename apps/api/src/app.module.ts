@@ -1,0 +1,38 @@
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { APP_GUARD } from "@nestjs/core";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
+import { AuthModule } from "./auth/auth.module";
+import { CsrfGuard } from "./common/guards/csrf.guard";
+import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
+import { RolesGuard } from "./common/guards/roles.guard";
+import { BookingsModule } from "./bookings/bookings.module";
+import { LeadsModule } from "./leads/leads.module";
+import { MarketplaceModule } from "./marketplace/marketplace.module";
+import { PrismaModule } from "./prisma/prisma.module";
+import { UsersModule } from "./users/users.module";
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 120,
+      },
+    ]),
+    PrismaModule,
+    UsersModule,
+    AuthModule,
+    LeadsModule,
+    MarketplaceModule,
+    BookingsModule,
+  ],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: CsrfGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+  ],
+})
+export class AppModule {}
