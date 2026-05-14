@@ -7,19 +7,12 @@ import cookieParser = require("cookie-parser");
 import helmet from "helmet";
 import { AppModule } from "./app.module";
 import { PrismaExceptionFilter } from "./common/filters/prisma-exception.filter";
+import { isWebOriginAllowed } from "./common/http/web-origin-policy";
 import { RedisIoAdapter } from "./realtime/redis-io.adapter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
-  const configuredWebOrigins =
-    config.get<string>("WEB_ORIGIN")?.trim() ||
-    config.get<string>("FRONTEND_URL")?.trim() ||
-    "http://localhost:8080,http://localhost:3000";
-  const webOrigins = configuredWebOrigins
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
   const redisIoAdapter = new RedisIoAdapter(app);
   await redisIoAdapter.connectToRedis(config);
   app.useWebSocketAdapter(redisIoAdapter);
@@ -35,7 +28,9 @@ async function bootstrap() {
     next();
   });
   app.enableCors({
-    origin: webOrigins,
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      callback(null, isWebOriginAllowed(origin));
+    },
     credentials: true,
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token", "Idempotency-Key", "X-Request-Id"],

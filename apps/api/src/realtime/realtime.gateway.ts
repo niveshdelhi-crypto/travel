@@ -16,6 +16,7 @@ import { UserRole } from "@prisma/client";
 import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 import { RealtimeEventDeduplicator } from "./realtime-event-deduplicator.service";
+import { isWebOriginAllowed } from "../common/http/web-origin-policy";
 
 type SocketUser = {
   id: string;
@@ -48,18 +49,7 @@ const FAST_EVENT_DEDUPE_TTL_MS = 1_000;
   namespace: "leads",
   cors: {
     origin: (origin, callback) => {
-      const raw = process.env.WEB_ORIGIN ?? process.env.FRONTEND_URL ?? "http://localhost:8080,http://localhost:3000";
-      const allowed = new Set(
-        raw
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean),
-      );
-      if (!origin || allowed.has(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, false);
-      }
+      callback(null, isWebOriginAllowed(origin));
     },
     credentials: true,
   },
