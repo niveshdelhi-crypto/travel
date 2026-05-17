@@ -130,6 +130,8 @@ export class LeadsService {
                 metadata: {
                   source: "landing_page",
                   request_id: options.requestId,
+                  driver_age: dto.driver_age?.trim() || undefined,
+                  residency: dto.residency?.trim() || undefined,
                 },
               },
               {

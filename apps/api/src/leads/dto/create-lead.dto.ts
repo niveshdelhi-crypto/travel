@@ -1,4 +1,4 @@
-import { IsDateString, IsEmail, IsNotEmpty, IsString, MinLength } from "class-validator";
+import { IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 
 export class CreateLeadDto {
   @IsString()
@@ -25,4 +25,12 @@ export class CreateLeadDto {
   @IsString()
   @MinLength(7)
   customer_phone!: string;
+
+  @IsOptional()
+  @IsString()
+  driver_age?: string;
+
+  @IsOptional()
+  @IsString()
+  residency?: string;
 }

@@ -14,6 +14,7 @@ import {
   Search,
   User,
 } from "lucide-react";
+import { ApiError } from "@/lib/api/errors";
 import { fieldInputClass, SearchField } from "./search-field";
 import { DRIVER_AGE_OPTIONS, RESIDENCY_OPTIONS } from "../lib/constants";
 import { todayPlus } from "../lib/utils";
@@ -41,6 +42,17 @@ const initialForm: SearchFormState = {
   acceptedTerms: false,
 };
 
+function formatApiError(error: unknown) {
+  if (error instanceof ApiError) {
+    const nested = error.details as { message?: string | string[] } | undefined;
+    if (nested?.message) {
+      return Array.isArray(nested.message) ? nested.message.join(", ") : nested.message;
+    }
+    return error.message;
+  }
+  return error instanceof Error ? error.message : "Unable to submit your request. Please try again.";
+}
+
 export function SearchForm() {
   const [form, setForm] = useState<SearchFormState>(initialForm);
   const [errors, setErrors] = useState<SearchFormErrors>({});
@@ -49,24 +61,42 @@ export function SearchForm() {
   const mutation = useSearchLead();
 
   function set<K extends keyof SearchFormState>(key: K, value: SearchFormState[K]) {
-    setForm((current) => ({ ...current, [key]: value }));
+    setForm((current) => {
+      const next = { ...current, [key]: value };
+      if (key === "pickupLocation" && sameLocation) {
+        next.dropoffLocation = value as string;
+      }
+      return next;
+    });
     setErrors((current) => ({ ...current, [key]: undefined, form: undefined }));
+  }
+
+  function toggleSameLocation(checked: boolean) {
+    setSameLocation(checked);
+    if (checked) {
+      setForm((current) => ({ ...current, dropoffLocation: current.pickupLocation }));
+    }
+    setErrors((current) => ({ ...current, dropoffLocation: undefined }));
   }
 
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    const nextErrors = validateSearchForm(form, sameLocation);
+    const payload = sameLocation
+      ? { ...form, dropoffLocation: form.pickupLocation }
+      : form;
+    const nextErrors = validateSearchForm(payload, sameLocation);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    mutation.mutate(toLeadInput(form, sameLocation), {
+    mutation.mutate(toLeadInput(payload, sameLocation), {
       onSuccess: (response) => {
         setSuccess(response);
         setForm(initialForm);
+        setSameLocation(true);
         setErrors({});
       },
       onError: (error) => {
-        setErrors({ form: error.message || "Unable to submit your request. Please try again." });
+        setErrors({ form: formatApiError(error) });
       },
     });
   }
@@ -93,6 +123,8 @@ export function SearchForm() {
     );
   }
 
+  const returnLocationValue = sameLocation ? form.pickupLocation : form.dropoffLocation;
+
   return (
     <form id="search" onSubmit={onSubmit} className="glass-panel rounded-3xl p-4 shadow-glass md:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
@@ -108,18 +140,18 @@ export function SearchForm() {
           <input
             type="checkbox"
             checked={sameLocation}
-            onChange={(e) => setSameLocation(e.target.checked)}
+            onChange={(e) => toggleSameLocation(e.target.checked)}
             className="size-4 rounded border-white/20 accent-[#FF7A00]"
           />
-          Same return location
+          Return to same location
         </label>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-12">
+      {/* Locations — always visible */}
+      <div className="grid gap-3 md:grid-cols-2">
         <SearchField
           label="Pick-up location"
           icon={<MapPin className="size-4" />}
-          className="md:col-span-6"
           error={errors.pickupLocation}
         >
           <input
@@ -131,26 +163,28 @@ export function SearchForm() {
           />
         </SearchField>
 
-        {!sameLocation && (
-          <SearchField
-            label="Return location"
-            icon={<MapPin className="size-4" />}
-            className="md:col-span-6"
-            error={errors.dropoffLocation}
-          >
-            <input
-              value={form.dropoffLocation}
-              onChange={(e) => set("dropoffLocation", e.target.value)}
-              placeholder="City, airport or station"
-              className={fieldInputClass}
-            />
-          </SearchField>
-        )}
+        <SearchField
+          label="Return location"
+          icon={<MapPin className="size-4" />}
+          error={errors.dropoffLocation}
+        >
+          <input
+            value={returnLocationValue}
+            onChange={(e) => set("dropoffLocation", e.target.value)}
+            placeholder={sameLocation ? "Same as pick-up" : "City, airport or station"}
+            className={`${fieldInputClass} disabled:cursor-not-allowed disabled:opacity-70`}
+            disabled={sameLocation}
+            readOnly={sameLocation}
+            aria-readonly={sameLocation}
+          />
+        </SearchField>
+      </div>
 
+      {/* Dates & times */}
+      <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SearchField
           label="Pick-up date"
           icon={<Calendar className="size-4" />}
-          className="md:col-span-3"
           error={errors.pickupDate}
         >
           <input
@@ -161,7 +195,11 @@ export function SearchForm() {
           />
         </SearchField>
 
-        <SearchField label="Time" icon={<Clock className="size-4" />} className="md:col-span-3">
+        <SearchField
+          label="Pick-up time"
+          icon={<Clock className="size-4" />}
+          error={errors.pickupTime}
+        >
           <input
             type="time"
             value={form.pickupTime}
@@ -173,18 +211,22 @@ export function SearchForm() {
         <SearchField
           label="Return date"
           icon={<Calendar className="size-4" />}
-          className="md:col-span-3"
           error={errors.returnDate}
         >
           <input
             type="date"
             value={form.returnDate}
+            min={form.pickupDate}
             onChange={(e) => set("returnDate", e.target.value)}
             className={fieldInputClass}
           />
         </SearchField>
 
-        <SearchField label="Time" icon={<Clock className="size-4" />} className="md:col-span-3">
+        <SearchField
+          label="Return time"
+          icon={<Clock className="size-4" />}
+          error={errors.returnTime}
+        >
           <input
             type="time"
             value={form.returnTime}
@@ -192,8 +234,11 @@ export function SearchForm() {
             className={fieldInputClass}
           />
         </SearchField>
+      </div>
 
-        <SearchField label="Driver age" icon={<User className="size-4" />} className="md:col-span-3">
+      {/* Driver details */}
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <SearchField label="Driver age" icon={<User className="size-4" />}>
           <select
             value={form.driverAge}
             onChange={(e) => set("driverAge", e.target.value)}
@@ -207,7 +252,7 @@ export function SearchForm() {
           </select>
         </SearchField>
 
-        <SearchField label="Residency" icon={<Globe2 className="size-4" />} className="md:col-span-3">
+        <SearchField label="Residency" icon={<Globe2 className="size-4" />}>
           <select
             value={form.residency}
             onChange={(e) => set("residency", e.target.value)}
@@ -222,6 +267,7 @@ export function SearchForm() {
         </SearchField>
       </div>
 
+      {/* Contact */}
       <div className="mt-4 grid gap-3 border-t border-white/10 pt-4 md:grid-cols-3">
         <SearchField label="Full name" icon={<User className="size-4" />} error={errors.customerName}>
           <input

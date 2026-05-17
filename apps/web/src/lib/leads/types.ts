@@ -70,6 +70,8 @@ export type CreateLeadInput = {
   customer_name: string;
   customer_email: string;
   customer_phone: string;
+  driver_age?: string;
+  residency?: string;
 };
 
 export type PublicLeadResponse = {
