@@ -123,6 +123,13 @@ function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+/** SPA hosts often `/api`-catch-all rewrite to index.html — body is HTML and breaks `.map` on JSON types. */
+function looksLikeHtmlResponseBody(body: unknown): boolean {
+  if (typeof body !== "string") return false;
+  const start = body.trimStart().slice(0, 80).toLowerCase();
+  return start.startsWith("<!doctype ") || start.startsWith("<html");
+}
+
 // ─── Core fetch wrapper ───────────────────────────────────────
 
 async function request<T>(
@@ -247,6 +254,19 @@ async function request<T>(
       }
 
       throw apiError;
+    }
+
+    if (looksLikeHtmlResponseBody(body)) {
+      console.error("[FleetNexus API] Unexpected HTML payload (misrouted SPA or wrong base URL)", {
+        endpoint,
+        debugLabel,
+        preview: typeof body === "string" ? body.slice(0, 120).replace(/\s+/g, " ") : "",
+      });
+      throw {
+        status: 502,
+        message:
+          `API returned HTML instead of JSON for "${endpoint}". On Vercel, add an /api rewrite to your Nest server or set VITE_API_BASE_URL to the full API origin.`,
+      } as ApiError;
     }
 
     return body as T;

@@ -191,7 +191,9 @@ function ProvidersPage() {
 
         <Panel className="overflow-hidden p-0">
           <div className="border-b border-border px-6 py-4">
-            <h3 className="text-sm font-semibold">Catalog ({suppliersQuery.data?.length ?? "…"})</h3>
+            <h3 className="text-sm font-semibold">
+              Catalog ({Array.isArray(suppliersQuery.data) ? suppliersQuery.data.length : "…"})
+            </h3>
           </div>
           {suppliersQuery.isLoading ? (
             <div className="p-6 text-sm text-muted-foreground">Loading suppliers…</div>
@@ -203,7 +205,7 @@ function ProvidersPage() {
                 description="Confirm the API is running and you are authenticated."
               />
             </div>
-          ) : !suppliersQuery.data?.length ? (
+          ) : !Array.isArray(suppliersQuery.data) || suppliersQuery.data.length === 0 ? (
             <div className="p-6">
               <EmptyState
                 icon={Building2}

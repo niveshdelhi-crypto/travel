@@ -39,7 +39,7 @@ export function MegaFooter() {
                     <Skeleton className="h-4 w-28 rounded bg-white/12" />
                   </li>
                 ))
-              ) : countriesQuery.data?.length ? (
+              ) : Array.isArray(countriesQuery.data) && countriesQuery.data.length > 0 ? (
                 countriesQuery.data.map((c) => (
                   <li key={c.id}>
                     <Link to="/countries/$countrySlug" params={{ countrySlug: c.slug }}>
@@ -69,7 +69,7 @@ export function MegaFooter() {
                     <Skeleton className="h-4 w-36 rounded bg-white/12" />
                   </li>
                 ))
-              ) : trendingQuery.data?.length ? (
+              ) : Array.isArray(trendingQuery.data) && trendingQuery.data.length > 0 ? (
                 trendingQuery.data.map((d) => (
                   <li key={d.id}>
                     <Link
@@ -105,7 +105,7 @@ export function MegaFooter() {
                     <Skeleton className="h-4 w-28 rounded bg-white/12" />
                   </li>
                 ))
-              ) : suppliersQuery.data?.length ? (
+              ) : Array.isArray(suppliersQuery.data) && suppliersQuery.data.length > 0 ? (
                 suppliersQuery.data.map((s) => (
                   <li key={s.id}>
                     <a className="text-[#94A3B8] hover:text-[#F8FAFC]" href={`#suppliers-${s.slug}`}>

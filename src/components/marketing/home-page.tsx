@@ -45,10 +45,10 @@ export function FleetNexusHomePage() {
   const testimonialsQuery = useMarketplaceTestimonials();
   const trendingQuery = useTrendingDestinations(10);
 
-  const locationHints = useMemo(
-    () => trendingQuery.data?.map((destination) => destination.name) ?? [],
-    [trendingQuery.data],
-  );
+  const locationHints = useMemo(() => {
+    const rows = trendingQuery.data;
+    return Array.isArray(rows) ? rows.map((destination) => destination.name) : [];
+  }, [trendingQuery.data]);
 
   return (
     <MarketingChrome navVariant="glass">
@@ -243,12 +243,12 @@ function SupplierStrip({ query }: { query: ReturnType<typeof useMarketplaceSuppl
                 <Skeleton key={`sup-${idx}`} className="h-14 w-[128px] rounded-xl bg-white/10" />
               ))}
             </div>
-          ) : query.data?.length ? (
+          ) : Array.isArray(query.data) && query.data.length > 0 ? (
             <div className="group/marquee relative overflow-hidden rounded-2xl border border-white/12 bg-[#060f1c]/80 py-5">
               <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-[#0a1524] to-transparent" />
               <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-[#0a1524] to-transparent" />
               <div className="flex w-max gap-10 px-6 animate-fleet-marquee group-hover/marquee:[animation-play-state:paused]">
-                {[...(query.data ?? []), ...(query.data ?? [])].map((supplier, idx) => (
+                {[...query.data, ...query.data].map((supplier, idx) => (
                   <motion.div
                     id={idx === 0 ? `suppliers-${supplier.slug}` : undefined}
                     layout
@@ -435,7 +435,8 @@ function TrendingRail({ query }: { query: ReturnType<typeof useTrendingDestinati
                   // eslint-disable-next-line react/no-array-index-key
                   <Skeleton key={`trend-${idx}`} className="h-52 w-[280px] shrink-0 rounded-2xl bg-white/11" />
                 ))
-              : query.data?.map((destination, idx) => (
+              : Array.isArray(query.data)
+                ? query.data.map((destination, idx) => (
                   <motion.div
                     key={destination.id}
                     initial={{ opacity: 0, x: 20 }}
@@ -476,7 +477,8 @@ function TrendingRail({ query }: { query: ReturnType<typeof useTrendingDestinati
                       </Link>
                     )}
                   </motion.div>
-                ))}
+                ))
+                : null}
         </div>
       </div>
     </section>
@@ -649,7 +651,8 @@ function TestimonialSection({ query }: { query: ReturnType<typeof useMarketplace
                 // eslint-disable-next-line react/no-array-index-key
                 <Skeleton key={`tes-${idx}`} className="h-72 rounded-3xl bg-white/14" />
               ))
-            : query.data?.map((story) => (
+            : Array.isArray(query.data)
+              ? query.data.map((story) => (
                 <motion.figure
                   layout
                   key={story.id}
@@ -669,7 +672,8 @@ function TestimonialSection({ query }: { query: ReturnType<typeof useMarketplace
                     {story.meta_line ? <p className="mt-1">{story.meta_line}</p> : null}
                   </figcaption>
                 </motion.figure>
-              ))}
+              ))
+              : null}
         </div>
       </div>
     </section>

@@ -13,6 +13,7 @@ node_modules
 # Build output
 dist
 dist-ssr
+**/.next/
 
 # Wrangler / Cloudflare (legacy - no longer used)
 .wrangler/

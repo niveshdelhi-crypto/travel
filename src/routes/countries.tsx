@@ -37,7 +37,7 @@ function CountriesCatalogPage() {
             Array.from({ length: 6 }).map((_, idx) => (
               <Skeleton key={`country-${idx}`} className="h-52 rounded-3xl bg-white/14" />
             ))
-          ) : countriesQuery.data?.length ? (
+          ) : Array.isArray(countriesQuery.data) && countriesQuery.data.length > 0 ? (
             countriesQuery.data.map((country) => (
               <Link
                 key={country.id}

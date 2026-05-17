@@ -2,7 +2,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { randomUUID } from "crypto";
-import type { NextFunction, Request, Response } from "express";
+import type { Application, NextFunction, Request, Response } from "express";
 import cookieParser = require("cookie-parser");
 import helmet from "helmet";
 import { AppModule } from "./app.module";
@@ -50,6 +50,15 @@ async function bootstrap() {
     typeof portRaw === "number" && Number.isFinite(portRaw)
       ? portRaw
       : Number.parseInt(String(portRaw ?? "").trim(), 10) || 4000;
+
+  // Root path is outside Nest's `/api` prefix; Render/host probes often use HEAD/GET `/`.
+  const expressApp = app.getHttpAdapter().getInstance() as Application;
+  expressApp.head("/", (_req, res) => {
+    res.status(200).end();
+  });
+  expressApp.get("/", (_req, res) => {
+    res.status(200).json({ ok: true });
+  });
 
   await app.listen(port, "0.0.0.0");
 }
