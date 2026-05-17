@@ -1,0 +1,11 @@
+# Render Blueprint (optional). Or copy build/start commands into the Render dashboard.
+services:
+  - type: web
+    name: fleet-nexus-api
+    runtime: node
+    rootDir: apps/api
+    buildCommand: NPM_CONFIG_PRODUCTION=false npm install && npm run build:render
+    startCommand: npx prisma migrate deploy && npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production

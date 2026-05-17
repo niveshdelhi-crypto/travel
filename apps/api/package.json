@@ -5,7 +5,8 @@
   "type": "commonjs",
   "scripts": {
     "start:dev": "nest start --watch",
-    "build": "nest build",
+    "build": "npx nest build",
+    "build:render": "prisma generate && npx nest build",
     "start:prod": "node dist/main.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
