@@ -18,7 +18,10 @@ export default function ContactPage() {
       <ul className="mt-8 space-y-4">
         <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">
           <Mail className="size-5 text-brand-primary" />
-          <a href="mailto:support@fleetnexus.com" className="font-medium text-foreground hover:text-brand-primary">
+          <a
+            href="mailto:support@fleetnexus.com"
+            className="font-medium text-foreground hover:text-brand-primary"
+          >
             support@fleetnexus.com
           </a>
         </li>

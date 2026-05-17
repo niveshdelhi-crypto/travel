@@ -28,7 +28,11 @@ export function LandingNavbar() {
 
         <nav className="hidden items-center gap-7 text-sm font-medium text-brand-muted lg:flex">
           {navLinks.map((l) => (
-            <Link key={l.href} href={l.href as Route} className="transition-colors hover:text-brand-text">
+            <Link
+              key={l.href}
+              href={l.href as Route}
+              className="transition-colors hover:text-brand-text"
+            >
               {l.label}
             </Link>
           ))}

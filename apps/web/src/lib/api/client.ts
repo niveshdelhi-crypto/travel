@@ -5,7 +5,11 @@ import { apiConfig } from "./config";
 import { ensureCsrfToken, getCsrfToken, isMutatingMethod } from "./csrf";
 import { normalizeApiError } from "./errors";
 import { shouldRetryRequest, waitForRetry, type RetriableConfig } from "./retry";
-import { getAccessToken, getStoredRefreshToken, persistTokensFromAuthResponse } from "./token-store";
+import {
+  getAccessToken,
+  getStoredRefreshToken,
+  persistTokensFromAuthResponse,
+} from "./token-store";
 import type { ApiRequestOptions } from "./types";
 import type { AuthResponse } from "@/lib/auth/types";
 

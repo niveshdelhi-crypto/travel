@@ -1,8 +1,14 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
-  outputFileTracingRoot: process.cwd(),
+  // Monorepo: trace dependencies from repository root when deploying on Vercel.
+  outputFileTracingRoot: path.join(__dirname, "../.."),
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },

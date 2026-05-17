@@ -64,8 +64,8 @@ export function LandingFooter() {
               <span className="font-display text-lg font-bold">FleetNexus</span>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-white/70">
-              Compare 800+ car rental suppliers in 190+ countries. Best price, free cancellation,
-              no hidden fees.
+              Compare 800+ car rental suppliers in 190+ countries. Best price, free cancellation, no
+              hidden fees.
             </p>
             <div className="mt-6 flex gap-3 text-white/70">
               <a href="#" aria-label="Social" className="hover:text-white">

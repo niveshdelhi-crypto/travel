@@ -8,7 +8,9 @@ export function AppCtaSection() {
       <div className="container-page">
         <div className="overflow-hidden rounded-3xl bg-navy p-8 text-navy-foreground md:flex md:items-center md:justify-between md:p-12">
           <div className="max-w-xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-brand-accent">Support</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand-accent">
+              Support
+            </p>
             <h2 className="mt-2 font-display text-3xl font-bold tracking-tight md:text-4xl">
               Need help? We&apos;re here 24/7
             </h2>

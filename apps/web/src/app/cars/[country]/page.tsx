@@ -19,11 +19,15 @@ export default async function CountryPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-background">
       <div className="container-page py-16">
-        <p className="text-xs font-semibold uppercase tracking-wider text-brand-primary">Car rental</p>
-        <h1 className="mt-2 font-display text-4xl font-bold text-foreground">Car rental in {label}</h1>
+        <p className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
+          Car rental
+        </p>
+        <h1 className="mt-2 font-display text-4xl font-bold text-foreground">
+          Car rental in {label}
+        </h1>
         <p className="mt-4 max-w-2xl text-muted-foreground">
-          City-level inventory and live pricing for {label} are being rolled out. Start a search from
-          the homepage and our team will match available suppliers for your route.
+          City-level inventory and live pricing for {label} are being rolled out. Start a search
+          from the homepage and our team will match available suppliers for your route.
         </p>
         <Link
           href="/#search"

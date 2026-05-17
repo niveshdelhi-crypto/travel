@@ -38,8 +38,14 @@ export default function FaqPage() {
       </h1>
       <div className="mt-8 space-y-3">
         {items.map((item, i) => (
-          <details key={item.q} open={i === 0} className="rounded-2xl border border-border bg-white p-5">
-            <summary className="cursor-pointer font-display font-semibold text-foreground">{item.q}</summary>
+          <details
+            key={item.q}
+            open={i === 0}
+            className="rounded-2xl border border-border bg-white p-5"
+          >
+            <summary className="cursor-pointer font-display font-semibold text-foreground">
+              {item.q}
+            </summary>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{item.a}</p>
           </details>
         ))}

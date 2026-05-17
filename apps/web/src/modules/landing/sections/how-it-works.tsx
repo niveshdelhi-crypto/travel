@@ -23,7 +23,9 @@ export function HowItWorksSection() {
     <section className="bg-navy py-20 text-navy-foreground md:py-28">
       <div className="container-page">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-wider text-brand-accent">How it works</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-accent">
+            How it works
+          </p>
           <h2 className="mt-2 font-display text-3xl font-bold tracking-tight md:text-4xl">
             Three steps to the open road
           </h2>

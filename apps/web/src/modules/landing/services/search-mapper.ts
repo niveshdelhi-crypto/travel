@@ -52,8 +52,12 @@ export function validateSearchForm(form: SearchFormState, sameLocation: boolean)
   if (!form.pickupTime) errors.pickupTime = "Pick-up time is required.";
   if (!form.returnTime) errors.returnTime = "Return time is required.";
 
-  const pickup = form.pickupDate ? new Date(`${form.pickupDate}T${form.pickupTime || "10:00"}`) : null;
-  const returns = form.returnDate ? new Date(`${form.returnDate}T${form.returnTime || "10:00"}`) : null;
+  const pickup = form.pickupDate
+    ? new Date(`${form.pickupDate}T${form.pickupTime || "10:00"}`)
+    : null;
+  const returns = form.returnDate
+    ? new Date(`${form.returnDate}T${form.returnTime || "10:00"}`)
+    : null;
   if (pickup && returns && returns <= pickup) {
     errors.returnDate = "Return must be after pick-up.";
   }

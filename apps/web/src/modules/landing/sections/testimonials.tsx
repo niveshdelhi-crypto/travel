@@ -31,7 +31,9 @@ export function TestimonialsSection() {
       <div className="container-page">
         <div className="flex items-end justify-between gap-4">
           <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-brand-primary">Reviews</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
+              Reviews
+            </p>
             <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
               Loved by travelers in 190+ countries
             </h2>
@@ -51,7 +53,10 @@ export function TestimonialsSection() {
 
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {reviews.map((r) => (
-            <figure key={r.name} className="rounded-2xl border border-border bg-white p-6 shadow-card">
+            <figure
+              key={r.name}
+              className="rounded-2xl border border-border bg-white p-6 shadow-card"
+            >
               <div className="flex items-center gap-3">
                 <Image
                   src={r.img}

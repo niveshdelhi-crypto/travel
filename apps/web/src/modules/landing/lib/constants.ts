@@ -1,11 +1,4 @@
-export const SUPPLIERS = [
-  "Hertz",
-  "Avis",
-  "Enterprise",
-  "Budget",
-  "Alamo",
-  "National",
-] as const;
+export const SUPPLIERS = ["Hertz", "Avis", "Enterprise", "Budget", "Alamo", "National"] as const;
 
 export const TRUST_STATS = [
   { value: "800+", label: "Trusted suppliers" },

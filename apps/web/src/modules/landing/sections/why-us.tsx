@@ -11,7 +11,11 @@ const features = [
     title: "Free cancellation",
     desc: "Most rentals can be cancelled free up to 48 hours before pickup.",
   },
-  { icon: Clock4, title: "24/7 support", desc: "Real humans, every time-zone, before, during and after your trip." },
+  {
+    icon: Clock4,
+    title: "24/7 support",
+    desc: "Real humans, every time-zone, before, during and after your trip.",
+  },
   {
     icon: Lock,
     title: "Secure payments",
@@ -34,7 +38,9 @@ export function WhyUsSection() {
     <section className="py-16 md:py-24">
       <div className="container-page">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-wider text-brand-primary">Why FleetNexus</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
+            Why FleetNexus
+          </p>
           <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
             The smartest way to book a rental car
           </h2>

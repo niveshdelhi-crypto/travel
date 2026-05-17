@@ -50,7 +50,9 @@ function formatApiError(error: unknown) {
     }
     return error.message;
   }
-  return error instanceof Error ? error.message : "Unable to submit your request. Please try again.";
+  return error instanceof Error
+    ? error.message
+    : "Unable to submit your request. Please try again.";
 }
 
 export function SearchForm() {
@@ -81,9 +83,7 @@ export function SearchForm() {
 
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    const payload = sameLocation
-      ? { ...form, dropoffLocation: form.pickupLocation }
-      : form;
+    const payload = sameLocation ? { ...form, dropoffLocation: form.pickupLocation } : form;
     const nextErrors = validateSearchForm(payload, sameLocation);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
@@ -126,7 +126,11 @@ export function SearchForm() {
   const returnLocationValue = sameLocation ? form.pickupLocation : form.dropoffLocation;
 
   return (
-    <form id="search" onSubmit={onSubmit} className="glass-panel rounded-3xl p-4 shadow-glass md:p-6">
+    <form
+      id="search"
+      onSubmit={onSubmit}
+      className="glass-panel rounded-3xl p-4 shadow-glass md:p-6"
+    >
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-accent">
@@ -269,7 +273,11 @@ export function SearchForm() {
 
       {/* Contact */}
       <div className="mt-4 grid gap-3 border-t border-white/10 pt-4 md:grid-cols-3">
-        <SearchField label="Full name" icon={<User className="size-4" />} error={errors.customerName}>
+        <SearchField
+          label="Full name"
+          icon={<User className="size-4" />}
+          error={errors.customerName}
+        >
           <input
             value={form.customerName}
             onChange={(e) => set("customerName", e.target.value)}

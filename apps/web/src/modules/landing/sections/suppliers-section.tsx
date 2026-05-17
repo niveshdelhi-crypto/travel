@@ -27,7 +27,9 @@ export function SuppliersSection() {
                 key={`${name}-${i}`}
                 className="supplier-logo flex h-20 w-44 shrink-0 items-center justify-center rounded-2xl border border-border bg-white shadow-card"
               >
-                <span className="font-display text-lg font-bold tracking-tight text-navy">{name}</span>
+                <span className="font-display text-lg font-bold tracking-tight text-navy">
+                  {name}
+                </span>
               </div>
             ))}
           </div>

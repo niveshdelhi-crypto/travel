@@ -8,7 +8,9 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <article className="max-w-3xl">
-      <h1 className="font-display text-3xl font-bold text-foreground md:text-4xl">About FleetNexus</h1>
+      <h1 className="font-display text-3xl font-bold text-foreground md:text-4xl">
+        About FleetNexus
+      </h1>
       <p className="mt-4 text-muted-foreground leading-relaxed">
         FleetNexus helps travelers compare car rental offers from 800+ suppliers across 30,000+
         locations worldwide. Our platform combines transparent pricing, secure booking, and expert
