@@ -31,3 +31,40 @@ export function setStoredAccessToken(token: string | null) {
     // Browser storage can be unavailable in private contexts. Cookie auth still works.
   }
 }
+
+export function getStoredRefreshToken() {
+  try {
+    return window.localStorage.getItem(apiConfig.refreshTokenStorageKey);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredRefreshToken(token: string | null) {
+  try {
+    if (token) {
+      window.localStorage.setItem(apiConfig.refreshTokenStorageKey, token);
+    } else {
+      window.localStorage.removeItem(apiConfig.refreshTokenStorageKey);
+    }
+  } catch {
+    /* noop */
+  }
+}
+
+/** Mirror `/auth/login` and `/auth/refresh` JSON when cookies do not persist. */
+export function persistTokensFromAuthResponse(body: unknown) {
+  if (!body || typeof body !== "object") return;
+  const r = body as Record<string, unknown>;
+  if (typeof r.accessToken === "string" && r.accessToken.length > 0) {
+    setStoredAccessToken(r.accessToken);
+  }
+  if (typeof r.refreshToken === "string" && r.refreshToken.length > 0) {
+    setStoredRefreshToken(r.refreshToken);
+  }
+}
+
+export function clearStoredAuthTokens() {
+  setStoredAccessToken(null);
+  setStoredRefreshToken(null);
+}

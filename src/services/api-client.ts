@@ -48,6 +48,14 @@ function getAccessToken(): string | null {
   catch { return null; }
 }
 
+function getRefreshToken(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+  } catch {
+    return null;
+  }
+}
+
 function setTokens(access: string, refresh: string): void {
   try {
     localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, access);
@@ -61,6 +69,21 @@ function clearTokens(): void {
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
   } catch { /* noop */ }
+}
+
+/** Persist tokens returned in JSON (HttpOnly cookies may not stick when the SPA is on a different host than the API). */
+export function extractAndStoreAuthTokens(body: unknown): void {
+  if (!body || typeof body !== "object") return;
+  const o = body as Record<string, unknown>;
+  const a = o.accessToken;
+  const r = o.refreshToken;
+  if (typeof a === "string" && typeof r === "string" && a.length > 0 && r.length > 0) {
+    setTokens(a, r);
+  }
+}
+
+export function clearStoredAuthCredentials(): void {
+  clearTokens();
 }
 
 function getCookie(name: string): string | null {
@@ -93,16 +116,16 @@ let refreshQueue: Array<(token: string | null) => void> = [];
 
 async function refreshSession(): Promise<boolean> {
   try {
-    const csrfToken = await ensureCsrfToken();
+    const refreshLs = getRefreshToken();
     const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
         "X-Client": "fleetnexus-web/1.0",
-        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
       },
       credentials: "include",
+      ...(refreshLs ? { body: JSON.stringify({ refresh_token: refreshLs }) } : {}),
     });
 
     if (!res.ok) {
@@ -110,6 +133,14 @@ async function refreshSession(): Promise<boolean> {
       return false;
     }
 
+    const contentType = res.headers.get("content-type") ?? "";
+    let body: unknown;
+    if (contentType.includes("application/json")) {
+      body = await res.json();
+    } else {
+      body = undefined;
+    }
+    extractAndStoreAuthTokens(body);
     return true;
   } catch {
     clearTokens();

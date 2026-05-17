@@ -5,8 +5,9 @@ import { apiConfig } from "./config";
 import { ensureCsrfToken, getCsrfToken, isMutatingMethod } from "./csrf";
 import { normalizeApiError } from "./errors";
 import { shouldRetryRequest, waitForRetry, type RetriableConfig } from "./retry";
-import { getAccessToken } from "./token-store";
+import { getAccessToken, getStoredRefreshToken, persistTokensFromAuthResponse } from "./token-store";
 import type { ApiRequestOptions } from "./types";
+import type { AuthResponse } from "@/lib/auth/types";
 
 type FleetNexusRequestConfig = InternalAxiosRequestConfig & ApiRequestOptions & RetriableConfig;
 
@@ -79,7 +80,13 @@ export async function apiRequest<T>(config: ApiRequestOptions): Promise<T> {
 
 async function refreshSessionRequest() {
   await ensureCsrfToken();
-  await apiClient.post("/auth/refresh", undefined, {
-    skipAuthRefresh: true,
-  } satisfies ApiRequestOptions);
+  const refresh = typeof window !== "undefined" ? getStoredRefreshToken() : null;
+  const { data } = await apiClient.post<AuthResponse>(
+    "/auth/refresh",
+    refresh ? { refresh_token: refresh } : {},
+    {
+      skipAuthRefresh: true,
+    } satisfies ApiRequestOptions,
+  );
+  persistTokensFromAuthResponse(data);
 }

@@ -1,6 +1,7 @@
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
+import type { NestExpressApplication } from "@nestjs/platform-express";
 import { randomUUID } from "crypto";
 import type { Application, NextFunction, Request, Response } from "express";
 import cookieParser = require("cookie-parser");
@@ -11,8 +12,14 @@ import { isWebOriginAllowed } from "./common/http/web-origin-policy";
 import { RedisIoAdapter } from "./realtime/redis-io.adapter";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const config = app.get(ConfigService);
+  // Honor X-Forwarded-* from Render/Vercel so Set-Cookie scoping matches the browser host (SPA proxies).
+  const trustRaw = config.get<string>("TRUST_PROXY_HOPS")?.trim()?.toLowerCase();
+  app.set(
+    "trust proxy",
+    trustRaw === "false" || trustRaw === "0" ? false : Number.parseInt(trustRaw ?? "1", 10) || 1,
+  );
   const redisIoAdapter = new RedisIoAdapter(app);
   await redisIoAdapter.connectToRedis(config);
   app.useWebSocketAdapter(redisIoAdapter);

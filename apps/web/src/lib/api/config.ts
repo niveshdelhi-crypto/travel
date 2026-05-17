@@ -6,4 +6,5 @@ export const apiConfig = {
   csrfCookieName: process.env.NEXT_PUBLIC_CSRF_COOKIE_NAME ?? "csrf_token",
   csrfHeaderName: process.env.NEXT_PUBLIC_CSRF_HEADER_NAME ?? "X-CSRF-Token",
   accessTokenStorageKey: process.env.NEXT_PUBLIC_ACCESS_TOKEN_KEY ?? "fleetnexus_access_token",
+  refreshTokenStorageKey: process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY ?? "fleetnexus_refresh_token",
 } as const;

@@ -4,7 +4,7 @@
 // the shared apiClient and returns typed responses.
 // ============================================================
 
-import { apiClient } from "./api-client";
+import { apiClient, extractAndStoreAuthTokens, clearStoredAuthCredentials } from "./api-client";
 import type {
   User,
   Lead,
@@ -519,16 +519,27 @@ export const searchService = {
 
 export const authService = {
   async signIn(email: string, password: string) {
-    const response = await apiClient.post<{ user: BackendUser }>(
+    const response = await apiClient.post<{
+      user: BackendUser;
+      accessToken?: string;
+      refreshToken?: string;
+    }>(
       "/auth/login",
       { email, password },
       { skipAuth: true },
     );
+    extractAndStoreAuthTokens(response);
     return toUser(response.user);
   },
 
-  signOut() {
-    return apiClient.post<{ success: true }>("/auth/logout");
+  async signOut() {
+    try {
+      await apiClient.post<{ success: true }>("/auth/logout");
+    } catch {
+      // ignore API errors — always drop local bearer pair
+    } finally {
+      clearStoredAuthCredentials();
+    }
   },
 
   async me() {

@@ -62,14 +62,16 @@ export class AuthService {
 
     return {
       user: this.toSafeUser(user),
+      accessToken,
+      refreshToken,
     };
   }
 
-  async refresh(request: Request, response: Response) {
-    const refreshToken = request.cookies?.refresh_token;
-    if (!refreshToken) throw new UnauthorizedException("Missing refresh token");
+  async refresh(request: Request, response: Response, refreshFromBody?: string) {
+    const refreshTokenRaw = request.cookies?.refresh_token ?? refreshFromBody?.trim();
+    if (!refreshTokenRaw) throw new UnauthorizedException("Missing refresh token");
 
-    const parsedRefreshToken = this.parseRefreshToken(refreshToken);
+    const parsedRefreshToken = this.parseRefreshToken(refreshTokenRaw);
     if (!parsedRefreshToken) throw new UnauthorizedException("Invalid refresh token");
 
     const session = await this.prisma.refreshSession.findFirst({
@@ -132,6 +134,8 @@ export class AuthService {
 
     return {
       user: this.toSafeUser(session.user),
+      accessToken,
+      refreshToken: nextRefreshToken,
     };
   }
 

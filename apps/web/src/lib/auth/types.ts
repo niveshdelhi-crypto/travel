@@ -16,4 +16,7 @@ export type LoginInput = {
 
 export type AuthResponse = {
   user: AuthUser;
+  /** Returned for SPAs/proxied frontends where HttpOnly cookies may not attach. */
+  accessToken?: string;
+  refreshToken?: string;
 };

@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, Res } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import { Request, Response } from "express";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Public } from "../common/decorators/public.decorator";
-import { CsrfGuard } from "../common/guards/csrf.guard";
+import { SkipCsrf } from "../common/decorators/skip-csrf.decorator";
 import { AuthService } from "./auth.service";
+import { RefreshDto } from "./dto/refresh.dto";
 import { LoginDto } from "./dto/login.dto";
 import type { AuthenticatedUser } from "./types/authenticated-user";
 
@@ -19,6 +20,7 @@ export class AuthController {
   }
 
   @Public()
+  @SkipCsrf()
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post("login")
   login(
@@ -30,13 +32,18 @@ export class AuthController {
   }
 
   @Public()
-  @UseGuards(CsrfGuard)
+  @SkipCsrf()
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @Post("refresh")
-  refresh(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
-    return this.authService.refresh(request, response);
+  refresh(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+    @Body() dto: RefreshDto,
+  ) {
+    return this.authService.refresh(request, response, dto?.refresh_token);
   }
 
-  @UseGuards(CsrfGuard)
+  @SkipCsrf()
   @Post("logout")
   logout(@CurrentUser() user: AuthenticatedUser, @Res({ passthrough: true }) response: Response) {
     return this.authService.logout(user, response);
