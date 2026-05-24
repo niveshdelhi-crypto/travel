@@ -52,19 +52,18 @@ export function HeroSection({ leadMode = false }: HeroSectionProps) {
 
         <div className="mt-8 md:mt-10">
           {leadMode ? (
-            <div className="max-w-xl space-y-4 rounded-3xl bg-brand-dark/55 p-4 ring-1 ring-white/20 backdrop-blur-md sm:p-5">
-              <DirectCallButton variant="hero" />
-              <div className="flex flex-wrap gap-2 text-xs text-white/80">
-                <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15">
-                  Avg. answer under 2 min
-                </span>
-                <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15">
-                  Compare 800+ suppliers
-                </span>
-                <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15">
-                  No booking fees
-                </span>
-              </div>
+            <div className="max-w-md">
+              <DirectCallButton variant="hero" sublabel="Free quote · Advisors available 24/7" />
+              <p className="mt-3 text-sm leading-relaxed text-white/75">
+                No forms — call to compare rates from 800+ suppliers and book with an expert.
+              </p>
+              <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/65">
+                <li>Avg. answer under 2 min</li>
+                <li>·</li>
+                <li>No booking fees</li>
+                <li>·</li>
+                <li>Best price guarantee</li>
+              </ul>
             </div>
           ) : (
             <SearchForm />

@@ -1,6 +1,6 @@
 "use client";
 
-import { Headphones, Phone, PhoneCall } from "lucide-react";
+import { Headphones, Phone } from "lucide-react";
 import {
   formatDirectCallLabel,
   getDirectCallPhone,
@@ -40,46 +40,23 @@ export function DirectCallButton({
       <a
         href={telHref!}
         aria-label={`Call now at ${displayNumber}`}
-        className={`group relative block w-full max-w-lg ${className}`}
+        className={`group inline-flex max-w-full items-center gap-3 rounded-xl bg-brand-primary px-4 py-3 text-white shadow-cta ring-1 ring-white/20 transition hover:brightness-110 active:scale-[0.99] sm:px-5 sm:py-3.5 ${className}`}
       >
         <span
-          className="pointer-events-none absolute -inset-1 rounded-[1.35rem] bg-brand-primary/40 opacity-75 blur-md transition group-hover:opacity-100"
+          className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/15"
           aria-hidden
-        />
-        <span className="pointer-events-none absolute inset-0 rounded-2xl bg-brand-primary/30 animate-ping opacity-20" aria-hidden />
-
-        <span className="relative flex items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-r from-brand-primary via-[#ff8f1f] to-[#ffb347] px-5 py-4 text-white shadow-cta ring-2 ring-white/25 transition duration-200 group-hover:scale-[1.02] group-hover:brightness-105 group-active:scale-[0.99] sm:px-6 sm:py-5">
-          <span
-            className="flex size-14 shrink-0 items-center justify-center rounded-full bg-white/20 ring-2 ring-white/35 backdrop-blur-sm sm:size-16"
-            aria-hidden
-          >
-            <PhoneCall className="size-7 sm:size-8" strokeWidth={2.25} />
+        >
+          <Phone className="size-5" strokeWidth={2.25} />
+        </span>
+        <span className="min-w-0 text-left leading-snug">
+          <span className="block text-xs font-medium text-white/90">
+            {sublabel ?? "Speak with a rental advisor"}
           </span>
-
-          <span className="min-w-0 flex-1 text-left">
-            <span className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white sm:text-xs">
-                <span className="relative flex size-2">
-                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-white opacity-70" />
-                  <span className="relative inline-flex size-2 rounded-full bg-white" />
-                </span>
-                Live advisors
-              </span>
-              <span className="text-xs font-medium text-white/85">24/7 · No hold music</span>
-            </span>
-            <span className="mt-1 block font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
-              Call now
-            </span>
-            <span className="mt-0.5 block truncate font-mono text-base font-semibold tracking-wide text-white/95 sm:text-lg">
+          <span className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0">
+            <span className="text-base font-semibold sm:text-lg">Call now</span>
+            <span className="font-mono text-sm font-medium text-white/95 sm:text-base">
               {displayNumber}
             </span>
-            {sublabel ? (
-              <span className="mt-1 block text-sm text-white/80">{sublabel}</span>
-            ) : (
-              <span className="mt-1 block text-sm text-white/80">
-                Tap to speak with a rental specialist — free quote in minutes
-              </span>
-            )}
           </span>
         </span>
       </a>
@@ -91,18 +68,11 @@ export function DirectCallButton({
       <a
         href={telHref!}
         aria-label={`Call now at ${displayNumber}`}
-        className={`group flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-brand-primary to-[#ff8f1f] px-4 py-3.5 text-white shadow-cta ring-1 ring-white/20 transition active:scale-[0.98] ${className}`}
+        className={`flex w-full items-center justify-center gap-2 rounded-xl bg-brand-primary px-4 py-3 text-sm font-semibold text-white shadow-cta transition hover:brightness-110 active:scale-[0.99] ${className}`}
       >
-        <span className="flex size-10 items-center justify-center rounded-full bg-white/20">
-          <Phone className="size-5" strokeWidth={2.5} />
-        </span>
-        <span className="flex flex-col items-start leading-tight">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-white/90">
-            Call now
-          </span>
-          <span className="font-mono text-sm font-bold tracking-wide">{displayNumber}</span>
-        </span>
-        <PhoneCall className="ml-auto size-5 opacity-80" aria-hidden />
+        <Phone className="size-4 shrink-0" strokeWidth={2.5} />
+        <span>Call now</span>
+        <span className="font-mono text-white/90">{displayNumber}</span>
       </a>
     );
   }
@@ -112,18 +82,11 @@ export function DirectCallButton({
       <a
         href={telHref!}
         aria-label={`Call now at ${displayNumber}`}
-        className={`group inline-flex max-w-full items-center gap-2 rounded-full bg-brand-primary px-3 py-2 text-white shadow-cta ring-2 ring-brand-primary/30 transition hover:brightness-110 active:scale-[0.98] sm:gap-2.5 sm:px-4 sm:py-2.5 ${className}`}
+        className={`inline-flex max-w-full items-center gap-2 rounded-full bg-brand-primary px-3.5 py-2 text-sm font-semibold text-white shadow-cta transition hover:brightness-110 active:scale-[0.98] sm:px-4 ${className}`}
       >
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white/20 sm:size-9">
-          <Phone className="size-4 sm:size-[18px]" strokeWidth={2.5} />
-        </span>
-        <span className="hidden min-w-0 flex-col text-left leading-none sm:flex">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-white/90">
-            Call now
-          </span>
-          <span className="truncate font-mono text-xs font-semibold">{displayNumber}</span>
-        </span>
-        <span className="font-display text-sm font-bold sm:hidden">Call</span>
+        <Phone className="size-4 shrink-0" strokeWidth={2.5} />
+        <span className="hidden sm:inline">Call</span>
+        <span className="font-mono text-xs sm:text-sm">{displayNumber}</span>
       </a>
     );
   }
@@ -168,25 +131,12 @@ function CallButtonPlaceholder({
   if (isHero || isSticky) {
     return (
       <div
-        className={`relative block w-full max-w-lg ${className}`}
+        className={`inline-flex max-w-full items-center gap-2 rounded-xl border border-dashed border-white/30 bg-white/10 px-4 py-3 text-sm text-white/80 ${className}`}
         role="note"
         title="Set NEXT_PUBLIC_DIRECT_CALL_PHONE in apps/web/.env.development"
       >
-        <span className="pointer-events-none absolute -inset-1 rounded-[1.35rem] bg-brand-primary/50 blur-md" aria-hidden />
-        <span className="relative flex items-center gap-4 rounded-2xl bg-gradient-to-r from-brand-primary via-[#ff8f1f] to-[#ffb347] px-5 py-4 text-white shadow-cta ring-2 ring-white/30 sm:px-6 sm:py-5">
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-white/25 ring-2 ring-white/40 sm:size-16">
-            <PhoneCall className="size-7 sm:size-8" strokeWidth={2.25} />
-          </span>
-          <span className="min-w-0 flex-1 text-left">
-            <span className="font-display text-2xl font-extrabold sm:text-3xl">Call now</span>
-            <span className="mt-1 block text-sm font-semibold text-white">
-              Add your number in <code className="rounded bg-black/25 px-1">apps/web/.env</code>
-            </span>
-            <span className="mt-0.5 block text-xs text-white/85">
-              NEXT_PUBLIC_DIRECT_CALL_PHONE=+1XXXXXXXXXX then restart <code className="rounded bg-black/20 px-1">npm run dev</code>
-            </span>
-          </span>
-        </span>
+        <Phone className="size-4 shrink-0 opacity-70" />
+        <span>Add call number in apps/web/.env</span>
       </div>
     );
   }
