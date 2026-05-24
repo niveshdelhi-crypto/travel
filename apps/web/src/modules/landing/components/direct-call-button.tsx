@@ -161,18 +161,55 @@ function CallButtonPlaceholder({
   variant: DirectCallButtonProps["variant"];
   className?: string;
 }) {
+  const isHero = variant === "hero";
   const isHeader = variant === "header";
-  const baseClass = `flex items-center justify-center gap-2 border border-dashed border-white/25 bg-white/[0.04] text-brand-muted ${
-    isHeader ? "rounded-full px-4 py-2 text-xs" : "w-full rounded-xl px-4 py-3 text-xs"
-  } ${className}`;
+  const isSticky = variant === "sticky";
+
+  if (isHero || isSticky) {
+    return (
+      <div
+        className={`relative block w-full max-w-lg ${className}`}
+        role="note"
+        title="Set NEXT_PUBLIC_DIRECT_CALL_PHONE in apps/web/.env.development"
+      >
+        <span className="pointer-events-none absolute -inset-1 rounded-[1.35rem] bg-brand-primary/50 blur-md" aria-hidden />
+        <span className="relative flex items-center gap-4 rounded-2xl bg-gradient-to-r from-brand-primary via-[#ff8f1f] to-[#ffb347] px-5 py-4 text-white shadow-cta ring-2 ring-white/30 sm:px-6 sm:py-5">
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-white/25 ring-2 ring-white/40 sm:size-16">
+            <PhoneCall className="size-7 sm:size-8" strokeWidth={2.25} />
+          </span>
+          <span className="min-w-0 flex-1 text-left">
+            <span className="font-display text-2xl font-extrabold sm:text-3xl">Call now</span>
+            <span className="mt-1 block text-sm font-semibold text-white">
+              Add your number in <code className="rounded bg-black/25 px-1">apps/web/.env</code>
+            </span>
+            <span className="mt-0.5 block text-xs text-white/85">
+              NEXT_PUBLIC_DIRECT_CALL_PHONE=+1XXXXXXXXXX then restart <code className="rounded bg-black/20 px-1">npm run dev</code>
+            </span>
+          </span>
+        </span>
+      </div>
+    );
+  }
+
+  if (isHeader) {
+    return (
+      <span
+        className={`inline-flex items-center gap-2 rounded-full bg-brand-primary px-4 py-2.5 text-sm font-bold text-white shadow-cta ring-2 ring-white/25 ${className}`}
+        title="Set NEXT_PUBLIC_DIRECT_CALL_PHONE in apps/web/.env"
+      >
+        <Phone className="size-4" />
+        Call now
+      </span>
+    );
+  }
 
   return (
     <div
-      className={baseClass}
-      title="Set NEXT_PUBLIC_DIRECT_CALL_PHONE in .env or DIRECT_CALL_PHONE_NUMBER in constants.ts"
+      className={`flex w-full items-center gap-3 rounded-xl bg-gradient-to-r from-brand-primary to-[#ff8f1f] px-4 py-3.5 text-sm font-semibold text-white shadow-cta ring-1 ring-white/25 ${className}`}
+      title="Set NEXT_PUBLIC_DIRECT_CALL_PHONE in apps/web/.env"
     >
-      <Phone className="size-4 shrink-0 opacity-50" />
-      <span>{isHeader ? "Set call number" : "Add your call number in env to enable Call now"}</span>
+      <Phone className="size-5 shrink-0" />
+      <span>Call now — add phone in apps/web/.env</span>
     </div>
   );
 }
