@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { requireAdminRoute } from "@/lib/route-guards";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app/app-shell";
@@ -18,8 +19,10 @@ import {
   Filter,
   Plus,
   Search,
+  Star,
   Trash2,
 } from "lucide-react";
+import { formatPhoneDisplay } from "@/lib/phone";
 import {
   bookingsService,
   leadsService,
@@ -32,6 +35,7 @@ import { useAuthStore } from "@/store/auth.store";
 import type { BadgeTone } from "@/types";
 
 export const Route = createFileRoute("/app/leads")({
+  beforeLoad: requireAdminRoute,
   component: LeadsPage,
 });
 
@@ -46,23 +50,31 @@ const stages: Array<{ key: BackendLeadStatus; label: string; color: string }> = 
 type LeadsQueryKey = readonly ["leads", "admin" | "my", { page: number; pageSize: number }];
 
 function LeadsPage() {
+  return (
+    <AppShell title="Leads">
+      <LeadsPipelineView scope="admin" />
+    </AppShell>
+  );
+}
+
+export function LeadsPipelineView({ scope }: { scope: "admin" | "my" }) {
   const user = useAuthStore((state) => state.user);
-  const isAdmin = user?.role === "admin";
-  const listQueryKey = ["leads", isAdmin ? "admin" : "my", { page: 1, pageSize: 100 }] as const satisfies LeadsQueryKey;
+  const listQueryKey = ["leads", scope, { page: 1, pageSize: 100 }] as const satisfies LeadsQueryKey;
 
   const leadsQuery = useQuery({
     queryKey: listQueryKey,
     queryFn: () =>
-      isAdmin ? leadsService.admin({ page: 1, pageSize: 100 }) : leadsService.my({ page: 1, pageSize: 100 }),
+      scope === "admin"
+        ? leadsService.admin({ page: 1, pageSize: 100 })
+        : leadsService.my({ page: 1, pageSize: 100 }),
     enabled: Boolean(user),
   });
 
   const grouped = groupLeads(leadsQuery.data?.data ?? []);
 
   return (
-    <AppShell title="Leads">
-      <div className="flex h-[calc(100vh-4rem)] flex-col">
-        <div className="flex flex-wrap items-center gap-3 border-b border-border px-6 py-3">
+      <div className="flex min-h-[calc(100dvh-8rem)] flex-col md:min-h-[calc(100vh-4rem)]">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 md:px-6">
           <div className="relative min-w-0">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -101,14 +113,14 @@ function LeadsPage() {
             description="The authenticated leads API did not respond successfully."
           />
         ) : (
-          <div className="flex-1 overflow-x-auto scrollbar-thin">
-            <div className="flex h-full min-w-max gap-3 p-4">
+          <div className="flex-1 overflow-x-auto scrollbar-thin overscroll-x-contain">
+            <div className="flex h-full min-w-max gap-2 p-2 sm:gap-3 sm:p-4">
               {stages.map((stage) => {
                 const columnLeads = grouped[stage.key] ?? [];
                 return (
                   <div
                     key={stage.key}
-                    className="flex w-[300px] shrink-0 flex-col rounded-xl border border-border bg-surface/40"
+                    className="flex w-[min(300px,85vw)] shrink-0 flex-col rounded-xl border border-border bg-surface/40 sm:w-[280px] md:w-[300px]"
                   >
                     <div className="flex items-center justify-between border-b border-border px-3.5 py-2.5">
                       <div className="flex items-center gap-2">
@@ -122,7 +134,12 @@ function LeadsPage() {
                     <div className="flex-1 space-y-2 overflow-y-auto p-2 scrollbar-thin">
                       {columnLeads.length ? (
                         columnLeads.map((lead) => (
-                          <LeadCard key={lead.id} lead={lead} listQueryKey={listQueryKey} />
+                          <LeadCard
+                            key={lead.id}
+                            lead={lead}
+                            listQueryKey={listQueryKey}
+                            allowDelete={scope === "admin"}
+                          />
                         ))
                       ) : (
                         <div className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
@@ -137,11 +154,18 @@ function LeadsPage() {
           </div>
         )}
       </div>
-    </AppShell>
   );
 }
 
-function LeadCard({ lead, listQueryKey }: { lead: BackendLead; listQueryKey: LeadsQueryKey }) {
+function LeadCard({
+  lead,
+  listQueryKey,
+  allowDelete,
+}: {
+  lead: BackendLead;
+  listQueryKey: LeadsQueryKey;
+  allowDelete: boolean;
+}) {
   const queryClient = useQueryClient();
   const nextStatus = getNextStatus(lead.status);
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -224,6 +248,20 @@ function LeadCard({ lead, listQueryKey }: { lead: BackendLead; listQueryKey: Lea
     },
   });
 
+  const qualityMutation = useMutation({
+    mutationFn: (retentionDays: number) => {
+      const retainUntil = new Date();
+      retainUntil.setDate(retainUntil.getDate() + retentionDays);
+      return leadsService.patchLead(lead.id, {
+        is_high_quality: true,
+        retain_until: retainUntil.toISOString(),
+      });
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["leads"] });
+    },
+  });
+
   const followUpMutation = useMutation({
     mutationFn: () => {
       const when = new Date();
@@ -259,7 +297,8 @@ function LeadCard({ lead, listQueryKey }: { lead: BackendLead; listQueryKey: Lea
     updateMutation.isPending ||
     deleteMutation.isPending ||
     followUpMutation.isPending ||
-    closeBookingMutation.isPending;
+    closeBookingMutation.isPending ||
+    qualityMutation.isPending;
 
   const followUpScheduled =
     lead.follow_up_at && !Number.isNaN(Date.parse(lead.follow_up_at))
@@ -317,6 +356,11 @@ function LeadCard({ lead, listQueryKey }: { lead: BackendLead; listQueryKey: Lea
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <Badge tone={statusTone(lead.status)}>{statusLabel(lead.status)}</Badge>
+          {lead.is_high_quality ? (
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-400">
+              <Star className="h-3 w-3 fill-current" /> High quality
+            </span>
+          ) : null}
           {followUpScheduled ? (
             <span className="text-[10px] font-medium text-amber-400">
               Follow-up {new Date(lead.follow_up_at as string).toLocaleDateString()}
@@ -331,7 +375,12 @@ function LeadCard({ lead, listQueryKey }: { lead: BackendLead; listQueryKey: Lea
           {lead.drop_location}
         </div>
         <div>{formatDateRange(lead.pickup_datetime, lead.return_datetime)}</div>
-        <div className="truncate">{lead.customer_phone}</div>
+        <div className="truncate">{formatPhoneDisplay(lead.customer_phone)}</div>
+        {lead.retain_until ? (
+          <div className="text-[10px] text-amber-400/90">
+            Retain until {new Date(lead.retain_until).toLocaleDateString()}
+          </div>
+        ) : null}
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2.5">
         <span className="text-xs text-muted-foreground">{lead.assigned_agent?.name ?? "Unassigned"}</span>
@@ -349,7 +398,17 @@ function LeadCard({ lead, listQueryKey }: { lead: BackendLead; listQueryKey: Lea
               : `Mark ${statusLabel(nextStatus)}`}
           </button>
         ) : null}
-        <div className="grid grid-cols-2 gap-2">
+        <div className={`grid gap-2 ${allowDelete ? "grid-cols-3" : "grid-cols-2"}`}>
+          <button
+            type="button"
+            onClick={() => qualityMutation.mutate(90)}
+            disabled={pending || lead.is_high_quality}
+            title="Mark high quality — retain 90 days for re-approach"
+            className="inline-flex items-center justify-center gap-1 rounded-lg border border-amber-500/35 bg-amber-500/10 px-2 py-2 text-[10px] font-semibold text-amber-100 hover:bg-amber-500/20 disabled:opacity-50"
+          >
+            <Star className="h-3.5 w-3.5" />
+            Quality
+          </button>
           <button
             type="button"
             onClick={() => followUpMutation.mutate()}
@@ -359,19 +418,21 @@ function LeadCard({ lead, listQueryKey }: { lead: BackendLead; listQueryKey: Lea
             <CalendarClock className="h-3.5 w-3.5" />
             Follow-up
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (window.confirm("Remove this lead from the pipeline? This cannot be undone.")) {
-                deleteMutation.mutate();
-              }
-            }}
-            disabled={pending}
-            className="inline-flex items-center justify-center gap-1 rounded-lg border border-destructive/40 bg-destructive/10 px-2 py-2 text-[10px] font-semibold text-destructive hover:bg-destructive/20 disabled:opacity-50"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete
-          </button>
+          {allowDelete ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm("Remove this lead from the pipeline? This cannot be undone.")) {
+                  deleteMutation.mutate();
+                }
+              }}
+              disabled={pending}
+              className="inline-flex items-center justify-center gap-1 rounded-lg border border-destructive/40 bg-destructive/10 px-2 py-2 text-[10px] font-semibold text-destructive hover:bg-destructive/20 disabled:opacity-50"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete
+            </button>
+          ) : null}
         </div>
       </div>
     </div>

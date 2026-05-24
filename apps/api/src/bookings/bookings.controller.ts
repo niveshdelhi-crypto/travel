@@ -1,5 +1,7 @@
 import { Body, Controller, Get, ParseIntPipe, Post, Query } from "@nestjs/common";
+import { UserRole } from "@prisma/client";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
+import { Roles } from "../common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "../auth/types/authenticated-user";
 import { BookingsService } from "./bookings.service";
 import { CloseLeadBookingDto } from "./dto/close-lead-booking.dto";
@@ -13,6 +15,7 @@ export class BookingsHttpController {
     return this.bookingsService.closeLeadAsBooked(user, dto);
   }
 
+  @Roles(UserRole.admin)
   @Get()
   list(
     @CurrentUser() user: AuthenticatedUser,

@@ -1,6 +1,4 @@
-import { requireAuth } from "@/lib/auth/server";
-
-export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  await requireAuth();
-  return <div className="crm-shell min-h-screen">{children}</div>;
+/** CRM routes redirect via middleware to the legacy app (:8080). */
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  return children;
 }

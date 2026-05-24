@@ -9,14 +9,14 @@ export const Route = createFileRoute("/privacy-policy")({
 
 function PrivacyPolicyPage() {
   useDocumentMeta(
-    "FleetNexus Privacy Policy",
-    "FleetNexus data handling posture for concierge bookings, Postgres CRM metadata, telemetry, analytics, cookies, jurisdictions, subprocessors, traveler rights.",
+    "Book my Carz Privacy Policy",
+    "Book my Carz data handling posture for concierge bookings, Postgres CRM metadata, telemetry, analytics, cookies, jurisdictions, subprocessors, traveler rights.",
   );
 
   const sections = [
     {
       heading: "1. Stewardship posture",
-      body: "FleetNexus processes traveler contact data strictly to originate rental assistance engagements. Sensitive payment credentials never transit the anonymous landing funnel—payments route through audited suppliers once advisors formalize confirmations.",
+      body: "Book my Carz processes traveler contact data strictly to originate rental assistance engagements. Sensitive payment credentials never transit the anonymous landing funnel—payments route through audited suppliers once advisors formalize confirmations.",
     },
     {
       heading: "2. Lawful bases & geography",
@@ -28,7 +28,7 @@ function PrivacyPolicyPage() {
     },
     {
       heading: "4. Retention mechanics",
-      body: "Operational teams define retention ladders per tenant. Default CRM retention aligns with bookkeeping requirements for rental economics—purge tickets open through security@fleetnexus.com alias once legal holds resolve.",
+      body: "Operational teams define retention ladders per tenant. Default CRM retention aligns with bookkeeping requirements for rental economics—purge tickets open through security@bookmycarz.com alias once legal holds resolve.",
     },
     {
       heading: "5. Rights & escalation",

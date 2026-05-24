@@ -29,6 +29,44 @@ enum LeadActivityAction {
   BOOKING_RECORDED
 }
 
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum CallStatus {
+  INITIATED
+  RINGING
+  ANSWERED
+  COMPLETED
+  FAILED
+  BUSY
+  NO_ANSWER
+  CANCELLED
+}
+
+enum CallProvider {
+  VONAGE
+}
+
+enum CallEventType {
+  CREATED
+  RINGING
+  ANSWERED
+  COMPLETED
+  FAILED
+  BUSY
+  NO_ANSWER
+  RECORDING_STARTED
+  RECORDING_STOPPED
+  WEBHOOK_RECEIVED
+  STATE_CHANGED
+}
+
+enum WebhookProvider {
+  VONAGE
+}
+
 enum MarketplaceDestinationKind {
   CITY
   AIRPORT
@@ -110,6 +148,8 @@ model User {
   lead_activities    LeadActivity[]
   bookings_recorded  Booking[]        @relation("BookingRecordedBy")
   payments_recorded  Payment[]        @relation("PaymentRecordedBy")
+  calls_initiated    Call[]           @relation("CallAgent")
+  active_call_sessions ActiveCallSession[]
 
   @@index([role, is_active, current_lead_count, created_at])
   @@map("users")
@@ -146,6 +186,8 @@ model Lead {
   booking_value     Decimal?   @db.Decimal(12, 2)
   last_contacted_at DateTime?
   follow_up_at      DateTime?
+  is_high_quality   Boolean    @default(false)
+  retain_until      DateTime?
   created_at        DateTime   @default(now())
   updated_at        DateTime   @updatedAt
   assigned_agent    User?      @relation("AssignedLeads", fields: [assigned_to], references: [id], onDelete: SetNull)
@@ -153,11 +195,13 @@ model Lead {
   activities         LeadActivity[]
   submissions        LeadSubmission[]
   booking            Booking?
+  calls              Call[]
 
   @@index([customer_email, customer_phone, created_at])
   @@index([assigned_to, status])
   @@index([status, created_at])
   @@index([created_at])
+  @@index([is_high_quality, retain_until])
   @@map("leads")
 }
 
@@ -236,4 +280,103 @@ model Payment {
   @@index([booking_id])
   @@index([created_at])
   @@map("payments")
+}
+
+model Call {
+  id                 String        @id @default(uuid()) @db.Uuid
+  provider           CallProvider  @default(VONAGE)
+  provider_call_id   String?       @unique
+  direction          CallDirection
+  status             CallStatus    @default(INITIATED)
+  from_number        String
+  to_number          String
+  agent_id           String?       @db.Uuid
+  lead_id            String?       @db.Uuid
+  started_at         DateTime?
+  answered_at        DateTime?
+  ended_at           DateTime?
+  duration_seconds   Int?
+  failure_reason     String?
+  metadata           Json?
+  created_at         DateTime      @default(now())
+  updated_at         DateTime      @updatedAt
+  agent              User?         @relation("CallAgent", fields: [agent_id], references: [id], onDelete: SetNull)
+  lead               Lead?         @relation(fields: [lead_id], references: [id], onDelete: SetNull)
+  events             CallEvent[]
+  recordings         CallRecording[]
+  active_session     ActiveCallSession?
+
+  @@index([agent_id, status])
+  @@index([lead_id, created_at])
+  @@index([provider_call_id])
+  @@index([status, created_at])
+  @@index([direction, created_at])
+  @@map("calls")
+}
+
+model CallEvent {
+  id             String        @id @default(uuid()) @db.Uuid
+  call_id        String        @db.Uuid
+  event_type     CallEventType
+  provider_event String?
+  payload        Json?
+  occurred_at    DateTime      @default(now())
+  created_at     DateTime      @default(now())
+  call           Call          @relation(fields: [call_id], references: [id], onDelete: Cascade)
+
+  @@index([call_id, occurred_at])
+  @@index([event_type, occurred_at])
+  @@map("call_events")
+}
+
+model CallRecording {
+  id                    String   @id @default(uuid()) @db.Uuid
+  call_id               String   @db.Uuid
+  provider_recording_id String?  @unique
+  url                   String?
+  duration_seconds      Int?
+  format                String?
+  status                String?
+  metadata              Json?
+  created_at            DateTime @default(now())
+  call                  Call     @relation(fields: [call_id], references: [id], onDelete: Cascade)
+
+  @@index([call_id, created_at])
+  @@map("call_recordings")
+}
+
+model ActiveCallSession {
+  id               String     @id @default(uuid()) @db.Uuid
+  call_id          String     @unique @db.Uuid
+  agent_id         String     @db.Uuid
+  provider_call_id String?
+  status           CallStatus
+  connected_at     DateTime?
+  expires_at       DateTime?
+  created_at       DateTime   @default(now())
+  updated_at       DateTime   @updatedAt
+  call             Call       @relation(fields: [call_id], references: [id], onDelete: Cascade)
+  agent            User       @relation(fields: [agent_id], references: [id], onDelete: Cascade)
+
+  @@index([agent_id, status])
+  @@index([provider_call_id])
+  @@index([expires_at])
+  @@map("active_call_sessions")
+}
+
+model WebhookRequestLog {
+  id              String          @id @default(uuid()) @db.Uuid
+  provider        WebhookProvider
+  endpoint        String
+  headers         Json
+  payload         Json?
+  signature_valid Boolean?
+  ip_address      String?
+  response_code   Int?
+  created_at      DateTime        @default(now())
+
+  @@index([provider, created_at])
+  @@index([endpoint, created_at])
+  @@index([signature_valid, created_at])
+  @@map("webhook_request_logs")
 }

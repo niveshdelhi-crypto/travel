@@ -1,53 +1,43 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
 const apiURL = process.env.E2E_API_URL ?? "http://127.0.0.1:4000/api";
+/** Legacy CRM (Vite). Run `npm run dev` so API + CRM + web are up. */
+const crmBaseURL = process.env.E2E_CRM_URL ?? "http://127.0.0.1:8080";
 const adminEmail = process.env.E2E_ADMIN_EMAIL ?? "admin@fleetnexus.com";
 const adminPassword = process.env.E2E_ADMIN_PASSWORD ?? "Admin@123";
 const agentEmail = process.env.E2E_AGENT_EMAIL ?? "agent1@fleetnexus.com";
 const agentPassword = process.env.E2E_AGENT_PASSWORD ?? "Agent@123";
 
-test.describe("FleetNexus operational CRM", () => {
-  test("login redirects to the CRM dashboard", async ({ page }) => {
+test.describe("Book my Carz legacy CRM", () => {
+  test.use({ baseURL: crmBaseURL });
+
+  test("login lands on CRM dashboard", async ({ page }) => {
     await login(page, adminEmail, adminPassword);
+    await expect(page).toHaveURL(/\/app\/?$/);
     await expect(page.getByRole("heading", { name: /dashboard/i })).toBeVisible();
-    await expect(page.getByText(/signed in as/i)).toBeVisible();
   });
 
-  test("public lead submission is assigned and visible in admin dashboard", async ({ page, request }) => {
-    await login(page, adminEmail, adminPassword);
+  test("public lead submission is visible in admin leads pipeline", async ({ page, request }) => {
+    await login(page, adminEmail, adminPassword, "/app/leads");
     const lead = await submitLead(request, "playwright-admin");
 
-    await page.goto("/admin");
-    await expect(page.getByText(lead.customer_name)).toBeVisible();
-    await expect(page.getByText(/assignment load/i)).toBeVisible();
-  });
-
-  test("assigned leads are visible in sales dashboard", async ({ page, request }) => {
-    await submitLead(request, "playwright-sales");
-    await login(page, agentEmail, agentPassword, "/sales");
-
-    await expect(page.getByRole("heading", { name: /my leads/i })).toBeVisible();
-    await expect(page.getByText(/records/i)).toBeVisible();
-  });
-
-  test("admin dashboard receives realtime lead updates through query invalidation", async ({
-    page,
-    request,
-  }) => {
-    await login(page, adminEmail, adminPassword, "/admin");
-    await expect(page.getByRole("heading", { name: "Leads" })).toBeVisible();
-
-    const lead = await submitLead(request, "playwright-realtime");
     await expect(page.getByText(lead.customer_name)).toBeVisible({ timeout: 20_000 });
+  });
+
+  test("assigned leads appear in sales agent pipeline", async ({ page, request }) => {
+    await submitLead(request, "playwright-sales");
+    await login(page, agentEmail, agentPassword, "/app/leads");
+
+    await expect(page.getByRole("heading", { name: /leads/i })).toBeVisible();
   });
 });
 
-async function login(page: Page, email: string, password: string, next = "/dashboard") {
-  await page.goto(`/login?next=${encodeURIComponent(next)}`);
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
+async function login(page: Page, email: string, password: string, redirect = "/app") {
+  await page.goto(`/login?redirect=${encodeURIComponent(redirect)}`);
+  await page.getByLabel(/email/i).fill(email);
+  await page.getByLabel(/password/i).fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page).toHaveURL(new RegExp(`${escapeRegExp(next)}$`));
+  await expect(page).toHaveURL(new RegExp(`${escapeRegExp(redirect)}$`));
 }
 
 async function submitLead(request: APIRequestContext, suffix: string) {

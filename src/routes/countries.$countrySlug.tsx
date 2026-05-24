@@ -16,7 +16,7 @@ function CountryProfilePage() {
   const country = countryQuery.data;
 
   useDocumentMeta(
-    country ? `${country.name} Rental Desk · FleetNexus` : "FleetNexus Destination Profile",
+    country ? `${country.name} Rental Desk · Book my Carz` : "Book my Carz Destination Profile",
     country?.headline ??
       "Country-level dossier hydrating from Postgres with linked city & airport corridors.",
   );

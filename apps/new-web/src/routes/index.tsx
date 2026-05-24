@@ -13,9 +13,9 @@ import { Testimonials } from "@/components/site/Testimonials";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FleetNexus — Compare car rentals worldwide" },
+      { title: "Book my Carz — Compare car rentals worldwide" },
       { name: "description", content: "Compare 800+ car rental suppliers in 190+ countries. Best price, free cancellation, no hidden fees. Book your perfect rental in seconds." },
-      { property: "og:title", content: "FleetNexus — Compare car rentals worldwide" },
+      { property: "og:title", content: "Book my Carz — Compare car rentals worldwide" },
       { property: "og:description", content: "Compare 800+ rental suppliers in 190+ countries. Best price, free cancellation, no hidden fees." },
       { property: "og:url", content: "/" },
     ],

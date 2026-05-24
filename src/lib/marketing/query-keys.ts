@@ -1,5 +1,5 @@
 // ============================================================
-// FleetNexus — Marketplace TanStack Query keys
+// Book my Carz — Marketplace TanStack Query keys
 // ============================================================
 
 export const marketplaceQueryKeys = {

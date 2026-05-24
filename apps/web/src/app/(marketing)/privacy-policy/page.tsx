@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalDoc } from "@/modules/landing/components/legal-doc";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | FleetNexus",
-  description: "How FleetNexus collects, uses, and protects your personal data.",
+  title: "Privacy Policy | Book my Carz",
+  description: "How Book my Carz collects, uses, and protects your personal data.",
 };
 
 export default function PrivacyPolicyPage() {
@@ -35,7 +35,7 @@ export default function PrivacyPolicyPage() {
         {
           id: "contact",
           title: "Contact",
-          body: "privacy@fleetnexus.com",
+          body: "privacy@bookmycarz.com",
         },
       ]}
     />

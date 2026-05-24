@@ -34,9 +34,9 @@ import {
   useTrendingDestinations,
 } from "@/hooks/use-marketplace";
 
-export function FleetNexusHomePage() {
+export function BookMyCarzHomePage() {
   useDocumentMeta(
-    "FleetNexus — Premium global car rental marketplace",
+    "Book my Carz — Premium global car rental marketplace",
     "Concierge-assisted booking with verified supply, live operations posture, and Postgres-backed destination intelligence.",
   );
 
@@ -126,7 +126,7 @@ function Hero({
             </h1>
 
             <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-[#E2E8F0]/86 sm:text-lg">
-              FleetNexus centralizes supplier verification, assisted booking, and live operations posture
+              Book my Carz centralizes supplier verification, assisted booking, and live operations posture
               so arrivals feel choreographed—not improvised at a counter kiosk.
             </p>
 
@@ -326,7 +326,7 @@ function InsuranceTransparency() {
             <CardLight
               icon={ShieldCheck}
               title="Regulated waivers only"
-              body="FleetNexus does not fabricate captive insurance—it mirrors products filed by licensed partners."
+              body="Book my Carz does not fabricate captive insurance—it mirrors products filed by licensed partners."
             />
             <CardLight
               icon={ClipboardCheck}
@@ -336,7 +336,7 @@ function InsuranceTransparency() {
             <CardLight
               icon={Headphones}
               title="Duty-of-care support"
-              body="Incident hotlines escalate to partner risk teams alongside FleetNexus command channels."
+              body="Incident hotlines escalate to partner risk teams alongside Book my Carz command channels."
             />
             <CardLight
               icon={Plane}
@@ -640,7 +640,7 @@ function TestimonialSection({ query }: { query: ReturnType<typeof useMarketplace
       <div className="mx-auto max-w-7xl">
         <SectionHeading
           eyebrow="Editorial viewpoints"
-          title="FleetNexus curates tonal references—not fabricated star ratings tied to phantom profiles."
+          title="Book my Carz curates tonal references—not fabricated star ratings tied to phantom profiles."
           copy="Stories below are seeded as editorial vignettes flagged `is_editorial` in Postgres. Swap them out with verified customer attestations anytime."
           dark
         />
@@ -718,7 +718,7 @@ function FinalCtaRail() {
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#93C5FD]">Momentum</p>
           <h2 className="mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-[#F8FAFC] sm:text-[2.4rem] sm:leading-tight">
-            When travel teams require elite calm, FleetNexus is the kinetic layer behind the itinerary.
+            When travel teams require elite calm, Book my Carz is the kinetic layer behind the itinerary.
           </h2>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-[#E2E8F0]/80">
             Operators connect via `/login`; procurement teams ingest catalog JSON from `/countries` programmatically—the platform is biased toward interoperability.

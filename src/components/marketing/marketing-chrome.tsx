@@ -32,7 +32,7 @@ function MarketingNav({ variant }: { variant: NonNullable<ShellProps["navVariant
           </span>
           <div className="leading-tight">
             <span className="block text-[10px] font-semibold uppercase tracking-[0.32em] text-[#F8FAFC]/72">
-              FleetNexus
+              Book my Carz
             </span>
             <span className="hidden text-[11px] text-[#94A3B8] sm:inline">
               Global rental marketplace

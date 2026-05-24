@@ -40,6 +40,15 @@ type RealtimePayload<T> = T & {
   _realtime?: RealtimeMetadata;
 };
 
+type CallRealtimePayload = {
+  id: string;
+  status: string;
+  direction: string;
+  agent_id: string | null;
+  lead_id: string | null;
+  provider_call_id: string | null;
+};
+
 const SOCKET_HEALTH_LOG_INTERVAL_MS = 60_000;
 const STALE_UNAUTHENTICATED_SOCKET_MS = 10_000;
 const EVENT_DEDUPE_TTL_MS = 60_000;
@@ -240,6 +249,47 @@ export class RealtimeGateway
       rooms: ["role:admin", `lead:${note.lead_id}`],
       payload: note,
     });
+  }
+
+  emitCallCreated(payload: CallRealtimePayload) {
+    void this.emitCallEvent("CALL_CREATED", payload);
+  }
+
+  emitCallRinging(payload: CallRealtimePayload) {
+    void this.emitCallEvent("CALL_RINGING", payload);
+  }
+
+  emitCallAnswered(payload: CallRealtimePayload) {
+    void this.emitCallEvent("CALL_ANSWERED", payload);
+  }
+
+  emitCallCompleted(payload: CallRealtimePayload) {
+    void this.emitCallEvent("CALL_COMPLETED", payload);
+  }
+
+  emitCallFailed(payload: CallRealtimePayload & { failure_reason?: string | null }) {
+    void this.emitCallEvent("CALL_FAILED", payload);
+  }
+
+  private emitCallEvent(eventName: string, payload: CallRealtimePayload) {
+    const rooms = this.callRealtimeRooms(payload);
+    void this.emitDeduped({
+      eventName,
+      dedupeKey: `${eventName}:${payload.id}:${payload.status}`,
+      rooms,
+      payload,
+    });
+  }
+
+  private callRealtimeRooms(payload: CallRealtimePayload): string[] {
+    const rooms = new Set<string>(["role:admin"]);
+    if (payload.agent_id) {
+      rooms.add(`user:${payload.agent_id}`);
+    }
+    if (payload.lead_id) {
+      rooms.add(`lead:${payload.lead_id}`);
+    }
+    return [...rooms];
   }
 
   private async authenticate(socket: Socket): Promise<SocketUser | null> {

@@ -19,7 +19,7 @@ type SeedUser = {
 
 const seedUsers: SeedUser[] = [
   {
-    name: "FleetNexus Admin",
+    name: "Book my Carz Admin",
     email: "admin@fleetnexus.com",
     password: "Admin@123",
     role: UserRole.admin,
@@ -28,7 +28,7 @@ const seedUsers: SeedUser[] = [
     const agentNumber = index + 1;
 
     return {
-      name: `FleetNexus Agent ${agentNumber}`,
+      name: `Book my Carz Agent ${agentNumber}`,
       email: `agent${agentNumber}@fleetnexus.com`,
       password: "Agent@123",
       role: UserRole.sales_agent,
@@ -111,7 +111,7 @@ function assertUniqueEmails(users: SeedUser[]) {
 }
 
 function printSeededUsers(users: SeededUser[]) {
-  console.log("\nFleetNexus seed complete. Users ready:\n");
+  console.log("\nBook my Carz seed complete. Users ready:\n");
   console.table(
     users.map((user) => ({
       email: user.email,
@@ -138,7 +138,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "Priority arrival coordination across Terminals B and international gates.",
           iata_code: "LAX",
           trend_score: 98,
-          seo_title: "Premium car rental near LAX | FleetNexus",
+          seo_title: "Premium car rental near LAX | Book my Carz",
           seo_description:
             "Assisted concierge matching for arrivals at Los Angeles International with verified rental partners.",
         },
@@ -149,7 +149,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "Terminal-aware pickup planning for transatlantic and domestic arrivals.",
           iata_code: "JFK",
           trend_score: 96,
-          seo_title: "Premium car rental near JFK | FleetNexus",
+          seo_title: "Premium car rental near JFK | Book my Carz",
           seo_description:
             "Concierge desk support for JFK arrivals with premium vehicle classes and partner verification.",
         },
@@ -160,7 +160,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "Coastal executive travel, Art Basel season, and family resort routing.",
           iata_code: null,
           trend_score: 90,
-          seo_title: "Luxury car rental assistance in Miami | FleetNexus",
+          seo_title: "Luxury car rental assistance in Miami | Book my Carz",
           seo_description:
             "Route-aware premium rental matching for Miami beach corridors, downtown, and port arrivals.",
         },
@@ -171,7 +171,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "Hills, tech campuses, and SFO linkage with escalation paths.",
           iata_code: null,
           trend_score: 88,
-          seo_title: "Executive rentals in San Francisco | FleetNexus",
+          seo_title: "Executive rentals in San Francisco | Book my Carz",
           seo_description:
             "Assisted booking coordination across San Francisco, Silicon Valley arrivals, and SFO corridors.",
         },
@@ -190,7 +190,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "High-volume arrivals with baggage and terminal timing modeled into pickup.",
           iata_code: "YYZ",
           trend_score: 94,
-          seo_title: "Premium car rental at Toronto Pearson YYZ | FleetNexus",
+          seo_title: "Premium car rental at Toronto Pearson YYZ | Book my Carz",
           seo_description:
             "Concierge-assisted premium rentals for Toronto Pearson arrivals and downtown handoffs.",
         },
@@ -201,7 +201,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "Mountain routes, cruise links, and Pacific business travel.",
           iata_code: null,
           trend_score: 86,
-          seo_title: "Luxury rental assistance in Vancouver | FleetNexus",
+          seo_title: "Luxury rental assistance in Vancouver | Book my Carz",
           seo_description:
             "Premium vehicle coordination for Vancouver city, YVR airport, and Whistler corridor trips.",
         },
@@ -220,7 +220,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "Long-haul arrivals, terminal swaps, and West End transfers.",
           iata_code: "LHR",
           trend_score: 92,
-          seo_title: "Premium car rental at London Heathrow | FleetNexus",
+          seo_title: "Premium car rental at London Heathrow | Book my Carz",
           seo_description:
             "Concierge-style rental matching for London Heathrow arrivals and central London itineraries.",
         },
@@ -239,7 +239,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "DXB arrivals, marina districts, and executive weekend routing.",
           iata_code: null,
           trend_score: 99,
-          seo_title: "Premium rental concierge in Dubai | FleetNexus",
+          seo_title: "Premium rental concierge in Dubai | Book my Carz",
           seo_description:
             "Verified partner coordination for Dubai arrivals with luxury SUV and chauffeur-style handoffs.",
         },
@@ -462,7 +462,7 @@ async function seedShowcasePipeline(client: PrismaClient) {
       return_datetime: new Date(createdAt.getTime() + 96 * 60 * 60 * 1000),
       customer_name: `Demo itinerary ${index + 1}`,
       customer_email: `showcase-demo-${String(index + 1).padStart(2, "0")}@fleetnexus.demo`,
-      customer_phone: "+1 4155550100",
+      customer_phone: "+14155550100",
       status: statuses[index % statuses.length],
       assigned_to: agent.id,
       last_contacted_at: lastContacted,

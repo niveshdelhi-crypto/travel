@@ -16,9 +16,9 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-border/70 bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/70">
       <div className="container-page flex h-16 items-center justify-between gap-6">
         <Link to="/" className="flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-navy text-navy-foreground font-display font-bold">F</span>
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-navy text-navy-foreground font-display font-bold">B</span>
           <span className="font-display text-lg font-bold tracking-tight text-foreground">
-            Fleet<span className="text-accent">Nexus</span>
+            Book my <span className="text-accent">Carz</span>
           </span>
         </Link>
 

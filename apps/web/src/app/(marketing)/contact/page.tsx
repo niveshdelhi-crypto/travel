@@ -3,8 +3,8 @@ import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Contact FleetNexus",
-  description: "Get in touch with FleetNexus customer support.",
+  title: "Contact Book my Carz",
+  description: "Get in touch with Book my Carz customer support.",
 };
 
 export default function ContactPage() {
@@ -19,10 +19,10 @@ export default function ContactPage() {
         <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">
           <Mail className="size-5 text-brand-primary" />
           <a
-            href="mailto:support@fleetnexus.com"
+            href="mailto:support@bookmycarz.com"
             className="font-medium text-foreground hover:text-brand-primary"
           >
-            support@fleetnexus.com
+            support@bookmycarz.com
           </a>
         </li>
         <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">

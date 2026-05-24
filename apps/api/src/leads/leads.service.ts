@@ -309,6 +309,16 @@ export class LeadsService {
       throw new BadRequestException("follow_up_at must be a valid ISO datetime");
     }
 
+    const retainUntil =
+      dto.retain_until === undefined
+        ? undefined
+        : dto.retain_until === null || dto.retain_until === ""
+          ? null
+          : new Date(dto.retain_until);
+    if (retainUntil !== undefined && retainUntil !== null && Number.isNaN(retainUntil.getTime())) {
+      throw new BadRequestException("retain_until must be a valid ISO datetime");
+    }
+
     const lead = await this.prisma.lead.update({
       where: { id },
       data: {
@@ -319,9 +329,25 @@ export class LeadsService {
             ? new Date()
             : undefined,
         ...(followUpAt !== undefined ? { follow_up_at: followUpAt } : {}),
+        ...(dto.is_high_quality !== undefined ? { is_high_quality: dto.is_high_quality } : {}),
+        ...(retainUntil !== undefined ? { retain_until: retainUntil } : {}),
       },
       include: leadInclude,
     });
+
+    if (dto.is_high_quality === true) {
+      await this.prisma.leadActivity.create({
+        data: {
+          lead_id: id,
+          action: LeadActivityAction.NOTE_ADDED,
+          performed_by: user.id,
+          metadata: {
+            type: "high_quality",
+            retain_until: retainUntil?.toISOString() ?? null,
+          },
+        },
+      });
+    }
 
     if (dto.status && dto.status !== existing.status) {
       await this.prisma.leadActivity.create({

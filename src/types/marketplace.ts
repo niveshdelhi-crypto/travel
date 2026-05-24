@@ -1,5 +1,5 @@
 // ============================================================
-// FleetNexus — Marketplace / public SEO catalog types
+// Book my Carz — Marketplace / public SEO catalog types
 // ============================================================
 
 export type MarketplaceTrustSnapshot = {

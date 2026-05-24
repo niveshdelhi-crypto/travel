@@ -37,7 +37,7 @@ export function toLeadInput(form: SearchFormState, sameLocation: boolean): Creat
   };
 }
 
-export function validateSearchForm(form: SearchFormState, sameLocation: boolean): SearchFormErrors {
+function validateTripFields(form: SearchFormState, sameLocation: boolean): SearchFormErrors {
   const errors: SearchFormErrors = {};
 
   if (!form.pickupLocation.trim()) errors.pickupLocation = "Pick-up location is required.";
@@ -62,6 +62,12 @@ export function validateSearchForm(form: SearchFormState, sameLocation: boolean)
     errors.returnDate = "Return must be after pick-up.";
   }
 
+  return errors;
+}
+
+function validateContactFields(form: SearchFormState): SearchFormErrors {
+  const errors: SearchFormErrors = {};
+
   if (!form.customerName.trim()) errors.customerName = "Full name is required.";
   if (!/^\S+@\S+\.\S+$/.test(form.customerEmail.trim())) {
     errors.customerEmail = "Enter a valid email address.";
@@ -72,4 +78,21 @@ export function validateSearchForm(form: SearchFormState, sameLocation: boolean)
   if (!form.acceptedTerms) errors.acceptedTerms = "Please accept the terms to continue.";
 
   return errors;
+}
+
+/** Step 1: locations, dates, driver details */
+export function validateTripStep(form: SearchFormState, sameLocation: boolean): SearchFormErrors {
+  return validateTripFields(form, sameLocation);
+}
+
+/** Step 2: contact + terms */
+export function validateContactStep(form: SearchFormState): SearchFormErrors {
+  return validateContactFields(form);
+}
+
+export function validateSearchForm(form: SearchFormState, sameLocation: boolean): SearchFormErrors {
+  return {
+    ...validateTripFields(form, sameLocation),
+    ...validateContactFields(form),
+  };
 }

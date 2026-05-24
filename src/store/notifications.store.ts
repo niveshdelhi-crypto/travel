@@ -1,5 +1,5 @@
 // ============================================================
-// FleetNexus — Zustand Store: Notifications
+// Book my Carz — Zustand Store: Notifications
 // ============================================================
 import { create } from "zustand";
 import type { Notification } from "@/types";

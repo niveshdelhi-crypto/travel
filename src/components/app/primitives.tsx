@@ -1,5 +1,5 @@
 // ============================================================
-// FleetNexus — Enhanced Shared Primitives
+// Book my Carz — Enhanced Shared Primitives
 // Production-grade reusable components for the CRM
 // ============================================================
 import * as React from "react";
@@ -34,12 +34,12 @@ export function PanelHeader({
   right?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
-      <div>
+    <div className="flex flex-col gap-2 border-b border-border px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-3 sm:px-5 sm:py-4">
+      <div className="min-w-0">
         <h3 className="text-sm font-semibold text-foreground">{title}</h3>
         {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
       </div>
-      {right}
+      {right ? <div className="shrink-0">{right}</div> : null}
     </div>
   );
 }

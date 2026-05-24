@@ -1,5 +1,5 @@
 import { LeadStatus } from "@prisma/client";
-import { IsEnum, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Min } from "class-validator";
 
 export class UpdateLeadDto {
   @IsOptional()
@@ -14,6 +14,14 @@ export class UpdateLeadDto {
   /** ISO 8601 datetime, or omit field; send explicit `null` in JSON to clear */
   @IsOptional()
   follow_up_at?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  is_high_quality?: boolean;
+
+  /** ISO 8601 — when the lead may be re-approached for nurturing */
+  @IsOptional()
+  retain_until?: string | null;
 }
 
 export class UpdateLeadStatusDto {

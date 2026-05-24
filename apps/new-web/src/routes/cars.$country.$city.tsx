@@ -12,7 +12,7 @@ export const Route = createFileRoute("/cars/$country/$city")({
     const country = pretty(params.country);
     return {
       meta: [
-        { title: `Car rental ${city}, ${country} | FleetNexus` },
+        { title: `Car rental ${city}, ${country} | Book my Carz` },
         { name: "description", content: `Cheap car rental deals in ${city}, ${country}. Compare 800+ suppliers — best price, free cancellation.` },
         { property: "og:url", content: `/cars/${params.country}/${params.city}` },
       ],
@@ -51,7 +51,7 @@ function CityPage() {
         <h2 className="font-display text-2xl font-bold text-foreground">About car rental in {cityName}</h2>
         <p className="mt-4 max-w-3xl text-foreground/80 leading-relaxed">
           {cityName} is one of the most popular rental destinations in {countryName}. Whether
-          you're flying in for business or exploring the region by road, FleetNexus compares
+          you're flying in for business or exploring the region by road, Book my Carz compares
           live availability across hundreds of suppliers so you always get the best deal.
         </p>
       </main>

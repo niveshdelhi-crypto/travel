@@ -35,6 +35,56 @@ export const leadsService = {
     });
   },
 
+  listMyLeads(params: LeadListParams = {}) {
+    return apiRequest<PaginatedLeads>({
+      url: "/leads/my",
+      method: "GET",
+      params: {
+        page: params.page ?? 1,
+        pageSize: params.pageSize ?? 25,
+        ...(params.status && params.status !== "ALL" ? { status: params.status } : {}),
+      },
+    });
+  },
+
+  listAdminLeads(params: LeadListParams = {}) {
+    return apiRequest<PaginatedLeads>({
+      url: "/leads/admin",
+      method: "GET",
+      params: {
+        page: params.page ?? 1,
+        pageSize: params.pageSize ?? 25,
+        ...(params.status && params.status !== "ALL" ? { status: params.status } : {}),
+      },
+    });
+  },
+
+  updateLeadStatus(id: string, status: LeadStatus) {
+    return apiRequest<Lead>({
+      url: `/leads/${id}/status`,
+      method: "PATCH",
+      data: { status },
+    });
+  },
+
+  patchLead(
+    id: string,
+    input: { status?: LeadStatus; follow_up_at?: string | null; booking_value?: number },
+  ) {
+    return apiRequest<Lead>({
+      url: `/leads/${id}`,
+      method: "PATCH",
+      data: input,
+    });
+  },
+
+  deleteLead(id: string) {
+    return apiRequest<void>({
+      url: `/leads/${id}`,
+      method: "DELETE",
+    });
+  },
+
   getLeadMetrics() {
     return apiRequest<LeadMetrics>({
       url: "/leads/metrics",

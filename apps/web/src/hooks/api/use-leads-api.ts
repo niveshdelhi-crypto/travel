@@ -5,7 +5,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { leadsService } from "@/services/leads.service";
 import { onLeadEvent } from "@/lib/leads/socket";
 import { leadQueryKeys } from "@/lib/leads/query-keys";
-import type { Lead, LeadListParams, LeadNote, PaginatedLeads } from "@/lib/leads/types";
+import type {
+  Lead,
+  LeadListParams,
+  LeadMetrics,
+  LeadNote,
+  PaginatedLeads,
+} from "@/lib/leads/types";
 
 const defaultLeadListParams = {
   page: 1,
@@ -32,10 +38,11 @@ export function useLeadsQuery(params: LeadListParams, initialData?: PaginatedLea
   });
 }
 
-export function useLeadMetricsQuery() {
+export function useLeadMetricsQuery(initialData?: LeadMetrics) {
   return useQuery({
     queryKey: leadQueryKeys.metrics(),
     queryFn: () => leadsService.getLeadMetrics(),
+    initialData,
   });
 }
 

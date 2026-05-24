@@ -100,7 +100,7 @@ export function BookingWidget({ locationHints = [] }: { locationHints?: string[]
       const idempotencyKey = createIdempotencyKey();
       lastPayloadRef.current = values;
 
-      console.debug("[FleetNexus BookingWidget] submitting public lead", {
+      console.debug("[Book my Carz BookingWidget] submitting public lead", {
         endpoint: "/api/leads/public",
         idempotencyKey,
         payload,
@@ -112,14 +112,14 @@ export function BookingWidget({ locationHints = [] }: { locationHints?: string[]
       failureCount < 2 && shouldRetrySubmissionError(error),
     retryDelay: (failureCount) => 400 * (failureCount + 1),
     onSuccess: (response) => {
-      console.info("[FleetNexus BookingWidget] public lead created", response);
+      console.info("[Book my Carz BookingWidget] public lead created", response);
       setCreatedLead(response);
       reset();
       lastPayloadRef.current = null;
     },
     onError: (error) => {
       const message = getLeadSubmissionErrorMessage(error);
-      console.error("[FleetNexus BookingWidget] public lead submission failed", error);
+      console.error("[Book my Carz BookingWidget] public lead submission failed", error);
       setError("root", { type: "server", message });
     },
   });
@@ -197,7 +197,7 @@ export function BookingWidget({ locationHints = [] }: { locationHints?: string[]
           Lock in a verified premium corridor
         </h2>
         <p className="mt-2 max-w-md text-sm leading-relaxed text-[#F8FAFC]/62">
-          This request binds to FleetNexus operations in real-time. Specialists compare partner fit across
+          This request binds to Book my Carz operations in real-time. Specialists compare partner fit across
           your timing, route, and comfort expectations.
         </p>
       </header>
@@ -290,7 +290,7 @@ export function BookingWidget({ locationHints = [] }: { locationHints?: string[]
           control={control}
           name="terms"
           rules={{
-            validate: (value) => value || "Please accept FleetNexus contact terms",
+            validate: (value) => value || "Please accept Book my Carz contact terms",
           }}
           render={({ field }) => (
             <div>
@@ -301,7 +301,7 @@ export function BookingWidget({ locationHints = [] }: { locationHints?: string[]
                   className="mt-1 h-5 w-5 rounded-md border-white/28 bg-[#07111F]/60 data-[state=checked]:border-[#F5B301]"
                 />
                 <span>
-                  I authorize FleetNexus to contact me about this rental corridor and acknowledge the{" "}
+                  I authorize Book my Carz to contact me about this rental corridor and acknowledge the{" "}
                   <a className="text-[#60A5FA] underline underline-offset-2" href="/privacy-policy">
                     privacy policy
                   </a>

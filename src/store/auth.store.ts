@@ -1,5 +1,5 @@
 // ============================================================
-// FleetNexus — Zustand Store: Auth
+// Book my Carz — Zustand Store: Auth
 // ============================================================
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";

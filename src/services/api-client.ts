@@ -1,5 +1,5 @@
 // ============================================================
-// FleetNexus — API Client
+// Book my Carz — API Client
 // Scalable API abstraction with interceptors, retry logic,
 // token refresh, and error normalisation
 // ============================================================
@@ -101,7 +101,7 @@ async function ensureCsrfToken(): Promise<string | null> {
     const res = await fetch(`${API_BASE_URL}/auth/csrf`, {
       method: "GET",
       credentials: "include",
-      headers: { "Accept": "application/json", "X-Client": "fleetnexus-web/1.0" },
+      headers: { "Accept": "application/json", "X-Client": "bookmycarz-web/1.0" },
     });
     if (!res.ok) return null;
     const body = (await res.json()) as { csrfToken?: string };
@@ -122,7 +122,7 @@ async function refreshSession(): Promise<boolean> {
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "X-Client": "fleetnexus-web/1.0",
+        "X-Client": "bookmycarz-web/1.0",
       },
       credentials: "include",
       ...(refreshLs ? { body: JSON.stringify({ refresh_token: refreshLs }) } : {}),
@@ -194,7 +194,7 @@ async function request<T>(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "Accept": "application/json",
-    "X-Client": "fleetnexus-web/1.0",
+    "X-Client": "bookmycarz-web/1.0",
     ...(configHeaders as Record<string, string>),
   };
 
@@ -214,7 +214,7 @@ async function request<T>(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    console.debug("[FleetNexus API] request", {
+    console.debug("[Book my Carz API] request", {
       method: rest.method ?? "GET",
       endpoint,
       url: url.toString(),
@@ -230,7 +230,7 @@ async function request<T>(
     });
 
     clearTimeout(timeoutId);
-    console.debug("[FleetNexus API] response", {
+    console.debug("[Book my Carz API] response", {
       method: rest.method ?? "GET",
       endpoint,
       status: res.status,
@@ -288,7 +288,7 @@ async function request<T>(
     }
 
     if (looksLikeHtmlResponseBody(body)) {
-      console.error("[FleetNexus API] Unexpected HTML payload (misrouted SPA or wrong base URL)", {
+      console.error("[Book my Carz API] Unexpected HTML payload (misrouted SPA or wrong base URL)", {
         endpoint,
         debugLabel,
         preview: typeof body === "string" ? body.slice(0, 120).replace(/\s+/g, " ") : "",
@@ -303,7 +303,7 @@ async function request<T>(
     return body as T;
   } catch (err: unknown) {
     clearTimeout(timeoutId);
-    console.error("[FleetNexus API] failure", {
+    console.error("[Book my Carz API] failure", {
       method: rest.method ?? "GET",
       endpoint,
       attempt,

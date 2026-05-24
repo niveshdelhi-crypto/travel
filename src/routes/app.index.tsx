@@ -42,11 +42,11 @@ function Dashboard() {
 
   return (
     <AppShell title="Dashboard">
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 p-3 sm:space-y-6 sm:p-4 md:p-6">
         <div>
           <p className="text-sm text-muted-foreground">
             Welcome back{user?.name ? `, ${user.name}` : ""}. Live operational data is loaded from
-            FleetNexus APIs.
+            Book my Carz APIs.
           </p>
         </div>
 
@@ -116,7 +116,10 @@ function Dashboard() {
             title="Recent leads"
             subtitle={isAdmin ? "Latest inbound leads across all agents" : "Latest leads assigned to you"}
             right={
-              <Link to="/app/leads" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+              <Link
+                to={isAdmin ? "/app/leads" : "/app/workspace"}
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+              >
                 View all <ArrowUpRight className="h-3 w-3" />
               </Link>
             }
@@ -142,7 +145,7 @@ function StatusDistribution({ counts }: { counts?: Record<BackendLeadStatus, num
   const total = counts ? Object.values(counts).reduce((sum, count) => sum + count, 0) : 0;
 
   return (
-    <div className="grid gap-3 p-5 sm:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 sm:p-5 lg:grid-cols-5">
       {statusOrder.map((status) => {
         const count = counts?.[status] ?? 0;
         const pct = total === 0 ? 0 : Math.round((count / total) * 100);
@@ -166,7 +169,8 @@ function StatusDistribution({ counts }: { counts?: Record<BackendLeadStatus, num
 
 function LeadsTable({ leads }: { leads: BackendLead[] }) {
   return (
-    <table className="w-full text-sm">
+    <div className="overflow-x-auto scrollbar-thin">
+    <table className="w-full min-w-[640px] text-sm">
       <thead>
         <tr className="text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           <th className="px-5 py-2.5 font-medium">Customer</th>
@@ -204,6 +208,7 @@ function LeadsTable({ leads }: { leads: BackendLead[] }) {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 

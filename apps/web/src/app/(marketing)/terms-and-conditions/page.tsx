@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalDoc } from "@/modules/landing/components/legal-doc";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions | FleetNexus",
-  description: "FleetNexus terms and conditions for using our car rental comparison platform.",
+  title: "Terms & Conditions | Book my Carz",
+  description: "Book my Carz terms and conditions for using our car rental comparison platform.",
 };
 
 export default function TermsPage() {
@@ -15,7 +15,7 @@ export default function TermsPage() {
         {
           id: "service",
           title: "Our service",
-          body: "FleetNexus is a comparison and booking facilitation platform. The rental contract is between you and the supplier.",
+          body: "Book my Carz is a comparison and booking facilitation platform. The rental contract is between you and the supplier.",
         },
         {
           id: "bookings",
@@ -30,7 +30,7 @@ export default function TermsPage() {
         {
           id: "liability",
           title: "Liability",
-          body: "FleetNexus is not liable for supplier acts or omissions beyond applicable consumer protection law.",
+          body: "Book my Carz is not liable for supplier acts or omissions beyond applicable consumer protection law.",
         },
         {
           id: "law",
@@ -40,7 +40,7 @@ export default function TermsPage() {
         {
           id: "contact",
           title: "Contact",
-          body: "legal@fleetnexus.com",
+          body: "legal@bookmycarz.com",
         },
       ]}
     />

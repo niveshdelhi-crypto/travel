@@ -1,3 +1,9 @@
+/**
+ * Landing hero “Call us” number (E.164, e.g. +971501234567).
+ * Env `NEXT_PUBLIC_DIRECT_CALL_PHONE` overrides this when set.
+ */
+export const DIRECT_CALL_PHONE_NUMBER = "";
+
 export const SUPPLIERS = ["Hertz", "Avis", "Enterprise", "Budget", "Alamo", "National"] as const;
 
 export const TRUST_STATS = [

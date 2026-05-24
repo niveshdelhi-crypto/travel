@@ -20,7 +20,7 @@ export function MegaFooter() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#F5B301]/80">
               Marketplace
             </p>
-            <p className="mt-4 text-base font-semibold text-[#F8FAFC]">FleetNexus</p>
+            <p className="mt-4 text-base font-semibold text-[#F8FAFC]">Book my Carz</p>
             <p className="mt-3 text-sm leading-relaxed text-[#94A3B8]">
               Premium rental orchestration spanning verified suppliers, concierge assignment, and
               operations-grade visibility.
@@ -119,8 +119,8 @@ export function MegaFooter() {
             </ul>
             <ul className="mt-5 space-y-2 text-xs text-[#94A3B8]">
               <li>
-                <a href="mailto:ops@fleetnexus.com" className="hover:text-[#60A5FA]">
-                  ops@fleetnexus.com
+                <a href="mailto:ops@bookmycarz.com" className="hover:text-[#60A5FA]">
+                  ops@bookmycarz.com
                 </a>
               </li>
               <li>Phone routing via assigned advisor after intake.</li>
@@ -163,7 +163,7 @@ export function MegaFooter() {
 
         <div className="mt-14 flex flex-col gap-4 border-t border-white/10 pt-8 text-[11px] text-[#64748b] sm:flex-row sm:items-center sm:justify-between">
           <p className="text-balance leading-relaxed">
-            © {new Date().getFullYear()} FleetNexus Mobility · Catalog data served from Postgres via{" "}
+            © {new Date().getFullYear()} Book my Carz Mobility · Catalog data served from Postgres via{" "}
             <span className="text-[#94A3B8]">GET /marketplace/*</span> routes.
           </p>
           <p className="text-balance text-[#475569]">

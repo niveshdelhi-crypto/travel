@@ -12,7 +12,9 @@ import { isWebOriginAllowed } from "./common/http/web-origin-policy";
 import { RedisIoAdapter } from "./realtime/redis-io.adapter";
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+  });
   const config = app.get(ConfigService);
   // Honor X-Forwarded-* from Render/Vercel so Set-Cookie scoping matches the browser host (SPA proxies).
   const trustRaw = config.get<string>("TRUST_PROXY_HOPS")?.trim()?.toLowerCase();

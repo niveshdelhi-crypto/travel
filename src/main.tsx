@@ -1,5 +1,5 @@
 // ============================================================
-// FleetNexus — SPA Client Entry Point
+// Book my Carz — SPA Client Entry Point
 // Pure client-side rendering with TanStack Router
 // ============================================================
 import React from "react";

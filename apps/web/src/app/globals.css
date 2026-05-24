@@ -1,6 +1,7 @@
+@import url("https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=general-sans@400,500,600,700&display=swap");
 @import "tailwindcss";
 
-/* FleetNexus design system — public landing + shared tokens */
+/* Book my Carz design system — public landing + shared tokens */
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-satoshi), var(--font-inter), ui-sans-serif, sans-serif;
@@ -49,6 +50,9 @@
 }
 
 :root {
+  --font-satoshi: "Satoshi", var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-general-sans: "General Sans", var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
   --background: #f7f9fc;
   --foreground: #071120;
   --surface: #ffffff;
@@ -165,6 +169,42 @@ h4 {
     backdrop-filter: blur(20px);
   }
 
+  /* Dark selects (residency, driver age) — fixes white-on-white native dropdown options */
+  .glass-panel .glass-field-select {
+    color-scheme: dark;
+    color: #f8fafc;
+    background-color: transparent;
+  }
+
+  .glass-panel .glass-field-select option {
+    background-color: #0f172a;
+    color: #f8fafc;
+  }
+
+  .glass-panel .glass-field-select option:checked,
+  .glass-panel .glass-field-select option:hover {
+    background-color: #1e3a5f;
+    color: #f8fafc;
+  }
+
+  .glass-panel input[type="date"],
+  .glass-panel input[type="time"] {
+    color-scheme: dark;
+  }
+
+  .glass-panel button:not(:disabled),
+  .glass-panel a[href^="tel:"] {
+    cursor: pointer;
+  }
+
+  .glass-panel button:disabled {
+    cursor: not-allowed;
+  }
+
+  .glass-panel label:has(input[type="checkbox"]) {
+    cursor: pointer;
+  }
+
   @keyframes marquee {
     from {
       transform: translateX(0);
@@ -199,6 +239,16 @@ h4 {
   background: var(--crm-background);
   color: var(--crm-foreground);
   font-family: var(--font-sans);
+}
+
+.calls-theme .calls-workspace {
+  background: #020617;
+  color: #e2e8f0;
+}
+
+.calls-theme .crm-shell {
+  background: #020617;
+  color: #e2e8f0;
 }
 
 @media (prefers-reduced-motion: reduce) {

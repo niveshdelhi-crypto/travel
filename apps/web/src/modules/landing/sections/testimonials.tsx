@@ -13,7 +13,7 @@ const reviews = [
     name: "Daniel Ortega",
     country: "Spain",
     rating: 5,
-    text: "Free cancellation saved me when plans changed. Refund hit my card the next morning. Will use FleetNexus again.",
+    text: "Free cancellation saved me when plans changed. Refund hit my card the next morning. Will use Book my Carz again.",
     img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80&auto=format&fit=crop",
   },
   {

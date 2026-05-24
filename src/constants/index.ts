@@ -1,10 +1,10 @@
 // ============================================================
-// FleetNexus — Platform Constants
+// Book my Carz — Platform Constants
 // ============================================================
 
-export const PLATFORM_NAME = "FleetNexus";
+export const PLATFORM_NAME = "Book my Carz";
 export const PLATFORM_TAGLINE = "Car Rental Marketplace & Assisted Booking CRM";
-export const PLATFORM_DOMAIN = "app.fleetnexus.io";
+export const PLATFORM_DOMAIN = "app.bookmycarz.com";
 export const SUPPORT_MARKETS = ["USA", "Canada"];
 export const CITY_COUNT = 142;
 export const PROVIDER_COUNT = 42;
@@ -75,7 +75,7 @@ export const PROVIDER_TIER_COLORS = {
 
 // ─── API ──────────────────────────────────────────────────────
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
-export const API_TIMEOUT_MS = 15_000;
+export const API_TIMEOUT_MS = Number(import.meta.env.VITE_API_TIMEOUT_MS ?? 60_000);
 export const API_RETRY_ATTEMPTS = 3;
 export const API_RETRY_DELAY_MS = 1_000;
 

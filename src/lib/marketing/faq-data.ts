@@ -1,8 +1,8 @@
 /** Editorial FAQ corpus — informational, non-contractual companion to `/conditions`. */
 export const HOME_FAQ = [
   {
-    q: "Is FleetNexus a direct supplier or a marketplace?",
-    a: "FleetNexus behaves as an enterprise marketplace layer: concierge staff compare approved partners across your corridor, timing, and quality bar, rather than dumping anonymous inventory into one grid.",
+    q: "Is Book my Carz a direct supplier or a marketplace?",
+    a: "Book my Carz behaves as an enterprise marketplace layer: concierge staff compare approved partners across your corridor, timing, and quality bar, rather than dumping anonymous inventory into one grid.",
   },
   {
     q: "Will I receive a verified quote?",

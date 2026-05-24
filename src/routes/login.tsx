@@ -16,7 +16,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const setUser = useAuthStore((state) => state.setUser);
-  const [email, setEmail] = useState("admin@fleetnexus.com");
+  const [email, setEmail] = useState("admin@bookmycarz.com");
   const [password, setPassword] = useState("Admin@123");
   const [error, setError] = useState<string | null>(null);
   const { redirect } = Route.useSearch();
@@ -33,7 +33,18 @@ function LoginPage() {
     onSuccess: async (user) => {
       setUser(user);
       await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      await navigate({ to: redirect.startsWith("/") ? redirect : "/app", replace: true });
+      const home = user.role === "admin" ? "/app" : "/app/workspace";
+      const target = redirect.startsWith("/") ? redirect : home;
+      const safeTarget =
+        user.role === "sales_agent" &&
+        (target.startsWith("/app/leads") ||
+          target.startsWith("/app/bookings") ||
+          target.startsWith("/app/payments") ||
+          target.startsWith("/app/analytics") ||
+          target.startsWith("/app/admin"))
+          ? home
+          : target;
+      await navigate({ to: safeTarget, replace: true });
     },
     onError: (unknownError) => {
       const apiError = unknownError as { message?: string };
@@ -54,15 +65,15 @@ function LoginPage() {
   };
 
   return (
-    <main className="grid min-h-screen place-items-center bg-[#070b12] px-4 text-white">
+    <main className="grid min-h-[100dvh] place-items-center bg-[#070b12] px-4 py-8 text-white sm:px-6">
       <form
         onSubmit={submit}
-        className="w-full max-w-md rounded-lg border border-white/12 bg-[#0b1220] p-6 shadow-2xl shadow-black/45"
+        className="w-full max-w-md rounded-xl border border-white/12 bg-[#0b1220] p-5 shadow-2xl shadow-black/45 sm:p-6"
       >
         <div className="grid h-12 w-12 place-items-center rounded-md bg-[#f4d587] text-[#070b12]">
           <LockKeyhole className="h-6 w-6" />
         </div>
-        <h1 className="mt-5 text-2xl font-semibold tracking-tight">FleetNexus sign in</h1>
+        <h1 className="mt-5 text-2xl font-semibold tracking-tight">Book my Carz sign in</h1>
         <p className="mt-2 text-sm leading-6 text-white/60">
           Use your operations account to access the CRM dashboard.
         </p>

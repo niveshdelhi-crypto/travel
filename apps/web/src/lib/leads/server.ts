@@ -23,6 +23,24 @@ export function listServerLeads(params: LeadListParams = {}) {
   return serverRequest<PaginatedLeads>(`/leads?${searchParams.toString()}`);
 }
 
+export function listServerMyLeads(params: LeadListParams = {}) {
+  const searchParams = new URLSearchParams({
+    page: String(params.page ?? 1),
+    pageSize: String(params.pageSize ?? 100),
+  });
+  if (params.status && params.status !== "ALL") searchParams.set("status", params.status);
+  return serverRequest<PaginatedLeads>(`/leads/my?${searchParams.toString()}`);
+}
+
+export function listServerAdminLeads(params: LeadListParams = {}) {
+  const searchParams = new URLSearchParams({
+    page: String(params.page ?? 1),
+    pageSize: String(params.pageSize ?? 100),
+  });
+  if (params.status && params.status !== "ALL") searchParams.set("status", params.status);
+  return serverRequest<PaginatedLeads>(`/leads/admin?${searchParams.toString()}`);
+}
+
 export function getServerLeadMetrics() {
   return serverRequest<LeadMetrics>("/leads/metrics");
 }

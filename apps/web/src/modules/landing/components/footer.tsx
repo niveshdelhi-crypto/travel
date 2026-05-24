@@ -61,7 +61,7 @@ export function LandingFooter() {
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 font-display text-sm font-bold">
                 F
               </span>
-              <span className="font-display text-lg font-bold">FleetNexus</span>
+              <span className="font-display text-lg font-bold">Book my Carz</span>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-white/70">
               Compare 800+ car rental suppliers in 190+ countries. Best price, free cancellation, no
@@ -100,7 +100,7 @@ export function LandingFooter() {
 
         <div className="mt-12 rounded-2xl border border-white/10 bg-white/5 p-6 md:flex md:items-center md:justify-between">
           <div>
-            <h5 className="font-display text-base font-semibold">Get the FleetNexus app</h5>
+            <h5 className="font-display text-base font-semibold">Get the Book my Carz app</h5>
             <p className="mt-1 text-sm text-white/70">Manage bookings on the go. Coming soon.</p>
           </div>
           <div className="mt-4 flex gap-3 md:mt-0">
@@ -116,7 +116,7 @@ export function LandingFooter() {
 
       <div className="border-t border-white/10">
         <div className="container-page flex flex-col gap-2 py-6 text-xs text-white/60 md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} FleetNexus Rentals. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Book my Carz Rentals. All rights reserved.</p>
           <p>Secured by 256-bit SSL · PCI DSS compliant · Trusted worldwide</p>
         </div>
       </div>

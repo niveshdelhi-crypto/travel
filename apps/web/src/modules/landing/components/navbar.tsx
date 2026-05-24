@@ -4,12 +4,15 @@ import Link from "next/link";
 import type { Route } from "next";
 import { Globe, Menu, X } from "lucide-react";
 import { useState } from "react";
+import { getLegacyCrmLoginUrl } from "@/lib/crm-url";
 
 const navLinks = [
   { href: "/faq", label: "FAQ" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
+
+const crmSignInUrl = getLegacyCrmLoginUrl();
 
 export function LandingNavbar() {
   const [open, setOpen] = useState(false);
@@ -19,10 +22,10 @@ export function LandingNavbar() {
       <div className="container-page flex h-16 items-center justify-between gap-6">
         <Link href="/" className="flex items-center gap-2">
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand-primary font-display text-sm font-bold text-white">
-            F
+            B
           </span>
           <span className="font-display text-lg font-bold tracking-tight text-brand-text">
-            Fleet<span className="text-brand-accent">Nexus</span>
+            Book my <span className="text-brand-accent">Carz</span>
           </span>
         </Link>
 
@@ -45,12 +48,12 @@ export function LandingNavbar() {
           >
             <Globe className="size-3.5" /> EN · USD
           </button>
-          <Link
-            href="/login"
+          <a
+            href={crmSignInUrl}
             className="rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
           >
-            Sign In
-          </Link>
+            Staff sign in
+          </a>
         </div>
 
         <button
@@ -66,7 +69,7 @@ export function LandingNavbar() {
       {open && (
         <div className="border-t border-white/10 bg-brand-dark lg:hidden">
           <div className="container-page flex flex-col gap-1 py-4">
-            {[...navLinks, { href: "/login", label: "Sign In" }].map((l) => (
+            {navLinks.map((l) => (
               <Link
                 key={l.href}
                 href={l.href as Route}
@@ -76,6 +79,13 @@ export function LandingNavbar() {
                 {l.label}
               </Link>
             ))}
+            <a
+              href={crmSignInUrl}
+              onClick={() => setOpen(false)}
+              className="rounded-lg px-3 py-2.5 text-sm font-medium text-brand-accent hover:bg-white/5"
+            >
+              Staff sign in
+            </a>
           </div>
         </div>
       )}

@@ -30,6 +30,7 @@ import { Route as CountriesCountrySlugRouteImport } from './routes/countries.$co
 import { Route as BookingSuccessRouteImport } from './routes/booking.success'
 import { Route as BookingDetailsRouteImport } from './routes/booking.details'
 import { Route as BookingCheckoutRouteImport } from './routes/booking.checkout'
+import { Route as AppWorkspaceRouteImport } from './routes/app.workspace'
 import { Route as AppTeamRouteImport } from './routes/app.team'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppProvidersRouteImport } from './routes/app.providers'
@@ -149,6 +150,11 @@ const BookingCheckoutRoute = BookingCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => BookingRoute,
 } as any)
+const AppWorkspaceRoute = AppWorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTeamRoute = AppTeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -242,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/app/providers': typeof AppProvidersRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/team': typeof AppTeamRoute
+  '/app/workspace': typeof AppWorkspaceRoute
   '/booking/checkout': typeof BookingCheckoutRoute
   '/booking/details': typeof BookingDetailsRoute
   '/booking/success': typeof BookingSuccessRoute
@@ -277,6 +284,7 @@ export interface FileRoutesByTo {
   '/app/providers': typeof AppProvidersRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/team': typeof AppTeamRoute
+  '/app/workspace': typeof AppWorkspaceRoute
   '/booking/checkout': typeof BookingCheckoutRoute
   '/booking/details': typeof BookingDetailsRoute
   '/booking/success': typeof BookingSuccessRoute
@@ -314,6 +322,7 @@ export interface FileRoutesById {
   '/app/providers': typeof AppProvidersRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/team': typeof AppTeamRoute
+  '/app/workspace': typeof AppWorkspaceRoute
   '/booking/checkout': typeof BookingCheckoutRoute
   '/booking/details': typeof BookingDetailsRoute
   '/booking/success': typeof BookingSuccessRoute
@@ -352,6 +361,7 @@ export interface FileRouteTypes {
     | '/app/providers'
     | '/app/settings'
     | '/app/team'
+    | '/app/workspace'
     | '/booking/checkout'
     | '/booking/details'
     | '/booking/success'
@@ -387,6 +397,7 @@ export interface FileRouteTypes {
     | '/app/providers'
     | '/app/settings'
     | '/app/team'
+    | '/app/workspace'
     | '/booking/checkout'
     | '/booking/details'
     | '/booking/success'
@@ -423,6 +434,7 @@ export interface FileRouteTypes {
     | '/app/providers'
     | '/app/settings'
     | '/app/team'
+    | '/app/workspace'
     | '/booking/checkout'
     | '/booking/details'
     | '/booking/success'
@@ -603,6 +615,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookingCheckoutRouteImport
       parentRoute: typeof BookingRoute
     }
+    '/app/workspace': {
+      id: '/app/workspace'
+      path: '/workspace'
+      fullPath: '/app/workspace'
+      preLoaderRoute: typeof AppWorkspaceRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/team': {
       id: '/app/team'
       path: '/team'
@@ -720,6 +739,7 @@ interface AppRouteChildren {
   AppProvidersRoute: typeof AppProvidersRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppTeamRoute: typeof AppTeamRoute
+  AppWorkspaceRoute: typeof AppWorkspaceRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -734,6 +754,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProvidersRoute: AppProvidersRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppTeamRoute: AppTeamRoute,
+  AppWorkspaceRoute: AppWorkspaceRoute,
   AppIndexRoute: AppIndexRoute,
 }
 

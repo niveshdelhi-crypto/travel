@@ -1,5 +1,5 @@
 // ============================================================
-// FleetNexus — Domain Service Layer
+// Book my Carz — Domain Service Layer
 // All API calls are organised by domain. Each service uses
 // the shared apiClient and returns typed responses.
 // ============================================================
@@ -70,6 +70,8 @@ export type BackendLead = {
   booking_value: string | number | null;
   last_contacted_at: string | null;
   follow_up_at?: string | null;
+  is_high_quality?: boolean;
+  retain_until?: string | null;
   created_at: string;
   updated_at: string;
   assigned_agent?: {
@@ -209,7 +211,7 @@ export const leadsService = {
     if (isPublicLeadResponse(response)) return response;
     if (isWrappedPublicLeadResponse(response)) return response.data;
 
-    throw new Error("Unexpected lead submission response from FleetNexus API.");
+    throw new Error("Unexpected lead submission response from Book my Carz API.");
   },
 
   my(params?: { status?: BackendLeadStatus; page?: number; pageSize?: number }) {
@@ -234,7 +236,13 @@ export const leadsService = {
 
   patchLead(
     id: string,
-    body: { status?: BackendLeadStatus; follow_up_at?: string | null; booking_value?: number },
+    body: {
+      status?: BackendLeadStatus;
+      follow_up_at?: string | null;
+      booking_value?: number;
+      is_high_quality?: boolean;
+      retain_until?: string | null;
+    },
   ) {
     return apiClient.patch<BackendLead>(`/leads/${id}`, body);
   },
@@ -267,8 +275,14 @@ export const leadsService = {
     return apiClient.patch<ApiResponse<Lead>>(`/leads/${id}/assign`, { agentId });
   },
 
-  addNote(id: string, note: string) {
-    return apiClient.post<ApiResponse<Lead>>(`/leads/${id}/notes`, { content: note });
+  addNote(id: string, body: string) {
+    return apiClient.post<{
+      id: string;
+      lead_id: string;
+      body: string;
+      created_at: string;
+      author: { id: string; name: string; email: string };
+    }>(`/leads/${id}/notes`, { body });
   },
 
   getTimeline(id: string) {
@@ -368,37 +382,56 @@ export const bookingsService = {
   },
 };
 
-// ─── Calls Service ────────────────────────────────────────────
+// ─── Telephony (Vonage + persisted calls) ───────────────────
 
-export const callsService = {
-  listActive() {
-    return apiClient.get<ApiResponse<Call[]>>("/calls/active");
+export type CallRecord = {
+  id: string;
+  provider: "VONAGE";
+  provider_call_id: string | null;
+  direction: "INBOUND" | "OUTBOUND";
+  status: import("@/types/calls").CallStatus;
+  from_number: string;
+  to_number: string;
+  agent_id: string | null;
+  lead_id: string | null;
+  started_at: string | null;
+  answered_at: string | null;
+  ended_at: string | null;
+  duration_seconds: number | null;
+  failure_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  lead?: {
+    id: string;
+    customer_name: string;
+    customer_phone: string;
+    pickup_location: string;
+    drop_location: string;
+  } | null;
+  agent?: { id: string; name: string; email: string } | null;
+};
+
+export const telephonyService = {
+  list(params?: { page?: number; pageSize?: number }) {
+    return apiClient.get<BackendPaginatedResponse<CallRecord>>("/calls", { params });
   },
 
-  listHistory(params?: { page?: number; limit?: number }) {
-    return apiClient.get<PaginatedResponse<Call>>("/calls/history", { params });
+  createOutbound(payload: { to_number: string; from_number?: string; lead_id?: string }) {
+    return apiClient.post<CallRecord>("/calls/outbound", payload);
   },
 
-  initiate(payload: { customerId: string; leadId?: string; phoneNumber: string }) {
-    return apiClient.post<ApiResponse<Call>>("/calls/initiate", payload);
-  },
-
-  end(callId: string) {
-    return apiClient.patch<ApiResponse<Call>>(`/calls/${callId}/end`);
-  },
-
-  mute(callId: string, muted: boolean) {
-    return apiClient.patch<ApiResponse<void>>(`/calls/${callId}/mute`, { muted });
-  },
-
-  hold(callId: string, onHold: boolean) {
-    return apiClient.patch<ApiResponse<void>>(`/calls/${callId}/hold`, { onHold });
-  },
-
-  transfer(callId: string, targetAgentId: string) {
-    return apiClient.patch<ApiResponse<void>>(`/calls/${callId}/transfer`, { targetAgentId });
+  registerInbound(payload: {
+    from_number: string;
+    to_number: string;
+    provider_call_id?: string;
+    lead_id?: string;
+  }) {
+    return apiClient.post<CallRecord>("/calls/inbound", payload);
   },
 };
+
+/** @deprecated Use telephonyService */
+export const callsService = telephonyService;
 
 // ─── Provider Service ─────────────────────────────────────────
 
@@ -462,28 +495,38 @@ export const teamService = {
 
 // ─── Analytics Service ────────────────────────────────────────
 
+export type AnalyticsOverview = {
+  leads: {
+    total: number;
+    converted: number;
+    conversion: number;
+    pipelineRevenue: number;
+    statusCounts: Record<BackendLeadStatus, number>;
+    highQuality: number;
+    retainDueWithin7Days: number;
+  };
+  bookings: { total: number };
+  payments: { totalRecognized: number };
+  calls: { total: number; byStatus: Record<string, number> };
+  team: { activeAgents: number };
+};
+
 export const analyticsService = {
-  getDashboardMetrics() {
-    return apiClient.get<ApiResponse<Record<string, number>>>("/analytics/dashboard");
+  overview() {
+    return apiClient.get<AnalyticsOverview>("/analytics/overview");
   },
+};
 
-  getRevenueChart(range: "7d" | "30d" | "90d" | "1y") {
-    return apiClient.get<ApiResponse<Array<{ label: string; revenue: number; bookings: number }>>>(
-      "/analytics/revenue",
-      { params: { range } },
-    );
-  },
+export type PlatformModuleStatus = {
+  name: string;
+  status: string;
+  tone: "success" | "warning" | "danger";
+  detail?: string;
+};
 
-  getConversionFunnel() {
-    return apiClient.get<ApiResponse<Array<{ stage: string; count: number; percentage: number }>>>(
-      "/analytics/funnel",
-    );
-  },
-
-  getProviderPerformance() {
-    return apiClient.get<ApiResponse<Array<{ name: string; fillRate: number; score: number }>>>(
-      "/analytics/providers",
-    );
+export const adminService = {
+  platformModules() {
+    return apiClient.get<PlatformModuleStatus[]>("/admin/platform-modules");
   },
 };
 

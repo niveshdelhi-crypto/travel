@@ -46,7 +46,7 @@ const settingsSections = [
 
 const PROFILE_FIELDS = [
   { label: "Full name",   value: "Alex Kim",                    editable: true },
-  { label: "Email",       value: "alex.kim@fleetnexus.io",      editable: true },
+  { label: "Email",       value: "alex.kim@bookmycarz.io",      editable: true },
   { label: "Phone",       value: "+1 (415) 555-2840",           editable: true },
   { label: "Role",        value: "Sales Manager",               editable: false },
   { label: "Team ID",     value: "team_prod_01",                editable: false },

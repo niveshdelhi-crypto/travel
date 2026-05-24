@@ -1,5 +1,5 @@
 // ============================================================
-// FleetNexus — Core Platform Types
+// Book my Carz — Core Platform Types
 // Shared across CRM, Marketplace, Admin, and API layers
 // ============================================================
 
@@ -304,6 +304,17 @@ export interface SearchFilters {
 
 // ─── Socket Events ────────────────────────────────────────────
 
+export type CallRealtimePayload = {
+  id: string;
+  status: string;
+  direction: string;
+  agent_id: string | null;
+  lead_id: string | null;
+  provider_call_id: string | null;
+  failure_reason?: string | null;
+  _realtime?: { eventId?: string; emittedAt?: string };
+};
+
 export interface SocketEvents {
   "lead.created": unknown;
   "lead.assigned": unknown;
@@ -315,4 +326,9 @@ export interface SocketEvents {
   "call.started": { call: ActiveCall };
   "call.ended": { callId: string };
   "call.status_changed": { callId: string; status: CallStatus };
+  CALL_CREATED: CallRealtimePayload;
+  CALL_RINGING: CallRealtimePayload;
+  CALL_ANSWERED: CallRealtimePayload;
+  CALL_COMPLETED: CallRealtimePayload;
+  CALL_FAILED: CallRealtimePayload;
 }

@@ -4,6 +4,7 @@ import { IoAdapter } from "@nestjs/platform-socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { createClient, type RedisClientType } from "redis";
 import { ServerOptions } from "socket.io";
+import { setSocketRedisConnected } from "./realtime-connection.registry";
 
 export class RedisIoAdapter extends IoAdapter {
   private readonly logger = new Logger(RedisIoAdapter.name);
@@ -16,6 +17,7 @@ export class RedisIoAdapter extends IoAdapter {
     const redisUrl = redisUrlRaw?.trim();
 
     if (!redisUrl || redisUrl.startsWith("YOUR_")) {
+      setSocketRedisConnected(false);
       this.logger.warn(
         JSON.stringify({
           message: "socket.redis.disabled",
@@ -33,6 +35,7 @@ export class RedisIoAdapter extends IoAdapter {
         },
       });
     } catch (error) {
+      setSocketRedisConnected(false);
       this.logRedisError("socket.redis.disabled.invalid_url", error);
       return;
     }
@@ -48,6 +51,7 @@ export class RedisIoAdapter extends IoAdapter {
       key: "fleetnexus:socket.io",
       publishOnSpecificResponseChannel: true,
     });
+    setSocketRedisConnected(true);
 
     this.logger.log(JSON.stringify({ message: "socket.redis.adapter.connected" }));
   }

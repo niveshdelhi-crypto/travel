@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { requireAdminRoute } from "@/lib/route-guards";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/app/app-shell";
 import { EmptyState, Panel, Skeleton } from "@/components/app/primitives";
@@ -8,6 +9,7 @@ import { AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/app/payments")({
+  beforeLoad: requireAdminRoute,
   component: PaymentsPage,
 });
 
@@ -38,7 +40,7 @@ function PaymentsPage() {
 
   return (
     <AppShell title="Payments">
-      <div className="p-6">
+      <div className="p-3 sm:p-4 md:p-6">
         <Panel>
           {!user ? (
             <EmptyState

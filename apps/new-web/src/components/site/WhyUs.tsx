@@ -14,7 +14,7 @@ export function WhyUs() {
     <section className="py-16 md:py-24">
       <div className="container-page">
         <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-wider text-accent">Why FleetNexus</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-accent">Why Book my Carz</p>
           <h2 className="mt-2 font-display text-3xl md:text-4xl font-bold text-foreground tracking-tight">
             The smartest way to book a rental car
           </h2>

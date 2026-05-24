@@ -25,6 +25,7 @@ export type Lead = {
   status: LeadStatus;
   assigned_to: string | null;
   booking_value: string | number | null;
+  follow_up_at?: string | null;
   last_contacted_at: string | null;
   created_at: string;
   updated_at: string;
@@ -38,7 +39,7 @@ export type Lead = {
 };
 
 export type LeadMetrics = {
-  statusCounts: Partial<Record<LeadStatus, number>>;
+  statusCounts: Record<LeadStatus, number>;
   activeAgents: Array<{
     id: string;
     name: string;
@@ -46,6 +47,10 @@ export type LeadMetrics = {
     current_lead_count: number;
   }>;
   revenue: number;
+  totalLeads: number;
+  conversion: number;
+  bookings: number;
+  activeCalls: number;
 };
 
 export type LeadListParams = {

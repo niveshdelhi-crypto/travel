@@ -40,7 +40,7 @@ export function normalizeApiError(error: unknown): ApiError {
     return new ApiError({
       status: 0,
       code: "NETWORK_ERROR",
-      message: "Unable to reach FleetNexus services. Check your connection and try again.",
+      message: "Unable to reach Book my Carz services. Check your connection and try again.",
     });
   }
 
@@ -80,6 +80,6 @@ function fallbackMessage(status: number) {
   if (status === 403) return "You do not have permission to perform this action.";
   if (status === 404) return "The requested resource was not found.";
   if (status === 429) return "Too many requests. Please wait and try again.";
-  if (status >= 500) return "FleetNexus services are temporarily unavailable.";
+  if (status >= 500) return "Book my Carz services are temporarily unavailable.";
   return "An unexpected API error occurred.";
 }

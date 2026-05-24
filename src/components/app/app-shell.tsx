@@ -5,9 +5,10 @@ import { useState, useEffect } from "react";
 import { Brand } from "@/components/brand";
 import { useAuthStore } from "@/store/auth.store";
 import { useNotificationStore } from "@/store/notifications.store";
-import { useCallStore } from "@/store/call.store";
+import { useCallsStore } from "@/store/call.store";
 import { authService } from "@/services";
 import { disconnectSocket } from "@/services/socket";
+import { MobileAppNav } from "@/components/app/mobile-nav";
 import { StatusDot } from "@/components/app/primitives";
 import {
   LayoutDashboard,
@@ -33,33 +34,54 @@ import {
   LogOut,
 } from "lucide-react";
 
-const navSections = [
+type NavItem = {
+  label: string;
+  to: string;
+  icon: typeof LayoutDashboard;
+  roles?: Array<"admin" | "sales_agent">;
+  badge?: string;
+  live?: boolean;
+};
+
+const navSections: Array<{ label: string; items: NavItem[] }> = [
   {
     label: "Workspace",
     items: [
-      { label: "Dashboard",  to: "/app",               icon: LayoutDashboard },
-      { label: "Leads",      to: "/app/leads",         icon: Users2,       badge: "24" },
-      { label: "Calls",      to: "/app/calls",         icon: Phone,        live: true },
-      { label: "Bookings",   to: "/app/bookings",      icon: CalendarCheck },
-      { label: "Providers",  to: "/app/providers",     icon: Building2 },
+      { label: "Dashboard", to: "/app", icon: LayoutDashboard },
+      {
+        label: "My workspace",
+        to: "/app/workspace",
+        icon: Users2,
+        roles: ["sales_agent"],
+      },
+      { label: "Leads", to: "/app/leads", icon: Users2, roles: ["admin"] },
+      { label: "Calls", to: "/app/calls", icon: Phone, live: true },
+      { label: "Bookings", to: "/app/bookings", icon: CalendarCheck, roles: ["admin"] },
+      { label: "Providers", to: "/app/providers", icon: Building2, roles: ["admin"] },
     ],
   },
   {
     label: "Insights",
     items: [
-      { label: "Analytics",  to: "/app/analytics",    icon: BarChart3 },
-      { label: "Payments",   to: "/app/payments",     icon: CreditCard },
+      { label: "Analytics", to: "/app/analytics", icon: BarChart3, roles: ["admin"] },
+      { label: "Payments", to: "/app/payments", icon: CreditCard, roles: ["admin"] },
     ],
   },
   {
     label: "Account",
     items: [
-      { label: "Notifications", to: "/app/notifications", icon: Bell,       badge: "3" },
-      { label: "Team",          to: "/app/team",           icon: UsersRound },
-      { label: "Admin Ops",     to: "/app/admin",          icon: ShieldCheck },
+      { label: "Notifications", to: "/app/notifications", icon: Bell, badge: "3" },
+      { label: "Team", to: "/app/team", icon: UsersRound },
+      { label: "Admin Ops", to: "/app/admin", icon: ShieldCheck, roles: ["admin"] },
     ],
   },
 ];
+
+function canSeeNavItem(item: NavItem, role: "admin" | "sales_agent" | undefined) {
+  if (!item.roles) return true;
+  if (!role) return false;
+  return item.roles.includes(role);
+}
 
 const AGENT_STATUS_OPTIONS = [
   { key: "available", label: "Available",  dot: "bg-success" },
@@ -87,7 +109,7 @@ export function AppShell({
   const user      = useAuthStore((s) => s.user);
   const signOutStore = useAuthStore((s) => s.signOut);
   const unread    = useNotificationStore((s) => s.unreadCount);
-  const activeCall = useCallStore((s) => s.activeCall);
+  const liveCallCount = useCallsStore((s) => Object.keys(s.liveCalls).length);
   const logoutMutation = useMutation({
     mutationFn: authService.signOut,
     onSettled: async () => {
@@ -152,14 +174,16 @@ export function AppShell({
         </div>
 
         {/* Active call banner */}
-        {activeCall && !collapsed && (
+        {liveCallCount > 0 && !collapsed && (
           <div className="mx-2 mt-2 rounded-lg border border-success/20 bg-success/10 px-3 py-2">
             <div className="flex items-center gap-2 text-xs">
               <PhoneCall className="h-3 w-3 animate-pulse text-success" />
               <span className="flex-1 truncate font-medium text-success">
-                {activeCall.customerName}
+                {liveCallCount} live call{liveCallCount === 1 ? "" : "s"}
               </span>
-              <span className="font-mono text-success">Live</span>
+              <Link to="/app/calls" className="font-mono text-success hover:underline">
+                Open
+              </Link>
             </div>
           </div>
         )}
@@ -175,7 +199,7 @@ export function AppShell({
               )}
               <ul className="space-y-0.5">
                 {section.items
-                  .filter((n) => n.to !== "/app/admin" || user?.role === "admin")
+                  .filter((n) => canSeeNavItem(n, user?.role))
                   .map((n) => {
                   const active =
                     path === n.to || (n.to !== "/app" && path.startsWith(n.to));
@@ -241,11 +265,15 @@ export function AppShell({
       {/* ── Main ── */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Topbar */}
-        <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl md:px-6">
-          <h1 className="text-[15px] font-semibold tracking-tight text-foreground">{title}</h1>
-          <span className="hidden text-xs text-muted-foreground md:inline">/ Operations</span>
+        <header className="sticky top-0 z-40 flex h-14 min-h-14 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur-xl sm:h-16 sm:gap-3 sm:px-4 md:px-6">
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-sm font-semibold tracking-tight text-foreground sm:text-[15px]">
+              {title}
+            </h1>
+            <span className="hidden text-xs text-muted-foreground sm:inline">Operations</span>
+          </div>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             {/* Global search */}
             <div className="relative hidden md:block">
               <Search
@@ -287,8 +315,8 @@ export function AppShell({
               )}
             </Link>
 
-            {/* Agent status selector */}
-            <div className="relative hidden md:block">
+            {/* Agent status — tablet+ */}
+            <div className="relative hidden sm:block">
               <button
                 onClick={() => setStatusOpen((v) => !v)}
                 className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-2 py-1.5 text-xs"
@@ -335,8 +363,12 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="min-w-0 flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
+          {children}
+        </main>
       </div>
+
+      <MobileAppNav />
     </div>
   );
 }
