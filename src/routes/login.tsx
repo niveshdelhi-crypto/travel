@@ -77,6 +77,9 @@ function LoginPage() {
         <p className="mt-2 text-sm leading-6 text-white/60">
           Use your operations account to access the CRM dashboard.
         </p>
+        <p className="mt-1 text-xs text-white/45">
+          Demo admin: <span className="text-white/65">admin@bookmycarz.com</span> / Admin@123
+        </p>
 
         <label className="mt-6 block text-sm font-medium text-white/74">
           Email

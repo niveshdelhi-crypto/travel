@@ -17,9 +17,14 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findByEmail(email: string) {
-    return this.prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
-    });
+    const normalized = email.toLowerCase().trim();
+    const direct = await this.prisma.user.findUnique({ where: { email: normalized } });
+    if (direct) return direct;
+
+    const legacyEmail = legacyFleetNexusAlias(normalized);
+    if (!legacyEmail) return null;
+
+    return this.prisma.user.findUnique({ where: { email: legacyEmail } });
   }
 
   async findActiveById(id: string) {
@@ -52,4 +57,11 @@ export class UsersService {
       select: safeUserSelect,
     });
   }
+}
+
+/** Until seed renames accounts, accept @bookmycarz.com logins against legacy @fleetnexus.com rows. */
+function legacyFleetNexusAlias(email: string): string | null {
+  const match = /^([^@+]+)@bookmycarz\.com$/.exec(email);
+  if (!match) return null;
+  return `${match[1]}@fleetnexus.com`;
 }

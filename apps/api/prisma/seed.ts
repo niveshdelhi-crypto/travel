@@ -20,7 +20,7 @@ type SeedUser = {
 const seedUsers: SeedUser[] = [
   {
     name: "Book my Carz Admin",
-    email: "admin@fleetnexus.com",
+    email: "admin@bookmycarz.com",
     password: "Admin@123",
     role: UserRole.admin,
   },
@@ -29,11 +29,20 @@ const seedUsers: SeedUser[] = [
 
     return {
       name: `Book my Carz Agent ${agentNumber}`,
-      email: `agent${agentNumber}@fleetnexus.com`,
+      email: `agent${agentNumber}@bookmycarz.com`,
       password: "Agent@123",
       role: UserRole.sales_agent,
     };
   }),
+];
+
+/** Pre-rebrand accounts — renamed on seed so existing DBs keep the same user ids where possible. */
+const legacyUserEmailMap: { from: string; to: string }[] = [
+  { from: "admin@fleetnexus.com", to: "admin@bookmycarz.com" },
+  ...Array.from({ length: 5 }, (_, index) => ({
+    from: `agent${index + 1}@fleetnexus.com`,
+    to: `agent${index + 1}@bookmycarz.com`,
+  })),
 ];
 
 const userSelect = {
@@ -66,33 +75,58 @@ async function buildSeedUsers() {
 async function main() {
   assertUniqueEmails(seedUsers);
 
+  await migrateLegacyUserEmails(prisma);
+
   const usersWithHashes = await buildSeedUsers();
-  const seededUsers = await prisma.$transaction(async (tx) =>
-    Promise.all(
-      usersWithHashes.map((user) =>
-        tx.user.upsert({
-          where: { email: user.email },
-          update: {
-            name: user.name,
-            role: user.role,
-            is_active: true,
-          },
-          create: {
-            name: user.name,
-            email: user.email,
-            password_hash: user.password_hash,
-            role: user.role,
-            is_active: true,
-          },
-          select: userSelect,
-        }),
+  const seededUsers = await prisma.$transaction(
+    async (tx) =>
+      Promise.all(
+        usersWithHashes.map((user) =>
+          tx.user.upsert({
+            where: { email: user.email },
+            update: {
+              name: user.name,
+              role: user.role,
+              is_active: true,
+              password_hash: user.password_hash,
+            },
+            create: {
+              name: user.name,
+              email: user.email,
+              password_hash: user.password_hash,
+              role: user.role,
+              is_active: true,
+            },
+            select: userSelect,
+          }),
+        ),
       ),
-    ),
+    { timeout: 120_000 },
   );
 
   printSeededUsers(seededUsers);
   await seedMarketplaceCatalog(prisma);
   await seedShowcasePipeline(prisma);
+}
+
+async function migrateLegacyUserEmails(client: Pick<PrismaClient, "user">) {
+  for (const { from, to } of legacyUserEmailMap) {
+    const legacyEmail = normalizeEmail(from);
+    const nextEmail = normalizeEmail(to);
+    const legacyUser = await client.user.findUnique({ where: { email: legacyEmail } });
+    if (!legacyUser) continue;
+
+    const targetTaken = await client.user.findUnique({ where: { email: nextEmail } });
+    if (targetTaken && targetTaken.id !== legacyUser.id) {
+      await client.user.delete({ where: { id: legacyUser.id } });
+      continue;
+    }
+
+    await client.user.update({
+      where: { id: legacyUser.id },
+      data: { email: nextEmail },
+    });
+  }
 }
 
 function normalizeEmail(email: string) {
@@ -416,11 +450,11 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
  */
 async function seedShowcasePipeline(client: PrismaClient) {
   const agent = await client.user.findFirst({
-    where: { email: normalizeEmail("agent1@fleetnexus.com") },
+    where: { email: normalizeEmail("agent1@bookmycarz.com") },
   });
 
   if (!agent) {
-    console.warn("Showcase leads skipped — agent1@fleetnexus.com not found.");
+    console.warn("Showcase leads skipped — agent1@bookmycarz.com not found.");
     return;
   }
 

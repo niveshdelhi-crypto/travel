@@ -3,9 +3,9 @@ import { expect, test, type APIRequestContext, type Page } from "@playwright/tes
 const apiURL = process.env.E2E_API_URL ?? "http://127.0.0.1:4000/api";
 /** Legacy CRM (Vite). Run `npm run dev` so API + CRM + web are up. */
 const crmBaseURL = process.env.E2E_CRM_URL ?? "http://127.0.0.1:8080";
-const adminEmail = process.env.E2E_ADMIN_EMAIL ?? "admin@fleetnexus.com";
+const adminEmail = process.env.E2E_ADMIN_EMAIL ?? "admin@bookmycarz.com";
 const adminPassword = process.env.E2E_ADMIN_PASSWORD ?? "Admin@123";
-const agentEmail = process.env.E2E_AGENT_EMAIL ?? "agent1@fleetnexus.com";
+const agentEmail = process.env.E2E_AGENT_EMAIL ?? "agent1@bookmycarz.com";
 const agentPassword = process.env.E2E_AGENT_PASSWORD ?? "Agent@123";
 
 test.describe("Book my Carz legacy CRM", () => {
