@@ -1,7 +1,8 @@
 import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useEffect, useState } from "react";
-import { Loader2, LockKeyhole, LogIn } from "lucide-react";
+import { Loader2, LogIn } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 import { authService } from "@/services";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -70,10 +71,8 @@ function LoginPage() {
         onSubmit={submit}
         className="w-full max-w-md rounded-xl border border-white/12 bg-[#0b1220] p-5 shadow-2xl shadow-black/45 sm:p-6"
       >
-        <div className="grid h-12 w-12 place-items-center rounded-md bg-[#f4d587] text-[#070b12]">
-          <LockKeyhole className="h-6 w-6" />
-        </div>
-        <h1 className="mt-5 text-2xl font-semibold tracking-tight">Book my Carz sign in</h1>
+        <BrandLogo to="/" size="lg" className="mx-auto !h-12 sm:!h-14" />
+        <h1 className="mt-5 text-center text-xl font-semibold tracking-tight sm:text-2xl">Staff sign in</h1>
         <p className="mt-2 text-sm leading-6 text-white/60">
           Use your operations account to access the CRM dashboard.
         </p>

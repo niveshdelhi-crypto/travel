@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { Globe, Menu, X } from "lucide-react";
 import { useState } from "react";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { getLegacyCrmLoginUrl } from "@/lib/crm-url";
 
 const navLinks = [
@@ -19,15 +20,8 @@ export function LandingNavbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-brand-dark/90 backdrop-blur-md">
-      <div className="container-page flex h-16 items-center justify-between gap-6">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand-primary font-display text-sm font-bold text-white">
-            B
-          </span>
-          <span className="font-display text-lg font-bold tracking-tight text-brand-text">
-            Book my <span className="text-brand-accent">Carz</span>
-          </span>
-        </Link>
+      <div className="container-page flex h-16 items-center justify-between gap-4 sm:gap-6">
+        <BrandLogo href="/" size="nav" priority />
 
         <nav className="hidden items-center gap-7 text-sm font-medium text-brand-muted lg:flex">
           {navLinks.map((l) => (

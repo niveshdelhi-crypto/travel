@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Car } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 import { MegaFooter } from "@/components/marketing/mega-footer";
 
 type ShellProps = {
@@ -26,19 +27,7 @@ function MarketingNav({ variant }: { variant: NonNullable<ShellProps["navVariant
   return (
     <header className={`sticky top-0 z-40 ${wrapper}`}>
       <nav className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-lg border border-[#F5B301]/55 bg-[#F5B301]/95 text-[#07111F] shadow-[0_18px_50px_-30px_rgba(245,179,1,.9)]">
-            <Car className="h-5 w-5" />
-          </span>
-          <div className="leading-tight">
-            <span className="block text-[10px] font-semibold uppercase tracking-[0.32em] text-[#F8FAFC]/72">
-              Book my Carz
-            </span>
-            <span className="hidden text-[11px] text-[#94A3B8] sm:inline">
-              Global rental marketplace
-            </span>
-          </div>
-        </Link>
+        <BrandLogo to="/" size="nav" />
 
         <div className="hidden items-center gap-7 text-[13px] text-[#F8FAFC]/78 md:flex">
           <Link to="/countries" className="transition hover:text-[#F8FAFC]">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { Apple, Globe, MessageCircle, Share2, Smartphone } from "lucide-react";
+import { BrandLogo } from "@/components/brand/brand-logo";
 
 const columns: { title: string; links: { label: string; href: string }[] }[] = [
   {
@@ -56,13 +57,8 @@ export function LandingFooter() {
     <footer className="bg-navy text-navy-foreground">
       <div className="container-page py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
-          <div className="lg:col-span-1">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 font-display text-sm font-bold">
-                F
-              </span>
-              <span className="font-display text-lg font-bold">Book my Carz</span>
-            </div>
+          <div className="flex flex-col items-start lg:col-span-1">
+            <BrandLogo href="/" size="xl" />
             <p className="mt-4 text-sm leading-relaxed text-white/70">
               Compare 800+ car rental suppliers in 190+ countries. Best price, free cancellation, no
               hidden fees.

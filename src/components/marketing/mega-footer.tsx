@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { BrandLogo } from "@/components/brand-logo";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useMarketplaceCountries,
@@ -17,11 +18,8 @@ export function MegaFooter() {
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-[1fr_1.05fr_0.95fr_0.98fr_1.02fr]">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[#F5B301]/80">
-              Marketplace
-            </p>
-            <p className="mt-4 text-base font-semibold text-[#F8FAFC]">Book my Carz</p>
-            <p className="mt-3 text-sm leading-relaxed text-[#94A3B8]">
+            <BrandLogo to="/" size="xl" />
+            <p className="mt-4 text-sm leading-relaxed text-[#94A3B8]">
               Premium rental orchestration spanning verified suppliers, concierge assignment, and
               operations-grade visibility.
             </p>

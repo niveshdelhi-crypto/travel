@@ -9,11 +9,16 @@ export const metadata: Metadata = {
   title: "Book my Carz | Compare Car Rentals Worldwide",
   description:
     "Compare 800+ car rental suppliers across 30,000+ locations. Best price guarantee, secure booking, and 24/7 support.",
+  icons: {
+    icon: "/brand/bookmycarz-logo.png",
+    apple: "/brand/bookmycarz-logo.png",
+  },
   openGraph: {
     title: "Book my Carz | Compare Car Rentals Worldwide",
     description:
       "Compare 800+ rental suppliers in 190+ countries. Best price, free cancellation, no hidden fees.",
     type: "website",
+    images: [{ url: "/brand/bookmycarz-logo.png", alt: "BookmyCarz.com" }],
   },
 };
 
