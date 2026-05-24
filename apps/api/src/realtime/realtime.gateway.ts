@@ -81,10 +81,12 @@ export class RealtimeGateway
   ) {}
 
   afterInit() {
-    this.healthInterval = setInterval(
-      () => void this.logSocketHealth(),
-      SOCKET_HEALTH_LOG_INTERVAL_MS,
-    );
+    const healthLogMs =
+      this.config.get<string>("NODE_ENV") === "production"
+        ? SOCKET_HEALTH_LOG_INTERVAL_MS
+        : 5 * 60_000;
+
+    this.healthInterval = setInterval(() => void this.logSocketHealth(), healthLogMs);
     this.cleanupInterval = setInterval(
       () => this.cleanupStaleSockets(),
       SOCKET_HEALTH_LOG_INTERVAL_MS,

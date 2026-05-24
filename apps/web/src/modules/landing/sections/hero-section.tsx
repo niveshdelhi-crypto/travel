@@ -52,12 +52,19 @@ export function HeroSection({ leadMode = false }: HeroSectionProps) {
 
         <div className="mt-8 md:mt-10">
           {leadMode ? (
-            <div className="max-w-md space-y-3">
-              <DirectCallButton variant="primary" className="py-4 text-base shadow-lg" />
-              <p className="text-sm text-white/70">
-                Speak with a rental advisor — no forms, no wait. We&apos;ll help you compare options
-                and secure the best rate.
-              </p>
+            <div className="max-w-xl space-y-4">
+              <DirectCallButton variant="hero" />
+              <div className="flex flex-wrap gap-2 text-xs text-white/80">
+                <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15">
+                  Avg. answer under 2 min
+                </span>
+                <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15">
+                  Compare 800+ suppliers
+                </span>
+                <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15">
+                  No booking fees
+                </span>
+              </div>
             </div>
           ) : (
             <SearchForm />

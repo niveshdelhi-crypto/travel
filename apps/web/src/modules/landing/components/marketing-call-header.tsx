@@ -15,8 +15,8 @@ export function MarketingCallHeader() {
           </span>
         </Link>
 
-        <div className="flex min-w-0 flex-1 justify-end">
-          <DirectCallButton variant="header" className="w-auto max-w-full shrink" />
+        <div className="flex min-w-0 flex-1 justify-end pl-2">
+          <DirectCallButton variant="header" className="shrink-0" />
         </div>
       </div>
     </header>

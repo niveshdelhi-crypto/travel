@@ -7,6 +7,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  // Faster dev feedback; use `npm run dev:web:clean` if `.next` cache corrupts on Windows.
+  experimental: {
+    turbo: {
+      root: path.join(__dirname, "../.."),
+    },
+  },
   // Monorepo: trace dependencies from repository root when deploying on Vercel.
   outputFileTracingRoot: path.join(__dirname, "../.."),
   images: {

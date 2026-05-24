@@ -8,10 +8,12 @@
   "scripts": {
     "dev": "npm run dev:stack",
     "dev:web": "npm --prefix apps/web run dev",
+    "dev:web:clean": "npm --prefix apps/web run dev:clean",
     "dev:crm": "vite",
     "dev:legacy": "npm run dev:crm",
     "dev:api": "npm --prefix apps/api run start:dev",
-    "dev:stack": "concurrently -n api,crm,web -c magenta,green,cyan \"npm run dev:api\" \"wait-on -t 180000 tcp:127.0.0.1:4000 && npm run dev:crm\" \"wait-on -t 180000 tcp:127.0.0.1:4000 && npm run dev:web\"",
+    "clean:web": "npm --prefix apps/web run clean",
+    "dev:stack": "concurrently -n api,crm,web -c magenta,green,cyan \"npm run dev:api\" \"wait-on -t 90000 -i 500 http-get://127.0.0.1:4000/ && npm run dev:crm\" \"wait-on -t 90000 -i 500 http-get://127.0.0.1:4000/ && npm run dev:web\"",
     "dev:full": "npm run dev:stack",
     "build": "vite build",
     "preview": "vite preview",

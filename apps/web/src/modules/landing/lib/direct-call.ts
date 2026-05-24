@@ -25,7 +25,20 @@ export function getDirectCallTelHref(phone = RAW): string | null {
 }
 
 export function formatDirectCallLabel(phone = RAW): string {
-  return phone || "";
+  if (!phone) return "";
+  const trimmed = phone.trim();
+  const digits = trimmed.replace(/\D/g, "");
+
+  if ((trimmed.startsWith("+1") || (!trimmed.startsWith("+") && digits.length === 10)) && digits.length >= 10) {
+    const national = digits.length === 11 ? digits.slice(1) : digits;
+    return `+1 (${national.slice(0, 3)}) ${national.slice(3, 6)}-${national.slice(6, 10)}`;
+  }
+
+  if (trimmed.startsWith("+") && digits.length >= 10) {
+    return `+${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 8)} ${digits.slice(8)}`.trim();
+  }
+
+  return trimmed;
 }
 
 export function isDirectCallConfigured(): boolean {
