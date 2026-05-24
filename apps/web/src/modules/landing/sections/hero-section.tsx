@@ -1,9 +1,15 @@
 import Image from "next/image";
 import { ShieldCheck, Sparkles } from "lucide-react";
+import { DirectCallButton } from "../components/direct-call-button";
 import { SearchForm } from "../components/search-form";
 import heroImg from "../assets/hero.jpg";
 
-export function HeroSection() {
+type HeroSectionProps = {
+  /** Marketing lead page: call CTA only, no search form. */
+  leadMode?: boolean;
+};
+
+export function HeroSection({ leadMode = false }: HeroSectionProps) {
   return (
     <section className="relative isolate min-h-[88svh] overflow-hidden">
       <Image
@@ -45,7 +51,17 @@ export function HeroSection() {
         </div>
 
         <div className="mt-8 md:mt-10">
-          <SearchForm />
+          {leadMode ? (
+            <div className="max-w-md space-y-3">
+              <DirectCallButton variant="primary" className="py-4 text-base shadow-lg" />
+              <p className="text-sm text-white/70">
+                Speak with a rental advisor — no forms, no wait. We&apos;ll help you compare options
+                and secure the best rate.
+              </p>
+            </div>
+          ) : (
+            <SearchForm />
+          )}
         </div>
       </div>
     </section>

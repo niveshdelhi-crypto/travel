@@ -9,7 +9,7 @@ import {
 } from "../lib/direct-call";
 
 type DirectCallButtonProps = {
-  variant?: "primary" | "outline";
+  variant?: "primary" | "outline" | "header";
   className?: string;
 };
 
@@ -19,7 +19,12 @@ export function DirectCallButton({ variant = "outline", className = "" }: Direct
   const configured = isDirectCallConfigured();
 
   const isOutline = variant === "outline";
-  const baseClass = `flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${className}`;
+  const isHeader = variant === "header";
+  const baseClass = `flex cursor-pointer items-center justify-center gap-2 font-semibold transition ${
+    isHeader
+      ? "rounded-full px-4 py-2 text-sm"
+      : "w-full rounded-xl px-4 py-3 text-sm"
+  } ${className}`;
 
   if (!configured) {
     return (
@@ -28,10 +33,17 @@ export function DirectCallButton({ variant = "outline", className = "" }: Direct
         title="Set DIRECT_CALL_PHONE_NUMBER in constants.ts or NEXT_PUBLIC_DIRECT_CALL_PHONE in .env"
       >
         <Phone className="size-4 shrink-0 opacity-60" />
-        <span className="text-xs">
-          Call button — add your number in{" "}
-          <code className="text-brand-accent">DIRECT_CALL_PHONE_NUMBER</code>
+        <span className={isHeader ? "hidden text-xs sm:inline" : "text-xs"}>
+          {isHeader ? (
+            "Set call number"
+          ) : (
+            <>
+              Call button — add your number in{" "}
+              <code className="text-brand-accent">DIRECT_CALL_PHONE_NUMBER</code>
+            </>
+          )}
         </span>
+        {isHeader ? <span className="text-xs sm:hidden">Call</span> : null}
       </div>
     );
   }
@@ -40,14 +52,25 @@ export function DirectCallButton({ variant = "outline", className = "" }: Direct
     <a
       href={telHref!}
       className={`${baseClass} ${
-        isOutline
-          ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-100 hover:border-emerald-400/60 hover:bg-emerald-500/20"
-          : "bg-emerald-600 text-white shadow-md hover:bg-emerald-500"
+        isHeader
+          ? "bg-emerald-600 text-white shadow-md hover:bg-emerald-500"
+          : isOutline
+            ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-100 hover:border-emerald-400/60 hover:bg-emerald-500/20"
+            : "bg-emerald-600 text-white shadow-md hover:bg-emerald-500"
       }`}
     >
       <Phone className="size-4 shrink-0" />
-      <span>
-        Call us · <span className="font-mono tracking-wide">{formatDirectCallLabel(phone!)}</span>
+      <span className={isHeader ? "truncate" : undefined}>
+        {isHeader ? (
+          <>
+            <span className="hidden sm:inline">Call · </span>
+            <span className="font-mono tracking-wide">{formatDirectCallLabel(phone!)}</span>
+          </>
+        ) : (
+          <>
+            Call us · <span className="font-mono tracking-wide">{formatDirectCallLabel(phone!)}</span>
+          </>
+        )}
       </span>
     </a>
   );
