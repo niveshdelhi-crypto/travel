@@ -44,7 +44,7 @@ const drawerSections: Array<{ label: string; items: NavItem[] }> = [
     label: "Insights",
     items: [
       { label: "Analytics", to: "/app/analytics", icon: BarChart3, roles: ["admin"] },
-      { label: "Payments", to: "/app/payments", icon: CreditCard, roles: ["admin"] },
+      { label: "Payments", to: "/app/payments", icon: CreditCard, roles: ["admin", "finance_admin"] },
     ],
   },
   {

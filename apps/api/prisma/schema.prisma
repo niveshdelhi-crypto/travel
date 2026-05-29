@@ -9,7 +9,135 @@ datasource db {
 
 enum UserRole {
   admin
+  finance_admin
+  operations_manager
   sales_agent
+}
+
+enum PaymentGatewayType {
+  stripe
+  paypal
+  wise
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum BookingStatus {
+  DRAFT
+  PAYMENT_PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum TransactionType {
+  CHARGE
+  REFUND
+  AUTHORIZATION
+  CAPTURE
+  PAYOUT
+}
+
+enum AuditLogAction {
+  PAYMENT_GATEWAY_CREATED
+  PAYMENT_GATEWAY_UPDATED
+  PAYMENT_GATEWAY_DEACTIVATED
+  PAYMENT_REQUEST_CREATED
+  PAYMENT_PROCESSING
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  PAYMENT_REFUNDED
+  BOOKING_CONFIRMED
+  PAYMENT_ROUTE_ACCESSED
+  BOOKING_CREATED
+  BOOKING_LIFECYCLE_TRANSITION
+  BOOKING_FAILED
+  TRAVELER_CREATED
+  TRAVELER_UPDATED
+  SUPPLIER_BOOKING_CREATED
+  SUPPLIER_BOOKING_SYNCED
+  INVOICE_GENERATED
+  VOUCHER_GENERATED
+  REFUND_REQUESTED
+  REFUND_APPROVED
+  REFUND_COMPLETED
+  CHARGEBACK_OPENED
+  VAULT_ENTRY_CREATED
+  VAULT_SESSION_CREATED
+}
+
+enum BookingLifecycleStatus {
+  BOOKING_REQUESTED
+  PAYMENT_PENDING
+  PAYMENT_PROCESSING
+  PAYMENT_SUCCESS
+  SUPPLIER_BOOKING_PENDING
+  BOOKING_CONFIRMED
+  VOUCHER_GENERATED
+  CUSTOMER_NOTIFIED
+  COMPLETED
+  PAYMENT_FAILED
+  BOOKING_FAILED
+  REFUND_PENDING
+  REFUNDED
+  CHARGEBACK
+  CANCELLED
+}
+
+enum SupplierIntegrationType {
+  MANUAL
+  API
+}
+
+enum SupplierBookingStatus {
+  PENDING
+  SUBMITTED
+  CONFIRMED
+  FAILED
+  CANCELLED
+}
+
+enum RefundRequestStatus {
+  REFUND_REQUESTED
+  REFUND_APPROVED
+  REFUND_PROCESSING
+  REFUNDED
+  REFUND_REJECTED
+}
+
+enum ChargebackStatus {
+  OPEN
+  UNDER_REVIEW
+  WON
+  LOST
+  CLOSED
+}
+
+enum StoredDocumentKind {
+  INVOICE
+  VOUCHER
+  RECEIPT
+}
+
+enum BookingJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum BookingJobType {
+  GENERATE_INVOICE
+  GENERATE_VOUCHER
+  NOTIFY_CUSTOMER
+  SUPPLIER_SYNC
+  PAYMENT_RETRY
 }
 
 enum LeadStatus {
@@ -148,6 +276,13 @@ model User {
   lead_activities    LeadActivity[]
   bookings_recorded  Booking[]        @relation("BookingRecordedBy")
   payments_recorded  Payment[]        @relation("PaymentRecordedBy")
+  payment_requests   BookingPaymentRequest[] @relation("PaymentRequestRequestedBy")
+  payment_transactions PaymentTransaction[] @relation("PaymentTransactionCreatedBy")
+  audit_logs         AuditLog[]
+  refund_requests    RefundRequest[]  @relation("RefundRequestedBy")
+  refund_approvals   RefundRequest[]  @relation("RefundApprovedBy")
+  traveler_notes     TravelerNote[]
+  lifecycle_events   BookingLifecycleEvent[]
   calls_initiated    Call[]           @relation("CallAgent")
   active_call_sessions ActiveCallSession[]
 
@@ -183,6 +318,7 @@ model Lead {
   customer_phone    String
   status            LeadStatus @default(NEW)
   assigned_to       String?    @db.Uuid
+  traveler_id       String?    @db.Uuid
   booking_value     Decimal?   @db.Decimal(12, 2)
   last_contacted_at DateTime?
   follow_up_at      DateTime?
@@ -191,6 +327,7 @@ model Lead {
   created_at        DateTime   @default(now())
   updated_at        DateTime   @updatedAt
   assigned_agent    User?      @relation("AssignedLeads", fields: [assigned_to], references: [id], onDelete: SetNull)
+  traveler          Traveler?  @relation(fields: [traveler_id], references: [id], onDelete: SetNull)
   notes             LeadNote[]
   activities         LeadActivity[]
   submissions        LeadSubmission[]
@@ -202,6 +339,7 @@ model Lead {
   @@index([status, created_at])
   @@index([created_at])
   @@index([is_high_quality, retain_until])
+  @@index([traveler_id])
   @@map("leads")
 }
 
@@ -248,21 +386,143 @@ model LeadNote {
 }
 
 model Booking {
-  id                       String    @id @default(uuid()) @db.Uuid
-  lead_id                  String    @unique @db.Uuid
-  gross_revenue            Decimal   @db.Decimal(12, 2)
-  currency                 String    @default("USD") @db.VarChar(3)
+  id                       String                  @id @default(uuid()) @db.Uuid
+  lead_id                  String                  @unique @db.Uuid
+  traveler_id              String?                 @db.Uuid
+  supplier_id              String?                 @db.Uuid
+  vehicle_id               String?                 @db.Uuid
+  gross_revenue            Decimal                 @db.Decimal(12, 2)
+  currency                 String                  @default("USD") @db.VarChar(3)
+  status                   BookingStatus           @default(COMPLETED)
+  lifecycle_status         BookingLifecycleStatus  @default(BOOKING_REQUESTED)
   partner_name             String?
   confirmation_reference   String?
   notes                    String?
-  recorded_by              String?   @db.Uuid
-  created_at               DateTime  @default(now())
-  lead                     Lead      @relation(fields: [lead_id], references: [id], onDelete: Cascade)
-  recorder                 User?     @relation("BookingRecordedBy", fields: [recorded_by], references: [id], onDelete: SetNull)
+  idempotency_key          String?                 @unique
+  risk_score               Int                     @default(0)
+  risk_metadata            Json?
+  clv_estimate             Decimal?                @db.Decimal(12, 2)
+  ai_insights              Json?
+  recorded_by              String?                 @db.Uuid
+  created_at               DateTime                @default(now())
+  updated_at               DateTime                @updatedAt
+  lead                     Lead                    @relation(fields: [lead_id], references: [id], onDelete: Cascade)
+  traveler                 Traveler?               @relation(fields: [traveler_id], references: [id], onDelete: SetNull)
+  supplier                 RentalSupplier?         @relation(fields: [supplier_id], references: [id], onDelete: SetNull)
+  vehicle                  Vehicle?                @relation(fields: [vehicle_id], references: [id], onDelete: SetNull)
+  recorder                 User?                   @relation("BookingRecordedBy", fields: [recorded_by], references: [id], onDelete: SetNull)
   payments                 Payment[]
+  payment_requests         BookingPaymentRequest[]
+  payment_transactions     PaymentTransaction[]
+  lifecycle_events         BookingLifecycleEvent[]
+  supplier_bookings        SupplierBooking[]
+  invoices                 BookingInvoice[]
+  vouchers                 BookingVoucher[]
+  refund_requests          RefundRequest[]
+  chargebacks              ChargebackCase[]
+  background_jobs          BookingBackgroundJob[]
 
   @@index([created_at])
+  @@index([status, created_at])
+  @@index([lifecycle_status, created_at])
+  @@index([traveler_id])
+  @@index([supplier_id])
   @@map("bookings")
+}
+
+model PaymentGateway {
+  id                     String                  @id @default(uuid()) @db.Uuid
+  name                   String
+  type                   PaymentGatewayType
+  is_active              Boolean                 @default(true)
+  encrypted_credentials  String
+  settings               Json?
+  created_at             DateTime                @default(now())
+  updated_at             DateTime                @updatedAt
+  payment_requests       BookingPaymentRequest[]
+  transactions           PaymentTransaction[]
+
+  @@unique([type, name])
+  @@index([type, is_active])
+  @@map("payment_gateways")
+}
+
+model BookingPaymentRequest {
+  id                    String           @id @default(uuid()) @db.Uuid
+  booking_id            String           @db.Uuid
+  gateway_id            String           @db.Uuid
+  status                PaymentStatus    @default(PENDING)
+  amount                Decimal          @db.Decimal(12, 2)
+  currency              String           @default("USD") @db.VarChar(3)
+  description           String?
+  provider_checkout_url String?
+  provider_reference    String?
+  idempotency_key       String           @unique
+  metadata              Json?
+  requested_by          String?          @db.Uuid
+  expires_at            DateTime?
+  completed_at          DateTime?
+  created_at            DateTime         @default(now())
+  updated_at            DateTime         @updatedAt
+  booking               Booking          @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+  gateway               PaymentGateway   @relation(fields: [gateway_id], references: [id], onDelete: Restrict)
+  requester             User?            @relation("PaymentRequestRequestedBy", fields: [requested_by], references: [id], onDelete: SetNull)
+  transactions          PaymentTransaction[]
+
+  @@index([booking_id, status])
+  @@index([gateway_id, status])
+  @@index([status, created_at])
+  @@map("booking_payment_requests")
+}
+
+model PaymentTransaction {
+  id                  String                 @id @default(uuid()) @db.Uuid
+  booking_id          String                 @db.Uuid
+  gateway_id          String                 @db.Uuid
+  payment_request_id  String?                @db.Uuid
+  type                TransactionType        @default(CHARGE)
+  status              PaymentStatus          @default(PENDING)
+  amount              Decimal                @db.Decimal(12, 2)
+  currency            String                 @default("USD") @db.VarChar(3)
+  provider_reference  String?
+  provider_response   Json?
+  failure_reason      String?
+  idempotency_key     String                 @unique
+  created_by          String?                @db.Uuid
+  processed_at        DateTime?
+  created_at          DateTime               @default(now())
+  updated_at          DateTime               @updatedAt
+  booking             Booking                @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+  gateway             PaymentGateway         @relation(fields: [gateway_id], references: [id], onDelete: Restrict)
+  payment_request     BookingPaymentRequest? @relation(fields: [payment_request_id], references: [id], onDelete: SetNull)
+  creator             User?                  @relation("PaymentTransactionCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
+
+  @@index([booking_id, status])
+  @@index([gateway_id, status])
+  @@index([payment_request_id])
+  @@index([status, created_at])
+  @@index([provider_reference])
+  @@map("payment_transactions")
+}
+
+model AuditLog {
+  id             String          @id @default(uuid()) @db.Uuid
+  action         AuditLogAction
+  resource_type  String
+  resource_id    String?         @db.Uuid
+  user_id        String?         @db.Uuid
+  ip_address     String?
+  user_agent     String?
+  request_method String?
+  request_path   String?
+  metadata       Json?
+  created_at     DateTime        @default(now())
+  user           User?           @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@index([action, created_at])
+  @@index([resource_type, resource_id])
+  @@index([user_id, created_at])
+  @@map("audit_logs")
 }
 
 model Payment {
@@ -379,4 +639,303 @@ model WebhookRequestLog {
   @@index([endpoint, created_at])
   @@index([signature_valid, created_at])
   @@map("webhook_request_logs")
+}
+
+model Traveler {
+  id              String   @id @default(uuid()) @db.Uuid
+  email           String   @unique
+  full_name       String
+  phone           String?
+  is_vip          Boolean  @default(false)
+  is_recurring    Boolean  @default(false)
+  booking_count   Int      @default(0)
+  risk_score      Int      @default(0)
+  fraud_flags     Json?
+  lifetime_value  Decimal  @default(0) @db.Decimal(12, 2)
+  ai_insights     Json?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  leads           Lead[]
+  bookings        Booking[]
+  documents       TravelerDocument[]
+  notes           TravelerNote[]
+  preferences     TravelerPreference[]
+  vault_entries   SecureCustomerPaymentVault[]
+  payment_sessions SecurePaymentSession[]
+
+  @@index([email])
+  @@index([is_recurring, booking_count])
+  @@index([risk_score])
+  @@map("travelers")
+}
+
+model TravelerDocument {
+  id           String   @id @default(uuid()) @db.Uuid
+  traveler_id  String   @db.Uuid
+  kind         String
+  label        String?
+  storage_key  String?
+  file_url     String?
+  expires_at   DateTime?
+  metadata     Json?
+  created_at   DateTime @default(now())
+  traveler     Traveler @relation(fields: [traveler_id], references: [id], onDelete: Cascade)
+
+  @@index([traveler_id, created_at])
+  @@map("traveler_documents")
+}
+
+model TravelerNote {
+  id           String   @id @default(uuid()) @db.Uuid
+  traveler_id  String   @db.Uuid
+  author_id    String?  @db.Uuid
+  body         String
+  is_internal  Boolean  @default(true)
+  created_at   DateTime @default(now())
+  traveler     Traveler @relation(fields: [traveler_id], references: [id], onDelete: Cascade)
+  author       User?    @relation(fields: [author_id], references: [id], onDelete: SetNull)
+
+  @@index([traveler_id, created_at])
+  @@map("traveler_notes")
+}
+
+model TravelerPreference {
+  id           String   @id @default(uuid()) @db.Uuid
+  traveler_id  String   @db.Uuid
+  key          String
+  value        Json
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  traveler     Traveler @relation(fields: [traveler_id], references: [id], onDelete: Cascade)
+
+  @@unique([traveler_id, key])
+  @@map("traveler_preferences")
+}
+
+model SecureCustomerPaymentVault {
+  id                  String    @id @default(uuid()) @db.Uuid
+  traveler_id         String    @db.Uuid
+  token_reference     String
+  masked_pan          String
+  card_brand          String?
+  exp_month           Int?
+  exp_year            Int?
+  encrypted_payload   String
+  billing_name        String?
+  is_active           Boolean   @default(true)
+  expires_at          DateTime?
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+  traveler            Traveler  @relation(fields: [traveler_id], references: [id], onDelete: Cascade)
+  payment_sessions    SecurePaymentSession[]
+
+  @@index([traveler_id, is_active])
+  @@index([token_reference])
+  @@map("secure_customer_payment_vault")
+}
+
+model SecurePaymentSession {
+  id                 String    @id @default(uuid()) @db.Uuid
+  traveler_id        String    @db.Uuid
+  vault_id           String?   @db.Uuid
+  session_token_hash String
+  expires_at         DateTime
+  consumed_at        DateTime?
+  ip_address         String?
+  user_agent         String?
+  created_at         DateTime  @default(now())
+  traveler           Traveler  @relation(fields: [traveler_id], references: [id], onDelete: Cascade)
+  vault              SecureCustomerPaymentVault? @relation(fields: [vault_id], references: [id], onDelete: SetNull)
+
+  @@index([traveler_id, expires_at])
+  @@index([session_token_hash])
+  @@map("secure_payment_sessions")
+}
+
+model RentalSupplier {
+  id                      String                  @id @default(uuid()) @db.Uuid
+  name                    String
+  slug                    String                  @unique
+  integration_type        SupplierIntegrationType @default(MANUAL)
+  contact_email           String?
+  contact_phone           String?
+  encrypted_api_config    String?
+  is_active               Boolean                 @default(true)
+  payout_terms            String?
+  metadata                Json?
+  created_at              DateTime                @default(now())
+  updated_at              DateTime                @updatedAt
+  bookings                Booking[]
+  supplier_bookings       SupplierBooking[]
+  vehicles                Vehicle[]
+
+  @@index([is_active, name])
+  @@map("rental_suppliers")
+}
+
+model Vehicle {
+  id           String         @id @default(uuid()) @db.Uuid
+  supplier_id  String         @db.Uuid
+  make         String
+  model        String
+  vehicle_class String
+  plate_number String?
+  metadata     Json?
+  is_active    Boolean        @default(true)
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  supplier     RentalSupplier @relation(fields: [supplier_id], references: [id], onDelete: Cascade)
+  bookings     Booking[]
+
+  @@index([supplier_id, is_active])
+  @@map("vehicles")
+}
+
+model SupplierBooking {
+  id                    String                @id @default(uuid()) @db.Uuid
+  booking_id            String                @db.Uuid
+  supplier_id           String                @db.Uuid
+  status                SupplierBookingStatus @default(PENDING)
+  supplier_reference    String?
+  confirmation_number   String?
+  failure_reason        String?
+  metadata              Json?
+  synced_at             DateTime?
+  created_at            DateTime              @default(now())
+  updated_at            DateTime              @updatedAt
+  booking               Booking               @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+  supplier              RentalSupplier        @relation(fields: [supplier_id], references: [id], onDelete: Restrict)
+
+  @@index([booking_id, status])
+  @@index([supplier_id, status])
+  @@index([supplier_reference])
+  @@map("supplier_bookings")
+}
+
+model BookingInvoice {
+  id             String   @id @default(uuid()) @db.Uuid
+  booking_id     String   @db.Uuid
+  invoice_number String   @unique
+  amount         Decimal  @db.Decimal(12, 2)
+  currency       String   @default("USD") @db.VarChar(3)
+  pdf_url        String?
+  storage_key    String?
+  issued_at      DateTime @default(now())
+  metadata       Json?
+  booking        Booking  @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+
+  @@index([booking_id, issued_at])
+  @@map("booking_invoices")
+}
+
+model BookingVoucher {
+  id             String    @id @default(uuid()) @db.Uuid
+  booking_id     String    @db.Uuid
+  voucher_number String    @unique
+  pdf_url        String?
+  storage_key    String?
+  issued_at      DateTime  @default(now())
+  expires_at     DateTime?
+  metadata       Json?
+  booking        Booking   @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+
+  @@index([booking_id, issued_at])
+  @@map("booking_vouchers")
+}
+
+model RefundRequest {
+  id              String              @id @default(uuid()) @db.Uuid
+  booking_id      String              @db.Uuid
+  transaction_id  String?             @db.Uuid
+  amount          Decimal             @db.Decimal(12, 2)
+  currency        String              @default("USD") @db.VarChar(3)
+  status          RefundRequestStatus @default(REFUND_REQUESTED)
+  is_partial      Boolean             @default(false)
+  reason          String?
+  idempotency_key String              @unique
+  requested_by    String?             @db.Uuid
+  approved_by     String?             @db.Uuid
+  processed_at    DateTime?
+  created_at      DateTime            @default(now())
+  updated_at      DateTime            @updatedAt
+  booking         Booking             @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+  requester       User?               @relation("RefundRequestedBy", fields: [requested_by], references: [id], onDelete: SetNull)
+  approver        User?               @relation("RefundApprovedBy", fields: [approved_by], references: [id], onDelete: SetNull)
+
+  @@index([booking_id, status])
+  @@index([status, created_at])
+  @@map("refund_requests")
+}
+
+model ChargebackCase {
+  id                  String           @id @default(uuid()) @db.Uuid
+  booking_id          String           @db.Uuid
+  transaction_id      String?          @db.Uuid
+  amount              Decimal          @db.Decimal(12, 2)
+  currency            String           @default("USD") @db.VarChar(3)
+  status              ChargebackStatus @default(OPEN)
+  provider_reference  String?
+  reason              String?
+  opened_at           DateTime         @default(now())
+  resolved_at         DateTime?
+  metadata            Json?
+  booking             Booking          @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+
+  @@index([booking_id, status])
+  @@index([status, opened_at])
+  @@map("chargeback_cases")
+}
+
+model BookingLifecycleEvent {
+  id          String                 @id @default(uuid()) @db.Uuid
+  booking_id  String                 @db.Uuid
+  from_status BookingLifecycleStatus?
+  to_status   BookingLifecycleStatus
+  actor_id    String?                @db.Uuid
+  ip_address  String?
+  payload     Json?
+  created_at  DateTime               @default(now())
+  booking     Booking                @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+  actor       User?                  @relation(fields: [actor_id], references: [id], onDelete: SetNull)
+
+  @@index([booking_id, created_at])
+  @@index([to_status, created_at])
+  @@map("booking_lifecycle_events")
+}
+
+model BookingBackgroundJob {
+  id              String           @id @default(uuid()) @db.Uuid
+  booking_id      String           @db.Uuid
+  job_type        BookingJobType
+  status          BookingJobStatus @default(PENDING)
+  idempotency_key String           @unique
+  payload         Json?
+  attempts        Int              @default(0)
+  max_attempts    Int              @default(5)
+  last_error      String?
+  scheduled_for   DateTime         @default(now())
+  completed_at    DateTime?
+  created_at      DateTime         @default(now())
+  updated_at      DateTime         @updatedAt
+  booking         Booking          @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduled_for])
+  @@index([booking_id, job_type])
+  @@map("booking_background_jobs")
+}
+
+model StoredDocument {
+  id           String             @id @default(uuid()) @db.Uuid
+  kind         StoredDocumentKind
+  reference_id String             @db.Uuid
+  file_name    String
+  storage_key  String
+  public_url   String?
+  mime_type    String             @default("application/pdf")
+  byte_size    Int?
+  created_at   DateTime           @default(now())
+
+  @@index([kind, reference_id])
+  @@index([storage_key])
+  @@map("stored_documents")
 }

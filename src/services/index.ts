@@ -49,7 +49,7 @@ export type BackendUser = {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "sales_agent";
+  role: "admin" | "finance_admin" | "operations_manager" | "sales_agent";
   is_active: boolean;
   created_at: string;
 };
@@ -599,6 +599,9 @@ function isPublicLeadResponse(value: unknown): value is PublicLeadResponse {
     typeof (value as Record<string, unknown>).leadId === "string"
   );
 }
+
+export { paymentsOrchestrationService } from "./payments-orchestration.service";
+export { bookingOrchestrationService } from "./booking-orchestration.service";
 
 function isWrappedPublicLeadResponse(value: unknown): value is { data: PublicLeadResponse } {
   return (

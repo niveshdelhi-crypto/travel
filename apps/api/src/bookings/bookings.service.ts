@@ -10,6 +10,10 @@ import { PrismaService } from "../prisma/prisma.service";
 import { RealtimeGateway } from "../realtime/realtime.gateway";
 import type { CloseLeadBookingDto } from "./dto/close-lead-booking.dto";
 
+function hasFinanceAccess(role: UserRole): boolean {
+  return role === UserRole.admin || role === UserRole.finance_admin;
+}
+
 const bookingListInclude = {
   lead: {
     select: {
@@ -51,12 +55,12 @@ export class BookingsService {
   ) {}
 
   private bookingAccessWhere(user: AuthenticatedUser): Prisma.BookingWhereInput {
-    if (user.role === UserRole.admin) return {};
+    if (hasFinanceAccess(user.role)) return {};
     return { lead: { assigned_to: user.id } };
   }
 
   private paymentAccessWhere(user: AuthenticatedUser): Prisma.PaymentWhereInput {
-    if (user.role === UserRole.admin) return {};
+    if (hasFinanceAccess(user.role)) return {};
     return { booking: { lead: { assigned_to: user.id } } };
   }
 

@@ -39,6 +39,7 @@ import { Route as AppNotificationsRouteImport } from './routes/app.notifications
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppCallsRouteImport } from './routes/app.calls'
 import { Route as AppBookingsRouteImport } from './routes/app.bookings'
+import { Route as AppBookingOperationsRouteImport } from './routes/app.booking-operations'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as CarRentalCitySlugRouteImport } from './routes/car-rental.city.$slug'
@@ -195,6 +196,11 @@ const AppBookingsRoute = AppBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBookingOperationsRoute = AppBookingOperationsRouteImport.update({
+  id: '/booking-operations',
+  path: '/booking-operations',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -240,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/app/admin': typeof AppAdminRoute
   '/app/analytics': typeof AppAnalyticsRoute
+  '/app/booking-operations': typeof AppBookingOperationsRoute
   '/app/bookings': typeof AppBookingsRoute
   '/app/calls': typeof AppCallsRoute
   '/app/leads': typeof AppLeadsRouteWithChildren
@@ -276,6 +283,7 @@ export interface FileRoutesByTo {
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/app/admin': typeof AppAdminRoute
   '/app/analytics': typeof AppAnalyticsRoute
+  '/app/booking-operations': typeof AppBookingOperationsRoute
   '/app/bookings': typeof AppBookingsRoute
   '/app/calls': typeof AppCallsRoute
   '/app/leads': typeof AppLeadsRouteWithChildren
@@ -314,6 +322,7 @@ export interface FileRoutesById {
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/app/admin': typeof AppAdminRoute
   '/app/analytics': typeof AppAnalyticsRoute
+  '/app/booking-operations': typeof AppBookingOperationsRoute
   '/app/bookings': typeof AppBookingsRoute
   '/app/calls': typeof AppCallsRoute
   '/app/leads': typeof AppLeadsRouteWithChildren
@@ -353,6 +362,7 @@ export interface FileRouteTypes {
     | '/terms-and-conditions'
     | '/app/admin'
     | '/app/analytics'
+    | '/app/booking-operations'
     | '/app/bookings'
     | '/app/calls'
     | '/app/leads'
@@ -389,6 +399,7 @@ export interface FileRouteTypes {
     | '/terms-and-conditions'
     | '/app/admin'
     | '/app/analytics'
+    | '/app/booking-operations'
     | '/app/bookings'
     | '/app/calls'
     | '/app/leads'
@@ -426,6 +437,7 @@ export interface FileRouteTypes {
     | '/terms-and-conditions'
     | '/app/admin'
     | '/app/analytics'
+    | '/app/booking-operations'
     | '/app/bookings'
     | '/app/calls'
     | '/app/leads'
@@ -678,6 +690,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBookingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/booking-operations': {
+      id: '/app/booking-operations'
+      path: '/booking-operations'
+      fullPath: '/app/booking-operations'
+      preLoaderRoute: typeof AppBookingOperationsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/analytics': {
       id: '/app/analytics'
       path: '/analytics'
@@ -731,6 +750,7 @@ const AppLeadsRouteWithChildren = AppLeadsRoute._addFileChildren(
 interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
   AppAnalyticsRoute: typeof AppAnalyticsRoute
+  AppBookingOperationsRoute: typeof AppBookingOperationsRoute
   AppBookingsRoute: typeof AppBookingsRoute
   AppCallsRoute: typeof AppCallsRoute
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
@@ -746,6 +766,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
   AppAnalyticsRoute: AppAnalyticsRoute,
+  AppBookingOperationsRoute: AppBookingOperationsRoute,
   AppBookingsRoute: AppBookingsRoute,
   AppCallsRoute: AppCallsRoute,
   AppLeadsRoute: AppLeadsRouteWithChildren,

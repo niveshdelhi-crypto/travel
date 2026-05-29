@@ -49,6 +49,42 @@ type CallRealtimePayload = {
   provider_call_id: string | null;
 };
 
+type PaymentRealtimePayload = {
+  id: string;
+  booking_id: string;
+  status: string;
+  amount?: number;
+  currency?: string;
+  gateway_type?: string;
+  assigned_to?: string | null;
+  lead_id?: string;
+  failure_reason?: string;
+};
+
+type BookingRealtimePayload = {
+  id: string;
+  lead_id: string;
+  status: string;
+  lifecycle_status?: string;
+  assigned_to?: string | null;
+};
+
+type DocumentRealtimePayload = {
+  id: string;
+  booking_id: string;
+  lead_id?: string;
+  invoice_number?: string;
+  voucher_number?: string;
+  pdf_url?: string | null;
+};
+
+type RefundRealtimePayload = {
+  id: string;
+  booking_id: string;
+  status: string;
+  amount?: number;
+};
+
 const SOCKET_HEALTH_LOG_INTERVAL_MS = 60_000;
 const STALE_UNAUTHENTICATED_SOCKET_MS = 10_000;
 const EVENT_DEDUPE_TTL_MS = 60_000;
@@ -271,6 +307,120 @@ export class RealtimeGateway
 
   emitCallFailed(payload: CallRealtimePayload & { failure_reason?: string | null }) {
     void this.emitCallEvent("CALL_FAILED", payload);
+  }
+
+  emitPaymentCreated(payload: PaymentRealtimePayload) {
+    void this.emitPaymentEvent("PAYMENT_CREATED", payload);
+  }
+
+  emitPaymentSuccess(payload: PaymentRealtimePayload) {
+    void this.emitPaymentEvent("PAYMENT_SUCCESS", payload);
+  }
+
+  emitPaymentFailed(payload: PaymentRealtimePayload & { failure_reason?: string }) {
+    void this.emitPaymentEvent("PAYMENT_FAILED", payload);
+  }
+
+  emitBookingConfirmed(payload: BookingRealtimePayload) {
+    void this.emitDeduped({
+      eventName: "BOOKING_CONFIRMED",
+      dedupeKey: `BOOKING_CONFIRMED:${payload.id}`,
+      rooms: this.bookingRealtimeRooms(payload),
+      payload,
+    });
+  }
+
+  emitBookingCreated(payload: BookingRealtimePayload) {
+    void this.emitDeduped({
+      eventName: "BOOKING_CREATED",
+      dedupeKey: `BOOKING_CREATED:${payload.id}`,
+      rooms: this.bookingRealtimeRooms(payload),
+      payload,
+    });
+  }
+
+  emitBookingFailed(payload: BookingRealtimePayload) {
+    void this.emitDeduped({
+      eventName: "BOOKING_FAILED",
+      dedupeKey: `BOOKING_FAILED:${payload.id}`,
+      rooms: this.bookingRealtimeRooms(payload),
+      payload,
+    });
+  }
+
+  emitInvoiceGenerated(payload: DocumentRealtimePayload) {
+    void this.emitDeduped({
+      eventName: "INVOICE_GENERATED",
+      dedupeKey: `INVOICE_GENERATED:${payload.id}`,
+      rooms: this.bookingRealtimeRooms({
+        id: payload.booking_id,
+        lead_id: payload.lead_id ?? "",
+        status: payload.invoice_number ?? "INVOICE",
+      }),
+      payload,
+    });
+  }
+
+  emitVoucherGenerated(payload: DocumentRealtimePayload) {
+    void this.emitDeduped({
+      eventName: "VOUCHER_GENERATED",
+      dedupeKey: `VOUCHER_GENERATED:${payload.id}`,
+      rooms: this.bookingRealtimeRooms({
+        id: payload.booking_id,
+        lead_id: payload.lead_id ?? "",
+        status: payload.voucher_number ?? "VOUCHER",
+      }),
+      payload,
+    });
+  }
+
+  emitRefundCreated(payload: RefundRealtimePayload) {
+    void this.emitDeduped({
+      eventName: "REFUND_CREATED",
+      dedupeKey: `REFUND_CREATED:${payload.id}`,
+      rooms: ["role:admin", "role:finance_admin"],
+      payload,
+    });
+  }
+
+  emitRefundCompleted(payload: RefundRealtimePayload) {
+    void this.emitDeduped({
+      eventName: "REFUND_COMPLETED",
+      dedupeKey: `REFUND_COMPLETED:${payload.id}`,
+      rooms: ["role:admin", "role:finance_admin"],
+      payload,
+    });
+  }
+
+  private emitPaymentEvent(eventName: string, payload: PaymentRealtimePayload) {
+    void this.emitDeduped({
+      eventName,
+      dedupeKey: `${eventName}:${payload.id}:${payload.status}`,
+      rooms: this.paymentRealtimeRooms(payload),
+      payload,
+    });
+  }
+
+  private paymentRealtimeRooms(payload: PaymentRealtimePayload): string[] {
+    const rooms = new Set<string>(["role:admin", "role:finance_admin"]);
+    if (payload.assigned_to) {
+      rooms.add(`user:${payload.assigned_to}`);
+    }
+    if (payload.booking_id) {
+      rooms.add(`lead:${payload.lead_id ?? payload.booking_id}`);
+    }
+    return [...rooms];
+  }
+
+  private bookingRealtimeRooms(payload: BookingRealtimePayload): string[] {
+    const rooms = new Set<string>(["role:admin", "role:finance_admin", "role:operations_manager"]);
+    if (payload.assigned_to) {
+      rooms.add(`user:${payload.assigned_to}`);
+    }
+    if (payload.lead_id) {
+      rooms.add(`lead:${payload.lead_id}`);
+    }
+    return [...rooms];
   }
 
   private emitCallEvent(eventName: string, payload: CallRealtimePayload) {

@@ -32,13 +32,14 @@ import {
   PhoneCall,
   X,
   LogOut,
+  FileText,
 } from "lucide-react";
 
 type NavItem = {
   label: string;
   to: string;
   icon: typeof LayoutDashboard;
-  roles?: Array<"admin" | "sales_agent">;
+  roles?: Array<"admin" | "finance_admin" | "operations_manager" | "sales_agent">;
   badge?: string;
   live?: boolean;
 };
@@ -64,7 +65,8 @@ const navSections: Array<{ label: string; items: NavItem[] }> = [
     label: "Insights",
     items: [
       { label: "Analytics", to: "/app/analytics", icon: BarChart3, roles: ["admin"] },
-      { label: "Payments", to: "/app/payments", icon: CreditCard, roles: ["admin"] },
+      { label: "Payments", to: "/app/payments", icon: CreditCard, roles: ["admin", "finance_admin"] },
+      { label: "Booking Ops", to: "/app/booking-operations", icon: FileText, roles: ["admin", "finance_admin", "operations_manager"] },
     ],
   },
   {
@@ -77,7 +79,7 @@ const navSections: Array<{ label: string; items: NavItem[] }> = [
   },
 ];
 
-function canSeeNavItem(item: NavItem, role: "admin" | "sales_agent" | undefined) {
+function canSeeNavItem(item: NavItem, role: "admin" | "finance_admin" | "sales_agent" | undefined) {
   if (!item.roles) return true;
   if (!role) return false;
   return item.roles.includes(role);

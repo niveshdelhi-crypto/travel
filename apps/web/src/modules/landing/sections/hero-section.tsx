@@ -52,7 +52,7 @@ export function HeroSection({ leadMode = false }: HeroSectionProps) {
 
         <div className="mt-8 md:mt-10">
           {leadMode ? (
-            <div className="max-w-md">
+            <div id="search" className="max-w-md scroll-mt-24">
               <DirectCallButton variant="hero" sublabel="Free quote · Advisors available 24/7" />
               <p className="mt-3 text-sm leading-relaxed text-white/75">
                 No forms — call to compare rates from 800+ suppliers and book with an expert.

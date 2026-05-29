@@ -24,6 +24,18 @@ const seedUsers: SeedUser[] = [
     password: "Admin@123",
     role: UserRole.admin,
   },
+  {
+    name: "Book my Carz Finance Admin",
+    email: "finance@bookmycarz.com",
+    password: "Finance@123",
+    role: UserRole.finance_admin,
+  },
+  {
+    name: "Book my Carz Operations Manager",
+    email: "ops@bookmycarz.com",
+    password: "Ops@123",
+    role: UserRole.operations_manager,
+  },
   ...Array.from({ length: 5 }, (_, index) => {
     const agentNumber = index + 1;
 

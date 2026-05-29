@@ -5,7 +5,7 @@
 
 // ─── Auth & RBAC ────────────────────────────────────────────
 
-export type UserRole = "admin" | "sales_agent";
+export type UserRole = "admin" | "finance_admin" | "operations_manager" | "sales_agent";
 
 export interface User {
   id: string;
@@ -331,4 +331,14 @@ export interface SocketEvents {
   CALL_ANSWERED: CallRealtimePayload;
   CALL_COMPLETED: CallRealtimePayload;
   CALL_FAILED: CallRealtimePayload;
+  PAYMENT_CREATED: import("@/types/payments-orchestration").PaymentRealtimePayload;
+  PAYMENT_SUCCESS: import("@/types/payments-orchestration").PaymentRealtimePayload;
+  PAYMENT_FAILED: import("@/types/payments-orchestration").PaymentRealtimePayload;
+  BOOKING_CONFIRMED: import("@/types/payments-orchestration").BookingConfirmedPayload;
+  BOOKING_CREATED: import("@/types/payments-orchestration").BookingConfirmedPayload;
+  BOOKING_FAILED: import("@/types/payments-orchestration").BookingConfirmedPayload;
+  INVOICE_GENERATED: { id: string; booking_id: string; invoice_number?: string; pdf_url?: string | null };
+  VOUCHER_GENERATED: { id: string; booking_id: string; voucher_number?: string; pdf_url?: string | null };
+  REFUND_CREATED: { id: string; booking_id: string; status: string; amount?: number };
+  REFUND_COMPLETED: { id: string; booking_id: string; status: string };
 }
