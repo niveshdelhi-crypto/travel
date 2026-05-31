@@ -1,7 +1,6 @@
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { PrismaClient, UserRole } from "@prisma/client";
-import * as bcrypt from "bcrypt";
 import cookieParser = require("cookie-parser");
 import request = require("supertest");
 import { AppModule } from "../src/app.module";
@@ -11,28 +10,19 @@ type TestUser = {
   email: string;
   password: string;
   role: UserRole;
-  name: string;
 };
 
+/** Same accounts as `prisma/seed.ts` (and call-center E2E). Requires `npm run prisma:seed` before tests. */
 const admin: TestUser = {
-  email: "test-admin@fleetnexus.test",
+  email: "admin@bookmycarz.com",
   password: "Admin@123",
   role: UserRole.admin,
-  name: "Test Admin",
 };
 
 const agent: TestUser = {
-  email: "test-agent@fleetnexus.test",
+  email: "agent1@bookmycarz.com",
   password: "Agent@123",
   role: UserRole.sales_agent,
-  name: "Test Agent",
-};
-
-const secondAgent: TestUser = {
-  email: "test-agent-2@fleetnexus.test",
-  password: "Agent@123",
-  role: UserRole.sales_agent,
-  name: "Test Agent 2",
 };
 
 const shouldRunDatabaseE2E =
@@ -53,9 +43,7 @@ const shouldRunDatabaseE2E =
 
     prisma = new PrismaClient();
     await prisma.$connect();
-    await resetTestData(prisma);
-    await seedUsers(prisma, [admin, agent, secondAgent]);
-    await ensurePasswordHashes(prisma, [admin, agent, secondAgent]);
+    await resetLeadTestData(prisma);
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = moduleRef.createNestApplication();
@@ -74,7 +62,7 @@ const shouldRunDatabaseE2E =
 
   afterAll(async () => {
     if (prisma) {
-      await resetTestData(prisma);
+      await resetLeadTestData(prisma);
       await prisma.$disconnect();
     }
     if (app) await app.close();
@@ -258,49 +246,19 @@ function leadPayload(suffix: string) {
   };
 }
 
-async function ensurePasswordHashes(prisma: PrismaClient, users: TestUser[]) {
-  for (const user of users) {
-    await prisma.user.update({
-      where: { email: user.email },
-      data: { password_hash: await bcrypt.hash(user.password, 12) },
-    });
-  }
-}
-
-async function seedUsers(prisma: PrismaClient, users: TestUser[]) {
-  for (const user of users) {
-    await prisma.user.upsert({
-      where: { email: user.email },
-      update: {
-        name: user.name,
-        role: user.role,
-        is_active: true,
-        current_lead_count: 0,
-        password_hash: await bcrypt.hash(user.password, 12),
-      },
-      create: {
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        is_active: true,
-        current_lead_count: 0,
-        password_hash: await bcrypt.hash(user.password, 12),
-      },
-    });
-  }
-}
-
-async function resetTestData(prisma: PrismaClient) {
+async function resetLeadTestData(prisma: PrismaClient) {
   await prisma.leadSubmission.deleteMany({
-    where: { key: { startsWith: "lead-" } },
+    where: {
+      OR: [
+        { key: { startsWith: "lead-" } },
+        { key: { startsWith: "lead-e2e-" } },
+        { key: { startsWith: "lead-idempotent-" } },
+        { key: { startsWith: "lead-conflict-" } },
+        { key: { startsWith: "lead-concurrent-" } },
+      ],
+    },
   });
   await prisma.lead.deleteMany({
     where: { customer_email: { endsWith: "@fleetnexus.test" } },
-  });
-  await prisma.refreshSession.deleteMany({
-    where: { user: { email: { endsWith: "@fleetnexus.test" } } },
-  });
-  await prisma.user.deleteMany({
-    where: { email: { endsWith: "@fleetnexus.test" } },
   });
 }
