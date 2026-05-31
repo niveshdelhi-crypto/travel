@@ -222,8 +222,10 @@ export class AuthService {
     };
   }
 
-  private get accessTtlSeconds() {
-    return this.config.get<number>("ACCESS_TOKEN_TTL_SECONDS", 900);
+  private get accessTtlSeconds(): number {
+    const raw = this.config.get<string | number>("ACCESS_TOKEN_TTL_SECONDS", 900);
+    const parsed = typeof raw === "number" ? raw : Number.parseInt(String(raw), 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 900;
   }
 
   private get refreshTtlDays() {

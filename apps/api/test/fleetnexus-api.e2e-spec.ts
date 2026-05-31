@@ -81,11 +81,11 @@ const shouldRunDatabaseE2E =
   });
 
   it("authenticates users and exposes /auth/me", async () => {
-    const session = await login(app, admin);
+    const session = await login(app, prisma, admin);
 
     await request(app.getHttpServer())
       .get("/api/auth/me")
-      .set(session.auth)
+      .auth(session.accessToken, { type: "bearer" })
       .expect(200)
       .expect(({ body }) => {
         expect(body.email).toBe(admin.email);
@@ -94,16 +94,16 @@ const shouldRunDatabaseE2E =
   });
 
   it("enforces RBAC for admin-only lead operations", async () => {
-    const session = await login(app, agent);
+    const session = await login(app, prisma, agent);
 
     await request(app.getHttpServer())
       .get("/api/leads/admin")
-      .set(session.auth)
+      .auth(session.accessToken, { type: "bearer" })
       .expect(403);
 
     await request(app.getHttpServer())
       .get("/api/leads/metrics")
-      .set(session.auth)
+      .auth(session.accessToken, { type: "bearer" })
       .expect(403);
   });
 
@@ -220,7 +220,7 @@ const shouldRunDatabaseE2E =
   });
 });
 
-async function login(app: INestApplication, user: TestUser) {
+async function login(app: INestApplication, prisma: PrismaClient, user: TestUser) {
   const response = await request(app.getHttpServer())
     .post("/api/auth/login")
     .send({ email: user.email, password: user.password })
@@ -229,27 +229,18 @@ async function login(app: INestApplication, user: TestUser) {
   const accessToken = response.body?.accessToken as string | undefined;
   if (!accessToken) throw new Error("Login did not return accessToken");
 
-  const setCookie = response.headers["set-cookie"] as unknown as string[] | undefined;
-  const cookies = formatCookieHeader(setCookie);
-  const csrfCookie = (setCookie ?? []).find((cookie) => cookie.startsWith("csrf_token="));
-  const csrfToken = csrfCookie?.split(";")[0]?.split("=")[1];
-  if (!csrfToken) throw new Error("Login did not issue csrf_token cookie");
+  const payload = JSON.parse(
+    Buffer.from(accessToken.split(".")[1] ?? "", "base64url").toString("utf8"),
+  ) as { sub?: string; sid?: string };
 
-  return {
-    cookies,
-    csrfToken,
-    accessToken,
-    auth: {
-      Authorization: `Bearer ${accessToken}`,
-      Cookie: cookies || `access_token=${accessToken}`,
-    },
-  };
-}
+  const session = await prisma.refreshSession.findFirst({
+    where: { id: payload.sid, user_id: payload.sub, revoked_at: null },
+  });
+  if (!session) {
+    throw new Error(`Login session not persisted (sid=${payload.sid ?? "missing"})`);
+  }
 
-function formatCookieHeader(setCookie: string[] | undefined): string {
-  if (!setCookie?.length) return "";
-  const list = Array.isArray(setCookie) ? setCookie : [setCookie];
-  return list.map((c) => c.split(";")[0]?.trim()).filter(Boolean).join("; ");
+  return { accessToken };
 }
 
 function leadPayload(suffix: string) {

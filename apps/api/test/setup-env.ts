@@ -1,4 +1,6 @@
 process.env.NODE_ENV = "test";
+process.env.COOKIE_DOMAIN = "";
+process.env.COOKIE_SAME_SITE = "lax";
 process.env.PORT ??= "0";
 process.env.FRONTEND_URL ??= "http://localhost:3000";
 process.env.WEB_ORIGIN ??= "http://localhost:3000";

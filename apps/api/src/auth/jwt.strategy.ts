@@ -13,7 +13,10 @@ type AccessTokenPayload = {
 };
 
 function accessTokenExtractor(request: { cookies?: Record<string, string>; headers?: Record<string, string> }) {
-  return request.cookies?.access_token || ExtractJwt.fromAuthHeaderAsBearerToken()(request);
+  const bearer = ExtractJwt.fromAuthHeaderAsBearerToken()(request);
+  if (bearer) return bearer;
+  const cookieToken = request.cookies?.access_token?.trim();
+  return cookieToken || null;
 }
 
 @Injectable()
