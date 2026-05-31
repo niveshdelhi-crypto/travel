@@ -85,7 +85,7 @@ const shouldRunDatabaseE2E =
 
     await request(app.getHttpServer())
       .get("/api/auth/me")
-      .set("Cookie", session.cookies)
+      .set(session.auth)
       .expect(200)
       .expect(({ body }) => {
         expect(body.email).toBe(admin.email);
@@ -98,12 +98,12 @@ const shouldRunDatabaseE2E =
 
     await request(app.getHttpServer())
       .get("/api/leads/admin")
-      .set("Cookie", session.cookies)
+      .set(session.auth)
       .expect(403);
 
     await request(app.getHttpServer())
       .get("/api/leads/metrics")
-      .set("Cookie", session.cookies)
+      .set(session.auth)
       .expect(403);
   });
 
@@ -226,12 +226,24 @@ async function login(app: INestApplication, user: TestUser) {
     .send({ email: user.email, password: user.password })
     .expect(201);
 
+  const accessToken = response.body?.accessToken as string | undefined;
+  if (!accessToken) throw new Error("Login did not return accessToken");
+
   const setCookie = response.headers["set-cookie"] as unknown as string[] | undefined;
   const cookies = formatCookieHeader(setCookie);
   const csrfCookie = (setCookie ?? []).find((cookie) => cookie.startsWith("csrf_token="));
   const csrfToken = csrfCookie?.split(";")[0]?.split("=")[1];
   if (!csrfToken) throw new Error("Login did not issue csrf_token cookie");
-  return { cookies, csrfToken };
+
+  return {
+    cookies,
+    csrfToken,
+    accessToken,
+    auth: {
+      Authorization: `Bearer ${accessToken}`,
+      Cookie: cookies || `access_token=${accessToken}`,
+    },
+  };
 }
 
 function formatCookieHeader(setCookie: string[] | undefined): string {
