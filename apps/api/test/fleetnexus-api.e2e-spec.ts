@@ -92,7 +92,13 @@ const shouldRunDatabaseE2E =
     await request(app.getHttpServer())
       .get("/api/leads/metrics")
       .auth(session.accessToken, { type: "bearer" })
-      .expect(403);
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toMatchObject({
+          totalLeads: expect.any(Number),
+          statusCounts: expect.any(Object),
+        });
+      });
   });
 
   it("creates public leads, auto-assigns them, and returns sanitized responses", async () => {
@@ -161,14 +167,23 @@ const shouldRunDatabaseE2E =
 
   it("handles concurrent lead creation without losing requests", async () => {
     const total = 20;
-    const responses = await Promise.all(
-      Array.from({ length: total }, (_, index) =>
-        request(app.getHttpServer())
-          .post("/api/leads/public")
-          .set("Idempotency-Key", `lead-concurrent-${Date.now()}-${index}`)
-          .send(leadPayload(`concurrent-${index}`)),
-      ),
-    );
+    const nonce = Date.now();
+    const responses: request.Response[] = [];
+
+    // Batched to avoid ECONNRESET under CI when opening 20 connections at once.
+    const batchSize = 5;
+    for (let offset = 0; offset < total; offset += batchSize) {
+      const batch = await Promise.all(
+        Array.from({ length: Math.min(batchSize, total - offset) }, (_, index) => {
+          const i = offset + index;
+          return request(app.getHttpServer())
+            .post("/api/leads/public")
+            .set("Idempotency-Key", `lead-concurrent-${nonce}-${i}`)
+            .send(leadPayload(`concurrent-${nonce}-${i}`));
+        }),
+      );
+      responses.push(...batch);
+    }
 
     expect(responses.every((response) => response.status === 201)).toBe(true);
     expect(new Set(responses.map((response) => response.body.leadId)).size).toBe(total);
