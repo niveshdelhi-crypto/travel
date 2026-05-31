@@ -11,28 +11,6 @@ const agentPassword = process.env.E2E_AGENT_PASSWORD ?? "Agent@123";
 const describeLegacy =
   process.env.E2E_SKIP_LEGACY_CRM === "1" ? test.describe.skip : test.describe;
 
-// #region agent log
-function debugLog(
-  hypothesisId: string,
-  location: string,
-  message: string,
-  data: Record<string, unknown>,
-) {
-  fetch("http://127.0.0.1:7893/ingest/df2d7af2-37a7-4fc7-9a57-815531534d78", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "c60769" },
-    body: JSON.stringify({
-      sessionId: "c60769",
-      hypothesisId,
-      location,
-      message,
-      data,
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-}
-// #endregion
-
 describeLegacy("Book my Carz legacy CRM", () => {
   test.describe.configure({ mode: "serial" });
   test.use({ baseURL: crmBaseURL });
@@ -44,12 +22,6 @@ describeLegacy("Book my Carz legacy CRM", () => {
 
   test("public lead submission is visible in admin leads pipeline", async ({ page, request }) => {
     const lead = await submitLead(request, "playwright-admin");
-    // #region agent log
-    debugLog("C", "fleetnexus-crm.spec.ts:admin-lead", "lead created before admin login", {
-      customerName: lead.customer_name,
-      leadId: lead.leadId,
-    });
-    // #endregion
 
     await login(page, adminEmail, adminPassword, /\/app\/leads\/?$/);
     await expect(page.getByRole("heading", { name: /^leads$/i })).toBeVisible();
@@ -59,13 +31,6 @@ describeLegacy("Book my Carz legacy CRM", () => {
   test("assigned leads appear in sales agent workspace", async ({ page, request }) => {
     const lead = await submitLead(request, "playwright-sales");
     const assignedEmail = await resolveAssignedAgentEmail(request, lead.leadId);
-    // #region agent log
-    debugLog("A", "fleetnexus-crm.spec.ts:agent-lead", "lead assignment resolved", {
-      customerName: lead.customer_name,
-      leadId: lead.leadId,
-      assignedEmail,
-    });
-    // #endregion
 
     await login(page, assignedEmail, agentPassword, /\/app\/workspace\/?$/);
     await expect(page.getByRole("heading", { name: /my workspace/i })).toBeVisible();
@@ -74,8 +39,10 @@ describeLegacy("Book my Carz legacy CRM", () => {
 });
 
 async function resolveAssignedAgentEmail(request: APIRequestContext, leadId: string) {
-  await apiLogin(request, adminEmail, adminPassword);
-  const response = await request.get(`${apiURL}/leads/admin?page=1&pageSize=100`);
+  const accessToken = await apiLogin(request, adminEmail, adminPassword);
+  const response = await request.get(`${apiURL}/leads/admin?page=1&pageSize=100`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
   expect(response.ok()).toBeTruthy();
   const body = (await response.json()) as {
     data?: Array<{ id: string; assigned_agent?: { email?: string } | null }>;
@@ -91,6 +58,9 @@ async function apiLogin(request: APIRequestContext, email: string, password: str
     data: { email, password },
   });
   expect(response.ok()).toBeTruthy();
+  const body = (await response.json()) as { accessToken?: string };
+  if (!body.accessToken) throw new Error("API login did not return accessToken");
+  return body.accessToken;
 }
 
 async function login(page: Page, email: string, password: string, expectedPath: RegExp) {
@@ -106,13 +76,6 @@ async function login(page: Page, email: string, password: string, expectedPath: 
   await page.getByRole("button", { name: /sign in/i }).click();
 
   await expect(page).toHaveURL(expectedPath, { timeout: 20_000 });
-  // #region agent log
-  debugLog("A", "fleetnexus-crm.spec.ts:login", "post-login url", {
-    emailDomain: email.split("@")[1],
-    finalUrl: page.url(),
-    expectedPattern: expectedPath.source,
-  });
-  // #endregion
 }
 
 async function submitLead(request: APIRequestContext, suffix: string) {
@@ -132,14 +95,6 @@ async function submitLead(request: APIRequestContext, suffix: string) {
     leadId: expect.any(String),
     status: "NEW",
   });
-
-  // #region agent log
-  debugLog("B", "fleetnexus-crm.spec.ts:submitLead", "public lead response", {
-    status: response.status(),
-    leadId: body.leadId,
-    suffix,
-  });
-  // #endregion
 
   return { ...payload, leadId: body.leadId as string };
 }
