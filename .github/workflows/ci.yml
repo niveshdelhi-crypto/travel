@@ -37,8 +37,8 @@ jobs:
       DATABASE_URL: postgresql://fleetnexus:fleetnexus@localhost:5432/fleetnexus_test?schema=public
       TEST_DATABASE_URL: postgresql://fleetnexus:fleetnexus@localhost:5432/fleetnexus_test?schema=public
       REDIS_URL: redis://localhost:6379
-      FRONTEND_URL: http://127.0.0.1:3000
-      WEB_ORIGIN: http://127.0.0.1:3000
+      FRONTEND_URL: http://127.0.0.1:8080
+      WEB_ORIGIN: http://127.0.0.1:3000,http://127.0.0.1:8080
       API_INTERNAL_URL: http://127.0.0.1:4000/api
       NEXT_PUBLIC_API_URL: http://127.0.0.1:4000/api
       NEXT_PUBLIC_SOCKET_URL: http://127.0.0.1:4000/leads
@@ -125,6 +125,19 @@ jobs:
           exit 1
         working-directory: apps/api
 
+      - name: Build legacy CRM (Vite)
+        run: npm run build
+
+      - name: Start legacy CRM
+        run: |
+          nohup npm run preview -- --host 127.0.0.1 --port 8080 > /tmp/fleetnexus-crm.log 2>&1 &
+          for i in {1..60}; do
+            curl -fsS http://127.0.0.1:8080/login && exit 0
+            sleep 2
+          done
+          cat /tmp/fleetnexus-crm.log
+          exit 1
+
       - name: Start web
         env:
           NEXT_PUBLIC_GOOGLE_ADS_ID: AW-11460691521
@@ -146,9 +159,10 @@ jobs:
           E2E_WEB_URL: http://127.0.0.1:3000
           NEXT_PUBLIC_GOOGLE_ADS_ID: AW-11460691521
           E2E_API_URL: http://127.0.0.1:4000/api
-          E2E_ADMIN_EMAIL: admin@fleetnexus.com
+          E2E_CRM_URL: http://127.0.0.1:8080
+          E2E_ADMIN_EMAIL: admin@bookmycarz.com
           E2E_ADMIN_PASSWORD: Admin@123
-          E2E_AGENT_EMAIL: agent1@fleetnexus.com
+          E2E_AGENT_EMAIL: agent1@bookmycarz.com
           E2E_AGENT_PASSWORD: Agent@123
 
       - name: Upload Playwright report

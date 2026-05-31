@@ -40,12 +40,21 @@ export default defineConfig({
   server: {
     port: 8080,
     host: true,
-    proxy: {
-      "/api": {
-        // Use IPv4 explicitly — some Windows setups resolve `localhost` to ::1 while Nest binds IPv4-only.
-        target: "http://127.0.0.1:4000",
-        changeOrigin: true,
-      },
-    },
+    proxy: apiProxy(),
+  },
+  preview: {
+    port: 8080,
+    host: true,
+    proxy: apiProxy(),
   },
 });
+
+function apiProxy() {
+  return {
+    "/api": {
+      // Use IPv4 explicitly — some Windows setups resolve `localhost` to ::1 while Nest binds IPv4-only.
+      target: "http://127.0.0.1:4000",
+      changeOrigin: true,
+    },
+  };
+}

@@ -8,7 +8,10 @@ const adminPassword = process.env.E2E_ADMIN_PASSWORD ?? "Admin@123";
 const agentEmail = process.env.E2E_AGENT_EMAIL ?? "agent1@bookmycarz.com";
 const agentPassword = process.env.E2E_AGENT_PASSWORD ?? "Agent@123";
 
-test.describe("Book my Carz legacy CRM", () => {
+const describeLegacy =
+  process.env.E2E_SKIP_LEGACY_CRM === "1" ? test.describe.skip : test.describe;
+
+describeLegacy("Book my Carz legacy CRM", () => {
   test.use({ baseURL: crmBaseURL });
 
   test("login lands on CRM dashboard", async ({ page }) => {
