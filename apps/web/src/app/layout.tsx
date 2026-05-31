@@ -1,3 +1,4 @@
+import { GoogleAdsTag } from "@/components/analytics/google-ads";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { QueryProvider } from "@/components/app/query-provider";
 import { getServerSession } from "@/lib/auth/server";
@@ -27,6 +28,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <head>
+        <GoogleAdsTag />
+      </head>
       <body
         className="font-[family-name:var(--font-general-sans)] antialiased"
         suppressHydrationWarning

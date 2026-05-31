@@ -2,7 +2,14 @@
 
 import { useLeadMetricsQuery } from "@/hooks/api/use-leads-api";
 import { Users2 } from "lucide-react";
-import { Avatar, Badge, CrmPage, EmptyState, Panel, PanelHeader } from "@/components/crm/primitives";
+import {
+  Avatar,
+  Badge,
+  CrmPage,
+  EmptyState,
+  Panel,
+  PanelHeader,
+} from "@/components/crm/primitives";
 
 export function TeamPage() {
   const metricsQuery = useLeadMetricsQuery();

@@ -5,6 +5,7 @@ import { paymentQueryKeys } from "@/lib/payments/query-keys";
 import type {
   BookingConfirmedPayload,
   PaymentRealtimePayload,
+  PaymentSessionRealtimePayload,
 } from "@/types/payments-orchestration";
 
 const seenEventIds = new Set<string>();
@@ -53,6 +54,30 @@ export function usePaymentRealtime() {
       onSocketEvent(
         "BOOKING_CONFIRMED",
         dedupeHandler((_payload: BookingConfirmedPayload) => invalidate()),
+      ),
+      onSocketEvent(
+        "PAYMENT_SESSION_CREATED",
+        dedupeHandler((_payload: PaymentSessionRealtimePayload) => invalidate()),
+      ),
+      onSocketEvent(
+        "FINANCE_PAYMENT_QUEUED",
+        dedupeHandler((_payload: PaymentSessionRealtimePayload) => invalidate()),
+      ),
+      onSocketEvent(
+        "PAYMENT_SESSION_PROCESSING",
+        dedupeHandler((_payload: PaymentSessionRealtimePayload) => invalidate()),
+      ),
+      onSocketEvent(
+        "PAYMENT_SESSION_SUCCESS",
+        dedupeHandler((_payload: PaymentSessionRealtimePayload) => invalidate()),
+      ),
+      onSocketEvent(
+        "PAYMENT_SESSION_FAILED",
+        dedupeHandler((_payload: PaymentSessionRealtimePayload) => invalidate()),
+      ),
+      onSocketEvent(
+        "PAYMENT_SESSION_CANCELLED",
+        dedupeHandler((_payload: PaymentSessionRealtimePayload) => invalidate()),
       ),
     ];
 

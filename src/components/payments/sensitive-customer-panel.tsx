@@ -68,12 +68,12 @@ export function SensitiveCustomerPanel({
       {!isAdmin ? (
         <div className="mt-4 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-xs text-warning">
           <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Full contact details are restricted to administrators. Finance roles see masked PII.
+          Full contact details are restricted to admin and finance roles. Other roles see masked PII.
         </div>
       ) : (
         <div className="mt-4 flex items-center gap-2 text-xs text-success">
           <Lock className="h-3.5 w-3.5" />
-          Admin view — full PII visible
+          Elevated view — full PII visible
         </div>
       )}
     </div>

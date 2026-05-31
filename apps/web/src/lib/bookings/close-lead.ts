@@ -11,6 +11,12 @@ export type CloseLeadBookingResponse = {
   booking: import("./types").BookingListItem;
   updatedLead: Pick<
     import("@/lib/leads/types").Lead,
-    "id" | "status" | "assigned_to" | "booking_value" | "customer_name" | "pickup_location" | "drop_location"
+    | "id"
+    | "status"
+    | "assigned_to"
+    | "booking_value"
+    | "customer_name"
+    | "pickup_location"
+    | "drop_location"
   >;
 };

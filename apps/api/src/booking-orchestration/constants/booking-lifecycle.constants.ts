@@ -57,4 +57,5 @@ export const BOOKING_STATUS_MAP: Partial<Record<BookingLifecycleStatus, string>>
   [BookingLifecycleStatus.COMPLETED]: "COMPLETED",
   [BookingLifecycleStatus.CANCELLED]: "CANCELLED",
   [BookingLifecycleStatus.PAYMENT_PENDING]: "PAYMENT_PENDING",
+  [BookingLifecycleStatus.PAYMENT_SUCCESS]: "CONFIRMED",
 };

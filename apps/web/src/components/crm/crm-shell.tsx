@@ -32,7 +32,12 @@ const NAV_ITEMS: Array<{
   roles: Array<"admin" | "sales_agent">;
   icon?: typeof LayoutDashboard;
 }> = [
-  { href: "/dashboard", label: "Dashboard", roles: ["admin", "sales_agent"], icon: LayoutDashboard },
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+    roles: ["admin", "sales_agent"],
+    icon: LayoutDashboard,
+  },
   { href: "/leads", label: "Pipeline", roles: ["admin", "sales_agent"], icon: Users2 },
   { href: "/sales", label: "My desk", roles: ["admin", "sales_agent"] },
   { href: "/admin", label: "Admin desk", roles: ["admin"] },
@@ -54,7 +59,10 @@ export function CrmShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-[1800px] items-center justify-between gap-4 px-4 md:px-6">
           <div className="flex min-w-0 flex-1 items-center gap-4">
-            <Link href="/dashboard" className="flex shrink-0 items-center gap-2 font-semibold text-white">
+            <Link
+              href="/dashboard"
+              className="flex shrink-0 items-center gap-2 font-semibold text-white"
+            >
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-600 text-sm">
                 FN
               </span>

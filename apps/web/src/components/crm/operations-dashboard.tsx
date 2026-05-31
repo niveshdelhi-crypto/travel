@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import type { Route } from "next";
-import {
-  ArrowRight,
-  CircleDollarSign,
-  LayoutGrid,
-  Phone,
-  Users,
-} from "lucide-react";
+import { ArrowRight, CircleDollarSign, LayoutGrid, Phone, Users } from "lucide-react";
 import {
   useLeadMetricsQuery,
   useLeadRealtimeInvalidation,
@@ -232,9 +226,7 @@ export function OperationsDashboard({
                           <StatusPill status={lead.status} />
                         </td>
                         <td className="px-4 py-2.5">
-                          {lead.booking_value != null
-                            ? currency(Number(lead.booking_value))
-                            : "—"}
+                          {lead.booking_value != null ? currency(Number(lead.booking_value)) : "—"}
                         </td>
                       </tr>
                     ))}
@@ -282,12 +274,7 @@ export function OperationsDashboard({
   );
 }
 
-function DeskCard({
-  href,
-  title,
-  description,
-  icon: Icon,
-}: DeskLink) {
+function DeskCard({ href, title, description, icon: Icon }: DeskLink) {
   return (
     <Link
       href={href}
@@ -307,15 +294,7 @@ function DeskCard({
   );
 }
 
-function PipelineRow({
-  label,
-  count,
-  total,
-}: {
-  label: string;
-  count: number;
-  total: number;
-}) {
+function PipelineRow({ label, count, total }: { label: string; count: number; total: number }) {
   const width = Math.round((count / total) * 100);
 
   return (

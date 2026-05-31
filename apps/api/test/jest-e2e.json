@@ -6,6 +6,9 @@
   "transform": {
     "^.+\\.(t|j)s$": ["ts-jest", { "tsconfig": "tsconfig.json" }]
   },
+  "moduleNameMapper": {
+    "^@vonage/server-sdk$": "<rootDir>/test/mocks/vonage-server-sdk.ts"
+  },
   "setupFiles": ["<rootDir>/test/setup-env.ts"],
   "testTimeout": 60000,
   "maxWorkers": 1

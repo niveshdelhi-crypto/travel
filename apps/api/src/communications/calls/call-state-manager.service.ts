@@ -8,6 +8,7 @@ const TERMINAL_STATUSES: ReadonlySet<CallStatus> = new Set([
   CallStatus.FAILED,
   CallStatus.BUSY,
   CallStatus.NO_ANSWER,
+  CallStatus.VOICEMAIL,
   CallStatus.CANCELLED,
 ]);
 
@@ -24,6 +25,7 @@ const ALLOWED_TRANSITIONS: Record<CallStatus, ReadonlySet<CallStatus>> = {
     CallStatus.FAILED,
     CallStatus.BUSY,
     CallStatus.NO_ANSWER,
+    CallStatus.VOICEMAIL,
     CallStatus.CANCELLED,
   ]),
   [CallStatus.ANSWERED]: new Set([
@@ -35,6 +37,7 @@ const ALLOWED_TRANSITIONS: Record<CallStatus, ReadonlySet<CallStatus>> = {
   [CallStatus.FAILED]: new Set(),
   [CallStatus.BUSY]: new Set(),
   [CallStatus.NO_ANSWER]: new Set(),
+  [CallStatus.VOICEMAIL]: new Set(),
   [CallStatus.CANCELLED]: new Set(),
 };
 
@@ -163,6 +166,33 @@ export class CallStateManagerService {
     }
   }
 
+  mapTelnyxEventToCallStatus(eventType: string | undefined): CallStatus | null {
+    const normalized = eventType?.trim().toLowerCase();
+    switch (normalized) {
+      case "call.initiated":
+        return CallStatus.INITIATED;
+      case "call.ringing":
+        return CallStatus.RINGING;
+      case "call.answered":
+        return CallStatus.ANSWERED;
+      case "call.hangup":
+      case "call.ended":
+        return CallStatus.COMPLETED;
+      case "call.busy":
+        return CallStatus.BUSY;
+      case "call.no_answer":
+      case "call.unanswered":
+        return CallStatus.NO_ANSWER;
+      case "call.machine_detection_ended":
+      case "call.voicemail":
+        return CallStatus.VOICEMAIL;
+      case "call.failed":
+        return CallStatus.FAILED;
+      default:
+        return null;
+    }
+  }
+
   private async syncActiveSession(call: Call) {
     if (!call.agent_id || TERMINAL_STATUSES.has(call.status)) {
       return;
@@ -209,6 +239,7 @@ export class CallStateManagerService {
       case CallStatus.FAILED:
       case CallStatus.BUSY:
       case CallStatus.NO_ANSWER:
+      case CallStatus.VOICEMAIL:
         this.realtime.emitCallFailed({
           ...payload,
           failure_reason: call.failure_reason,

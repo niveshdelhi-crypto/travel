@@ -65,15 +65,14 @@ export class TravelersService {
       where: { id: travelerId },
       data: {
         booking_count: { increment: 1 },
-        is_recurring: true,
         lifetime_value: { increment: revenue },
       },
     });
 
-    if (traveler.booking_count === 1) {
+    if (traveler.booking_count >= 2) {
       await this.prisma.traveler.update({
         where: { id: travelerId },
-        data: { is_recurring: false },
+        data: { is_recurring: true },
       });
     }
 

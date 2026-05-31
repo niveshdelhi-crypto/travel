@@ -28,6 +28,24 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum PaymentSessionStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentAttemptStatus {
+  INITIATED
+  ORDER_CREATED
+  SUBMITTED
+  CAPTURED
+  FAILED
+  CANCELLED
+}
+
 enum BookingStatus {
   DRAFT
   PAYMENT_PENDING
@@ -70,6 +88,18 @@ enum AuditLogAction {
   CHARGEBACK_OPENED
   VAULT_ENTRY_CREATED
   VAULT_SESSION_CREATED
+  PAYMENT_SESSION_CREATED
+  PAYMENT_SESSION_ASSIGNED
+  PAYMENT_SESSION_OPENED
+  PAYMENT_SESSION_PROCESSING
+  PAYMENT_SESSION_SUCCESS
+  PAYMENT_SESSION_FAILURE
+  PAYMENT_SESSION_CANCELLED
+  PAYMENT_ATTEMPT_CREATED
+  PAYMENT_ATTEMPT_FAILED
+  PAYPAL_ORDER_CREATED
+  PAYPAL_ORDER_CAPTURED
+  GATEWAY_HEALTH_CHECK
 }
 
 enum BookingLifecycleStatus {
@@ -170,11 +200,21 @@ enum CallStatus {
   FAILED
   BUSY
   NO_ANSWER
+  VOICEMAIL
   CANCELLED
 }
 
 enum CallProvider {
   VONAGE
+  TELNYX
+}
+
+enum CallDispositionType {
+  ANSWERED
+  BUSY
+  NO_ANSWER
+  VOICEMAIL
+  CALLBACK_REQUESTED
 }
 
 enum CallEventType {
@@ -193,6 +233,7 @@ enum CallEventType {
 
 enum WebhookProvider {
   VONAGE
+  TELNYX
 }
 
 enum MarketplaceDestinationKind {
@@ -269,6 +310,7 @@ model User {
   role               UserRole         @default(sales_agent)
   is_active          Boolean          @default(true)
   current_lead_count Int              @default(0)
+  direct_line        String?          @unique
   created_at         DateTime         @default(now())
   sessions           RefreshSession[]
   assigned_leads     Lead[]           @relation("AssignedLeads")
@@ -276,14 +318,18 @@ model User {
   lead_activities    LeadActivity[]
   bookings_recorded  Booking[]        @relation("BookingRecordedBy")
   payments_recorded  Payment[]        @relation("PaymentRecordedBy")
-  payment_requests   BookingPaymentRequest[] @relation("PaymentRequestRequestedBy")
-  payment_transactions PaymentTransaction[] @relation("PaymentTransactionCreatedBy")
-  audit_logs         AuditLog[]
+  payment_requests     BookingPaymentRequest[] @relation("PaymentRequestRequestedBy")
+  payment_transactions PaymentTransaction[]    @relation("PaymentTransactionCreatedBy")
+  payment_sessions_requested PaymentSession[]  @relation("PaymentSessionRequestedBy")
+  payment_sessions_processed PaymentSession[]  @relation("PaymentSessionProcessedBy")
+  payment_attempts           PaymentSessionAttempt[] @relation("PaymentAttemptInitiatedBy")
+  audit_logs           AuditLog[]
   refund_requests    RefundRequest[]  @relation("RefundRequestedBy")
   refund_approvals   RefundRequest[]  @relation("RefundApprovedBy")
   traveler_notes     TravelerNote[]
   lifecycle_events   BookingLifecycleEvent[]
   calls_initiated    Call[]           @relation("CallAgent")
+  call_dispositions  CallDisposition[] @relation("CallDispositionAgent")
   active_call_sessions ActiveCallSession[]
 
   @@index([role, is_active, current_lead_count, created_at])
@@ -322,17 +368,20 @@ model Lead {
   booking_value     Decimal?   @db.Decimal(12, 2)
   last_contacted_at DateTime?
   follow_up_at      DateTime?
-  is_high_quality   Boolean    @default(false)
-  retain_until      DateTime?
-  created_at        DateTime   @default(now())
-  updated_at        DateTime   @updatedAt
-  assigned_agent    User?      @relation("AssignedLeads", fields: [assigned_to], references: [id], onDelete: SetNull)
-  traveler          Traveler?  @relation(fields: [traveler_id], references: [id], onDelete: SetNull)
-  notes             LeadNote[]
-  activities         LeadActivity[]
-  submissions        LeadSubmission[]
-  booking            Booking?
-  calls              Call[]
+  is_high_quality          Boolean    @default(false)
+  is_recurring_customer    Boolean    @default(false)
+  customer_lifetime_value  Decimal?   @db.Decimal(12, 2)
+  retain_until             DateTime?
+  created_at               DateTime   @default(now())
+  updated_at               DateTime   @updatedAt
+  assigned_agent           User?      @relation("AssignedLeads", fields: [assigned_to], references: [id], onDelete: SetNull)
+  traveler                 Traveler?  @relation(fields: [traveler_id], references: [id], onDelete: SetNull)
+  notes                    LeadNote[]
+  activities               LeadActivity[]
+  submissions              LeadSubmission[]
+  booking                  Booking?
+  calls                    Call[]
+  payment_sessions         PaymentSession[]
 
   @@index([customer_email, customer_phone, created_at])
   @@index([assigned_to, status])
@@ -421,6 +470,7 @@ model Booking {
   refund_requests          RefundRequest[]
   chargebacks              ChargebackCase[]
   background_jobs          BookingBackgroundJob[]
+  payment_sessions         PaymentSession[]
 
   @@index([created_at])
   @@index([status, created_at])
@@ -441,10 +491,68 @@ model PaymentGateway {
   updated_at             DateTime                @updatedAt
   payment_requests       BookingPaymentRequest[]
   transactions           PaymentTransaction[]
+  payment_sessions       PaymentSession[]
+  payment_attempts       PaymentSessionAttempt[]
 
   @@unique([type, name])
   @@index([type, is_active])
   @@map("payment_gateways")
+}
+
+model PaymentSession {
+  id                String               @id @default(uuid()) @db.Uuid
+  lead_id           String               @db.Uuid
+  booking_id        String               @db.Uuid
+  amount            Decimal              @db.Decimal(12, 2)
+  currency          String               @default("USD") @db.VarChar(3)
+  gateway_id        String               @db.Uuid
+  requested_by_id   String               @db.Uuid
+  processed_by_id   String?              @db.Uuid
+  status            PaymentSessionStatus @default(PENDING)
+  checkout_mode     String               @default("gateway_checkout") @db.VarChar(64)
+  provider_order_id String?
+  finance_notes     String?
+  failure_reason    String?
+  created_at        DateTime             @default(now())
+  updated_at        DateTime             @updatedAt
+  expires_at        DateTime
+  lead              Lead                 @relation(fields: [lead_id], references: [id], onDelete: Cascade)
+  booking           Booking              @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+  gateway           PaymentGateway       @relation(fields: [gateway_id], references: [id], onDelete: Restrict)
+  requested_by      User                 @relation("PaymentSessionRequestedBy", fields: [requested_by_id], references: [id], onDelete: Restrict)
+  processed_by      User?                @relation("PaymentSessionProcessedBy", fields: [processed_by_id], references: [id], onDelete: SetNull)
+  attempts          PaymentSessionAttempt[]
+  transactions      PaymentTransaction[]
+
+  @@index([status])
+  @@index([booking_id])
+  @@index([requested_by_id])
+  @@index([created_at])
+  @@index([provider_order_id])
+  @@map("payment_sessions")
+}
+
+model PaymentSessionAttempt {
+  id                  String               @id @default(uuid()) @db.Uuid
+  payment_session_id  String               @db.Uuid
+  gateway_id          String               @db.Uuid
+  attempt_number      Int
+  status              PaymentAttemptStatus @default(INITIATED)
+  provider_order_id   String?
+  provider_capture_id String?
+  failure_reason      String?
+  provider_response   Json?
+  initiated_by_id     String?              @db.Uuid
+  created_at          DateTime             @default(now())
+  updated_at          DateTime             @updatedAt
+  payment_session     PaymentSession       @relation(fields: [payment_session_id], references: [id], onDelete: Cascade)
+  gateway             PaymentGateway       @relation(fields: [gateway_id], references: [id], onDelete: Restrict)
+  initiated_by        User?                @relation("PaymentAttemptInitiatedBy", fields: [initiated_by_id], references: [id], onDelete: SetNull)
+
+  @@index([payment_session_id, created_at])
+  @@index([gateway_id, status])
+  @@index([provider_order_id])
+  @@map("payment_session_attempts")
 }
 
 model BookingPaymentRequest {
@@ -480,6 +588,7 @@ model PaymentTransaction {
   booking_id          String                 @db.Uuid
   gateway_id          String                 @db.Uuid
   payment_request_id  String?                @db.Uuid
+  payment_session_id  String?                @db.Uuid
   type                TransactionType        @default(CHARGE)
   status              PaymentStatus          @default(PENDING)
   amount              Decimal                @db.Decimal(12, 2)
@@ -495,11 +604,13 @@ model PaymentTransaction {
   booking             Booking                @relation(fields: [booking_id], references: [id], onDelete: Cascade)
   gateway             PaymentGateway         @relation(fields: [gateway_id], references: [id], onDelete: Restrict)
   payment_request     BookingPaymentRequest? @relation(fields: [payment_request_id], references: [id], onDelete: SetNull)
+  payment_session     PaymentSession?        @relation(fields: [payment_session_id], references: [id], onDelete: SetNull)
   creator             User?                  @relation("PaymentTransactionCreatedBy", fields: [created_by], references: [id], onDelete: SetNull)
 
   @@index([booking_id, status])
   @@index([gateway_id, status])
   @@index([payment_request_id])
+  @@index([payment_session_id])
   @@index([status, created_at])
   @@index([provider_reference])
   @@map("payment_transactions")
@@ -544,7 +655,7 @@ model Payment {
 
 model Call {
   id                 String        @id @default(uuid()) @db.Uuid
-  provider           CallProvider  @default(VONAGE)
+  provider           CallProvider  @default(TELNYX)
   provider_call_id   String?       @unique
   direction          CallDirection
   status             CallStatus    @default(INITIATED)
@@ -552,25 +663,32 @@ model Call {
   to_number          String
   agent_id           String?       @db.Uuid
   lead_id            String?       @db.Uuid
+  traveler_id        String?       @db.Uuid
   started_at         DateTime?
   answered_at        DateTime?
   ended_at           DateTime?
   duration_seconds   Int?
+  recording_url      String?
   failure_reason     String?
   metadata           Json?
   created_at         DateTime      @default(now())
   updated_at         DateTime      @updatedAt
   agent              User?         @relation("CallAgent", fields: [agent_id], references: [id], onDelete: SetNull)
   lead               Lead?         @relation(fields: [lead_id], references: [id], onDelete: SetNull)
+  traveler           Traveler?     @relation(fields: [traveler_id], references: [id], onDelete: SetNull)
   events             CallEvent[]
   recordings         CallRecording[]
+  disposition        CallDisposition?
   active_session     ActiveCallSession?
 
   @@index([agent_id, status])
   @@index([lead_id, created_at])
+  @@index([traveler_id, created_at])
   @@index([provider_call_id])
   @@index([status, created_at])
   @@index([direction, created_at])
+  @@index([from_number, created_at])
+  @@index([started_at])
   @@map("calls")
 }
 
@@ -590,19 +708,36 @@ model CallEvent {
 }
 
 model CallRecording {
-  id                    String   @id @default(uuid()) @db.Uuid
-  call_id               String   @db.Uuid
-  provider_recording_id String?  @unique
+  id                    String    @id @default(uuid()) @db.Uuid
+  call_id               String    @db.Uuid
+  traveler_id           String?   @db.Uuid
+  provider_recording_id String?   @unique
   url                   String?
   duration_seconds      Int?
   format                String?
   status                String?
   metadata              Json?
-  created_at            DateTime @default(now())
-  call                  Call     @relation(fields: [call_id], references: [id], onDelete: Cascade)
+  created_at            DateTime  @default(now())
+  call                  Call      @relation(fields: [call_id], references: [id], onDelete: Cascade)
+  traveler              Traveler? @relation(fields: [traveler_id], references: [id], onDelete: SetNull)
 
   @@index([call_id, created_at])
+  @@index([traveler_id, created_at])
   @@map("call_recordings")
+}
+
+model CallDisposition {
+  id           String              @id @default(uuid()) @db.Uuid
+  call_id      String              @unique @db.Uuid
+  disposition  CallDispositionType
+  notes        String?
+  set_by       String?             @db.Uuid
+  created_at   DateTime            @default(now())
+  call         Call                @relation(fields: [call_id], references: [id], onDelete: Cascade)
+  agent        User?               @relation("CallDispositionAgent", fields: [set_by], references: [id], onDelete: SetNull)
+
+  @@index([disposition, created_at])
+  @@map("call_dispositions")
 }
 
 model ActiveCallSession {
@@ -662,8 +797,11 @@ model Traveler {
   preferences     TravelerPreference[]
   vault_entries   SecureCustomerPaymentVault[]
   payment_sessions SecurePaymentSession[]
+  calls           Call[]
+  call_recordings CallRecording[]
 
   @@index([email])
+  @@index([phone])
   @@index([is_recurring, booking_count])
   @@index([risk_score])
   @@map("travelers")

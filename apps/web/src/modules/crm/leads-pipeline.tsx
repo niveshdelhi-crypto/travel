@@ -23,7 +23,13 @@ const stages: Array<{ key: LeadStatus; label: string; color: string }> = [
   { key: "COMPLETED", label: "Completed", color: "bg-[#172033]" },
 ];
 
-export function LeadsPipeline({ initialLeads, scope }: { initialLeads: PaginatedLeads; scope: "admin" | "my" }) {
+export function LeadsPipeline({
+  initialLeads,
+  scope,
+}: {
+  initialLeads: PaginatedLeads;
+  scope: "admin" | "my";
+}) {
   const { hasRole } = useAuth();
   const isAdmin = hasRole(["admin"]);
   const listQueryKey = crmQueryKeys.pipeline(scope);
@@ -72,7 +78,10 @@ export function LeadsPipeline({ initialLeads, scope }: { initialLeads: Paginated
       {leadsQuery.isLoading ? (
         <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, index) => (
-            <div key={index} className="h-32 animate-pulse rounded-xl border border-[#d7dde8] bg-white" />
+            <div
+              key={index}
+              className="h-32 animate-pulse rounded-xl border border-[#d7dde8] bg-white"
+            />
           ))}
         </div>
       ) : leadsQuery.isError ? (
@@ -155,7 +164,10 @@ function LeadCard({
       const previous = queryClient.getQueryData<PaginatedLeads>(listQueryKey);
       queryClient.setQueryData<PaginatedLeads>(listQueryKey, (old) =>
         old
-          ? { ...old, data: old.data.map((row) => (row.id === lead.id ? { ...row, status: next } : row)) }
+          ? {
+              ...old,
+              data: old.data.map((row) => (row.id === lead.id ? { ...row, status: next } : row)),
+            }
           : old,
       );
       return { previous };

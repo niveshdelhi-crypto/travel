@@ -1,5 +1,6 @@
 import { Module, forwardRef } from "@nestjs/common";
 import { PaymentsModule } from "../payments/payments.module";
+import { PaymentSessionsModule } from "../payments/payment-sessions/payment-sessions.module";
 import { PrismaModule } from "../prisma/prisma.module";
 import { RealtimeModule } from "../realtime/realtime.module";
 import { BookingOperationsController } from "./controllers/booking-operations.controller";
@@ -15,7 +16,12 @@ import { SupplierBookingService } from "./services/supplier-booking.service";
 import { TravelersService } from "./services/travelers.service";
 
 @Module({
-  imports: [PrismaModule, RealtimeModule, forwardRef(() => PaymentsModule)],
+  imports: [
+    PrismaModule,
+    RealtimeModule,
+    forwardRef(() => PaymentsModule),
+    forwardRef(() => PaymentSessionsModule),
+  ],
   controllers: [BookingOperationsController],
   providers: [
     BookingLifecycleService,

@@ -10,7 +10,13 @@ const BADGE_STYLES: Record<BadgeTone, string> = {
   info: "bg-sky-100 text-sky-800",
 };
 
-export function Panel({ className = "", children }: { className?: string; children: React.ReactNode }) {
+export function Panel({
+  className = "",
+  children,
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className={`rounded-xl border border-[#d7dde8] bg-white ${className}`}>{children}</div>
   );
@@ -63,9 +69,17 @@ export function StatCard({
   );
 }
 
-export function Badge({ tone = "neutral", children }: { tone?: BadgeTone; children: React.ReactNode }) {
+export function Badge({
+  tone = "neutral",
+  children,
+}: {
+  tone?: BadgeTone;
+  children: React.ReactNode;
+}) {
   return (
-    <span className={`inline-flex rounded-md px-2 py-0.5 text-[10px] font-semibold ${BADGE_STYLES[tone]}`}>
+    <span
+      className={`inline-flex rounded-md px-2 py-0.5 text-[10px] font-semibold ${BADGE_STYLES[tone]}`}
+    >
       {children}
     </span>
   );

@@ -3,6 +3,7 @@ import { useBookingOperationsQueue, useBookingOperationsRealtime, useFinanceOver
 import { bookingOrchestrationService } from "@/services/booking-orchestration.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { bookingOpsQueryKeys } from "@/hooks/use-booking-operations-realtime";
+import { paymentQueryKeys } from "@/lib/payments/query-keys";
 import {
   AlertTriangle,
   BadgeCheck,
@@ -14,6 +15,7 @@ import {
   TrendingUp,
   Users,
   Wallet,
+  CreditCard,
 } from "lucide-react";
 import { useState } from "react";
 import { getSocketStatus } from "@/services/socket";
@@ -57,6 +59,14 @@ export function BookingOperationsDashboard() {
   const voucherMutation = useMutation({
     mutationFn: (bookingId: string) => bookingOrchestrationService.generateVoucher(bookingId),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: bookingOpsQueryKeys.root }),
+  });
+
+  const requestPaymentMutation = useMutation({
+    mutationFn: (bookingId: string) => bookingOrchestrationService.requestPayment(bookingId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: bookingOpsQueryKeys.root });
+      void queryClient.invalidateQueries({ queryKey: paymentQueryKeys.root });
+    },
   });
 
   const finance = financeQuery.data;
@@ -139,7 +149,23 @@ export function BookingOperationsDashboard() {
                         {row.lead.pickup_location} → {row.lead.drop_location} · {formatMoney(row.gross_revenue, row.currency)}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
+                      {(row.lifecycle_status === "PAYMENT_PENDING" ||
+                        row.lifecycle_status === "BOOKING_REQUESTED" ||
+                        row.lifecycle_status === "PAYMENT_FAILED") ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            requestPaymentMutation.mutate(row.id);
+                          }}
+                          disabled={requestPaymentMutation.isPending}
+                          className="inline-flex items-center gap-1 rounded-lg border border-primary/40 bg-primary/10 px-2 py-1 text-xs font-semibold text-primary hover:bg-primary/15 disabled:opacity-50"
+                        >
+                          <CreditCard className="h-3.5 w-3.5" />
+                          {requestPaymentMutation.isPending ? "Sending…" : "Request Payment"}
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); voucherMutation.mutate(row.id); }}

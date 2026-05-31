@@ -6,6 +6,7 @@ import type { UserRole } from "@/types";
 
 const CALL_EVENTS: CallSocketEvent[] = [
   "CALL_CREATED",
+  "CALL_INCOMING",
   "CALL_RINGING",
   "CALL_ANSWERED",
   "CALL_COMPLETED",

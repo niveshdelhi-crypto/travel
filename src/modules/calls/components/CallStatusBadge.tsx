@@ -9,6 +9,7 @@ const STATUS_STYLES: Record<CallStatus, { label: string; className: string; puls
   FAILED: { label: "Failed", className: "bg-rose-500/20 text-rose-200" },
   BUSY: { label: "Busy", className: "bg-orange-500/20 text-orange-200" },
   NO_ANSWER: { label: "No answer", className: "bg-slate-500/20 text-slate-300" },
+  VOICEMAIL: { label: "Voicemail", className: "bg-violet-500/20 text-violet-200" },
   CANCELLED: { label: "Cancelled", className: "bg-slate-500/20 text-slate-300" },
 };
 

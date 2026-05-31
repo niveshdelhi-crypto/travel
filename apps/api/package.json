@@ -18,7 +18,11 @@
     "test": "jest --config test/jest-e2e.json",
     "test:unit": "jest --config jest.config.js",
     "test:api": "jest --config test/jest-e2e.json",
-    "test:api:watch": "jest --config test/jest-e2e.json --watch"
+    "test:api:watch": "jest --config test/jest-e2e.json --watch",
+    "verify:call-center": "node scripts/verify-call-center.mjs",
+    "verify:gateway-health": "node scripts/verify-paypal-gateway-health.mjs",
+    "sync:paypal-credentials": "node scripts/update-paypal-gateway-credentials.mjs",
+    "seed:payment-queue": "node scripts/seed-payment-queue-demo.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",

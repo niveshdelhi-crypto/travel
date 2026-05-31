@@ -41,6 +41,8 @@ function LoginPage() {
         (target.startsWith("/app/leads") ||
           target.startsWith("/app/bookings") ||
           target.startsWith("/app/payments") ||
+          target.startsWith("/app/finance") ||
+          target.startsWith("/app/checkout-console") ||
           target.startsWith("/app/analytics") ||
           target.startsWith("/app/admin"))
           ? home

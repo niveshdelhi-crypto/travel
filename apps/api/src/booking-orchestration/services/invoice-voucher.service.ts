@@ -97,6 +97,54 @@ export class InvoiceVoucherService {
     return invoice;
   }
 
+  async generateReceipt(bookingId: string, actorId?: string) {
+    const booking = await this.prisma.booking.findUniqueOrThrow({
+      where: { id: bookingId },
+      include: { lead: true, traveler: true },
+    });
+
+    const receiptNumber = `RCP-${Date.now().toString(36).toUpperCase()}`;
+    const fileName = `${receiptNumber}.pdf`;
+    const { storageKey, publicUrl, byteSize } = await this.renderPdf({
+      fileName,
+      title: "Book my Carz — Payment Receipt",
+      lines: [
+        `Receipt: ${receiptNumber}`,
+        `Paid by: ${booking.traveler?.full_name ?? booking.lead.customer_name}`,
+        `Route: ${booking.lead.pickup_location} → ${booking.lead.drop_location}`,
+        `Amount paid: ${booking.gross_revenue} ${booking.currency}`,
+        `Booking ref: ${booking.confirmation_reference ?? booking.id}`,
+        `Payment date: ${new Date().toISOString()}`,
+      ],
+    });
+
+    await this.storage.record({
+      kind: StoredDocumentKind.RECEIPT,
+      referenceId: bookingId,
+      fileName,
+      storageKey,
+      publicUrl,
+      byteSize,
+    });
+
+    await this.auditLog.log({
+      action: AuditLogAction.INVOICE_GENERATED,
+      resourceType: "booking",
+      resourceId: bookingId,
+      userId: actorId,
+      metadata: { documentKind: "RECEIPT", receiptNumber, pdfUrl: publicUrl },
+    });
+
+    this.realtime.emitInvoiceGenerated({
+      id: bookingId,
+      booking_id: bookingId,
+      invoice_number: receiptNumber,
+      pdf_url: publicUrl,
+    });
+
+    return { receiptNumber, pdf_url: publicUrl, storage_key: storageKey };
+  }
+
   async generateVoucher(bookingId: string, actorId?: string) {
     const booking = await this.prisma.booking.findUniqueOrThrow({
       where: { id: bookingId },
@@ -160,11 +208,15 @@ export class InvoiceVoucherService {
   }
 
   async listDocuments(bookingId: string) {
-    const [invoices, vouchers] = await Promise.all([
+    const [invoices, vouchers, receipts] = await Promise.all([
       this.prisma.bookingInvoice.findMany({ where: { booking_id: bookingId } }),
       this.prisma.bookingVoucher.findMany({ where: { booking_id: bookingId } }),
+      this.prisma.storedDocument.findMany({
+        where: { kind: StoredDocumentKind.RECEIPT, reference_id: bookingId },
+        orderBy: { created_at: "desc" },
+      }),
     ]);
-    return { invoices, vouchers };
+    return { invoices, vouchers, receipts };
   }
 
   private async renderPdf(input: {

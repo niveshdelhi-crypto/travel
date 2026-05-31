@@ -32,6 +32,11 @@ import { UsersModule } from "./users/users.module";
         ttl: 60_000,
         limit: 60,
       },
+      {
+        name: "telnyxWebhooks",
+        ttl: 60_000,
+        limit: 120,
+      },
     ]),
     PrismaModule,
     UsersModule,

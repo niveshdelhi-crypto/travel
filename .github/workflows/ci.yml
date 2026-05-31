@@ -42,6 +42,7 @@ jobs:
       API_INTERNAL_URL: http://127.0.0.1:4000/api
       NEXT_PUBLIC_API_URL: http://127.0.0.1:4000/api
       NEXT_PUBLIC_SOCKET_URL: http://127.0.0.1:4000/leads
+      NEXT_PUBLIC_GOOGLE_ADS_ID: AW-11460691521
       JWT_ACCESS_SECRET: ci-access-secret-at-least-32-characters
       JWT_REFRESH_SECRET: ci-refresh-secret-at-least-32-characters
       BCRYPT_ROUNDS: 4
@@ -102,6 +103,8 @@ jobs:
       - name: Build web
         run: npm run build
         working-directory: apps/web
+        env:
+          NEXT_PUBLIC_GOOGLE_ADS_ID: AW-11460691521
 
       - name: API tests
         run: npm run test:api
@@ -123,6 +126,8 @@ jobs:
         working-directory: apps/api
 
       - name: Start web
+        env:
+          NEXT_PUBLIC_GOOGLE_ADS_ID: AW-11460691521
         run: |
           nohup npm run start -- --hostname 127.0.0.1 --port 3000 > /tmp/fleetnexus-web.log 2>&1 &
           for i in {1..60}; do
@@ -139,6 +144,7 @@ jobs:
         env:
           E2E_SKIP_WEB_SERVER: "1"
           E2E_WEB_URL: http://127.0.0.1:3000
+          NEXT_PUBLIC_GOOGLE_ADS_ID: AW-11460691521
           E2E_API_URL: http://127.0.0.1:4000/api
           E2E_ADMIN_EMAIL: admin@fleetnexus.com
           E2E_ADMIN_PASSWORD: Admin@123

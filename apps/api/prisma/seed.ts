@@ -1,10 +1,13 @@
 import {
   LeadStatus,
   MarketplaceDestinationKind,
+  PaymentGatewayType,
+  Prisma,
   PrismaClient,
   UserRole,
 } from "@prisma/client";
 import * as bcrypt from "bcrypt";
+import { createCipheriv, randomBytes, scryptSync } from "crypto";
 
 const prisma = new PrismaClient();
 
@@ -15,6 +18,7 @@ type SeedUser = {
   email: string;
   password: string;
   role: UserRole;
+  direct_line?: string;
 };
 
 const seedUsers: SeedUser[] = [
@@ -44,6 +48,8 @@ const seedUsers: SeedUser[] = [
       email: `agent${agentNumber}@bookmycarz.com`,
       password: "Agent@123",
       role: UserRole.sales_agent,
+      /** Telnyx inbound DID for agent 1 — matches smoke test / call-center verification */
+      ...(agentNumber === 1 ? { direct_line: "+14155550199" } : {}),
     };
   }),
 ];
@@ -101,6 +107,7 @@ async function main() {
               role: user.role,
               is_active: true,
               password_hash: user.password_hash,
+              direct_line: user.direct_line ?? null,
             },
             create: {
               name: user.name,
@@ -108,6 +115,7 @@ async function main() {
               password_hash: user.password_hash,
               role: user.role,
               is_active: true,
+              direct_line: user.direct_line ?? null,
             },
             select: userSelect,
           }),
@@ -119,6 +127,81 @@ async function main() {
   printSeededUsers(seededUsers);
   await seedMarketplaceCatalog(prisma);
   await seedShowcasePipeline(prisma);
+  await seedPaymentGateways(prisma);
+}
+
+/** Matches CredentialsCryptoService dev fallback when PAYMENT_CREDENTIALS_ENCRYPTION_KEY is unset. */
+const DEV_PAYMENT_ENCRYPTION_KEY = scryptSync("fleetnexus-dev-payment-key", "salt", 32);
+
+function encryptPaymentCredentials(plaintext: Record<string, string>): string {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", DEV_PAYMENT_ENCRYPTION_KEY, iv, {
+    authTagLength: 16,
+  });
+  const encrypted = Buffer.concat([
+    cipher.update(JSON.stringify(plaintext), "utf8"),
+    cipher.final(),
+  ]);
+  const authTag = cipher.getAuthTag();
+  return Buffer.concat([iv, authTag, encrypted]).toString("base64");
+}
+
+const demoPaymentGateways: Array<{
+  name: string;
+  type: PaymentGatewayType;
+  credentials: Record<string, string>;
+  settings?: Prisma.InputJsonValue;
+}> = [
+  {
+    name: "Stripe Sandbox",
+    type: PaymentGatewayType.stripe,
+    credentials: { secret_key: "sk_test_replace_with_stripe_test_key" },
+    settings: { mode: "sandbox", note: "Replace secret_key with your Stripe test key" },
+  },
+  {
+    name: "PayPal Primary",
+    type: PaymentGatewayType.paypal,
+    credentials: {
+      client_id: "sandbox-client-id",
+      client_secret: "sandbox-client-secret",
+      environment: "sandbox",
+    },
+    settings: { default_currency: "USD", note: "Replace with PayPal sandbox app credentials" },
+  },
+  {
+    name: "Wise Sandbox",
+    type: PaymentGatewayType.wise,
+    credentials: {
+      api_token: "sandbox-api-token",
+      profile_id: "0",
+    },
+    settings: { mode: "sandbox", note: "Replace with Wise API token and profile id" },
+  },
+];
+
+async function seedPaymentGateways(client: PrismaClient) {
+  for (const gateway of demoPaymentGateways) {
+    await client.paymentGateway.upsert({
+      where: {
+        type_name: { type: gateway.type, name: gateway.name },
+      },
+      update: {
+        is_active: true,
+        encrypted_credentials: encryptPaymentCredentials(gateway.credentials),
+        settings: gateway.settings,
+      },
+      create: {
+        name: gateway.name,
+        type: gateway.type,
+        is_active: true,
+        encrypted_credentials: encryptPaymentCredentials(gateway.credentials),
+        settings: gateway.settings,
+      },
+    });
+  }
+
+  const count = await client.paymentGateway.count();
+  console.log(`Payment gateways seeded (${count} total). Update credentials in Admin → Payments or via API.\n`);
 }
 
 async function migrateLegacyUserEmails(client: Pick<PrismaClient, "user">) {

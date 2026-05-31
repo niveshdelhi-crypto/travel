@@ -207,7 +207,8 @@ export class AuthService {
   }
 
   private hashToken(token: string) {
-    return bcrypt.hash(token, this.config.get<number>("BCRYPT_ROUNDS", 12));
+    const rounds = Number(this.config.get<string>("BCRYPT_ROUNDS") ?? 12);
+    return bcrypt.hash(token, Number.isFinite(rounds) && rounds >= 4 ? rounds : 12);
   }
 
   private toSafeUser(user: { id: string; name: string; email: string; role: string; is_active: boolean; created_at: Date }) {

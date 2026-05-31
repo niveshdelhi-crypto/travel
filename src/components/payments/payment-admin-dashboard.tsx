@@ -10,6 +10,7 @@ import {
   StatCard,
 } from "@/components/app/primitives";
 import { AuditTimeline } from "@/components/payments/audit-timeline";
+import { PaymentGatewayHealthPanel } from "@/components/payments/payment-gateway-health-panel";
 import { BookingQueuePanel } from "@/components/payments/booking-queue-panel";
 import { PaymentFiltersBar } from "@/components/payments/payment-filters-bar";
 import { RecurringCustomerBadge } from "@/components/payments/recurring-customer-badge";
@@ -69,6 +70,13 @@ export function PaymentAdminDashboard() {
     queryKey: paymentQueryKeys.gateways(),
     queryFn: () => paymentsOrchestrationService.listGateways(),
     enabled: Boolean(user),
+  });
+
+  const gatewayHealthQuery = useQuery({
+    queryKey: paymentQueryKeys.paymentsGatewayHealth(),
+    queryFn: () => paymentsOrchestrationService.getGatewayHealth(),
+    enabled: Boolean(user),
+    refetchInterval: 120_000,
   });
 
   const transactionsQuery = useQuery({
@@ -283,6 +291,36 @@ export function PaymentAdminDashboard() {
         </div>
       </div>
 
+      {gatewaysQuery.isError ? (
+        <Panel>
+          <p className="p-4 text-sm text-destructive">
+            Could not load payment gateways. Ensure the API is running and you are signed in as admin or
+            finance.
+          </p>
+        </Panel>
+      ) : null}
+
+      {!gatewaysQuery.isLoading && gatewayOptions.length === 0 ? (
+        <Panel>
+          <div className="space-y-2 p-4 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">No payment gateways configured</p>
+            <p>
+              Gateways are stored in the database and are not created automatically on first login. Seed
+              demo providers (Stripe, PayPal, Wise) for local development:
+            </p>
+            <pre className="overflow-x-auto rounded-lg bg-muted/50 p-3 font-mono text-xs text-foreground">
+              cd apps/api{"\n"}npx prisma db seed
+            </pre>
+            <p>
+              Then replace placeholder credentials via{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">POST /api/payments/gateways</code> or
+              update rows in the <code className="rounded bg-muted px-1 py-0.5 text-xs">payment_gateways</code>{" "}
+              table.
+            </p>
+          </div>
+        </Panel>
+      ) : null}
+
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Pending" value={String(stats.pending)} icon={Clock} trend="down" />
         <StatCard label="Successful" value={String(stats.success)} icon={CheckCircle2} trend="up" />
@@ -290,6 +328,12 @@ export function PaymentAdminDashboard() {
         <StatCard label="Recurring customers" value={String(stats.recurringCustomers)} icon={Users} />
         <StatCard label="Gateways active" value={String(gatewayOptions.filter((g) => g.isActive).length)} icon={Wallet} />
       </div>
+
+      <PaymentGatewayHealthPanel
+        rows={gatewayHealthQuery.data?.data ?? []}
+        loading={gatewayHealthQuery.isLoading}
+        checkedAt={gatewayHealthQuery.data?.checked_at}
+      />
 
       <div className="grid gap-4 xl:grid-cols-3">
         <Panel className="xl:col-span-2">

@@ -21,15 +21,17 @@ import {
   Search,
   Star,
   Trash2,
+  CreditCard,
+  CheckCircle2,
 } from "lucide-react";
 import { formatPhoneDisplay } from "@/lib/phone";
+import { bookingOrchestrationService } from "@/services/booking-orchestration.service";
+import { paymentQueryKeys } from "@/lib/payments/query-keys";
 import {
-  bookingsService,
   leadsService,
   type BackendLead,
   type BackendLeadStatus,
   type BackendPaginatedResponse,
-  type CloseLeadBookingPayload,
 } from "@/services";
 import { useAuthStore } from "@/store/auth.store";
 import type { BadgeTone } from "@/types";
@@ -175,6 +177,7 @@ function LeadCard({
   const [confirmationRef, setConfirmationRef] = useState("");
   const [notes, setNotes] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
+  const [paymentResult, setPaymentResult] = useState<import("@/services/booking-orchestration.service").PaymentRequestResult | null>(null);
 
   useEffect(() => {
     if (!bookingOpen) return;
@@ -184,6 +187,7 @@ function LeadCard({
     setConfirmationRef("");
     setNotes("");
     setLocalError(null);
+    setPaymentResult(null);
   }, [bookingOpen]);
 
   const updateMutation = useMutation({
@@ -210,18 +214,26 @@ function LeadCard({
     },
   });
 
-  const closeBookingMutation = useMutation({
-    mutationFn: (payload: CloseLeadBookingPayload) => bookingsService.closeLead(payload),
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: listQueryKey });
-    },
-    onSuccess: (_data) => {
-      setBookingOpen(false);
+  const requestPaymentMutation = useMutation({
+    mutationFn: (payload: {
+      gross_revenue: number;
+      currency: string;
+      partner_name?: string;
+      confirmation_reference?: string;
+      notes?: string;
+    }) =>
+      bookingOrchestrationService.requestPaymentForLead({
+        lead_id: lead.id,
+        ...payload,
+      }),
+    onSuccess: (result) => {
+      setPaymentResult(result);
+      void queryClient.invalidateQueries({ queryKey: paymentQueryKeys.root });
     },
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey: ["leads"] });
       await queryClient.invalidateQueries({ queryKey: ["bookings"] });
-      await queryClient.invalidateQueries({ queryKey: ["payments"] });
+      await queryClient.invalidateQueries({ queryKey: ["booking-operations"] });
     },
   });
 
@@ -297,7 +309,7 @@ function LeadCard({
     updateMutation.isPending ||
     deleteMutation.isPending ||
     followUpMutation.isPending ||
-    closeBookingMutation.isPending ||
+    requestPaymentMutation.isPending ||
     qualityMutation.isPending;
 
   const followUpScheduled =
@@ -305,27 +317,35 @@ function LeadCard({
       ? new Date(lead.follow_up_at) > new Date()
       : false;
 
-  function submitBookingClose(e: React.FormEvent) {
-    e.preventDefault();
-    setLocalError(null);
+  function buildBookingPayload() {
     const gross = Number.parseFloat(grossInput);
-    if (!Number.isFinite(gross) || gross < 0) {
+    if (!Number.isFinite(gross) || gross <= 0) {
       setLocalError("Enter a valid gross corridor revenue.");
-      return;
+      return null;
     }
     const cur = currency.trim().toUpperCase().slice(0, 3) || "USD";
-    const payload: CloseLeadBookingPayload = {
-      lead_id: lead.id,
-      gross_revenue: gross,
-      currency: cur,
-    };
+    const payload: {
+      gross_revenue: number;
+      currency: string;
+      partner_name?: string;
+      confirmation_reference?: string;
+      notes?: string;
+    } = { gross_revenue: gross, currency: cur };
     const pn = partner.trim();
     const cr = confirmationRef.trim();
     const nt = notes.trim();
     if (pn) payload.partner_name = pn;
     if (cr) payload.confirmation_reference = cr;
     if (nt) payload.notes = nt;
-    closeBookingMutation.mutate(payload);
+    return payload;
+  }
+
+  function submitRequestPayment(e: React.FormEvent) {
+    e.preventDefault();
+    setLocalError(null);
+    const payload = buildBookingPayload();
+    if (!payload) return;
+    requestPaymentMutation.mutate(payload);
   }
 
   function advanceStage() {
@@ -339,8 +359,8 @@ function LeadCard({
 
   const bookingErr =
     localError ||
-    (closeBookingMutation.error && typeof closeBookingMutation.error === "object" && "message" in closeBookingMutation.error
-      ? String((closeBookingMutation.error as { message: string }).message)
+    (requestPaymentMutation.error && typeof requestPaymentMutation.error === "object" && "message" in requestPaymentMutation.error
+      ? String((requestPaymentMutation.error as { message: string }).message)
       : null);
 
   return (
@@ -394,7 +414,7 @@ function LeadCard({
             className="w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-center text-[11px] font-medium text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
           >
             {lead.status === "CONFIRMED" && nextStatus === "COMPLETED"
-              ? "Close as booked"
+              ? "Request Payment"
               : `Mark ${statusLabel(nextStatus)}`}
           </button>
         ) : null}
@@ -441,17 +461,18 @@ function LeadCard({
       open={bookingOpen}
       onOpenChange={(open) => {
         setBookingOpen(open);
-        if (!open) closeBookingMutation.reset();
+        if (!open) requestPaymentMutation.reset();
       }}
     >
       <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-surface sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Record booking &amp; complete</DialogTitle>
+          <DialogTitle>Request Payment</DialogTitle>
           <DialogDescription>
-            {lead.customer_name} · {lead.pickup_location} → {lead.drop_location}
+            {lead.customer_name} · {lead.pickup_location} → {lead.drop_location}. Creates the
+            booking and payment session in one step — finance is notified immediately.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={submitBookingClose} className="space-y-4">
+        <form onSubmit={submitRequestPayment} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor={`gross-${lead.id}`}>Gross revenue</Label>
@@ -510,21 +531,35 @@ function LeadCard({
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
+          {paymentResult ? (
+            <div className="space-y-2 rounded-lg border border-success/30 bg-success/5 px-3 py-2 text-sm text-success">
+              <p className="flex items-center gap-2 font-semibold">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                Payment session queued for finance
+              </p>
+              <p className="text-xs text-success/90">
+                Booking {paymentResult.booking.id.slice(0, 8)}… · Session{" "}
+                {paymentResult.session.id.slice(0, 8)}… ·{" "}
+                {paymentResult.queue_item.gateway_name}
+              </p>
+            </div>
+          ) : null}
           {bookingErr ? <p className="text-sm font-medium text-destructive">{bookingErr}</p> : null}
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
             <button
               type="button"
               className="rounded-lg border border-border px-4 py-2 text-sm text-foreground hover:bg-muted"
               onClick={() => setBookingOpen(false)}
             >
-              Cancel
+              {paymentResult ? "Done" : "Cancel"}
             </button>
             <button
               type="submit"
-              disabled={pending}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              disabled={pending || Boolean(paymentResult)}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
             >
-              Save &amp; complete lead
+              <CreditCard className="h-4 w-4" />
+              {requestPaymentMutation.isPending ? "Sending…" : "Request Payment"}
             </button>
           </DialogFooter>
         </form>

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { IncomingCallPayload } from "@/types/call-center";
 import type {
   AgentPresence,
   CallRealtimePayload,
@@ -8,12 +9,20 @@ import type {
   LiveCallSession,
 } from "@/types/calls";
 
-const TERMINAL_STATUSES: CallStatus[] = ["COMPLETED", "FAILED", "BUSY", "NO_ANSWER", "CANCELLED"];
+const TERMINAL_STATUSES: CallStatus[] = [
+  "COMPLETED",
+  "FAILED",
+  "BUSY",
+  "NO_ANSWER",
+  "VOICEMAIL",
+  "CANCELLED",
+];
 const ACTIVE_STATUSES: CallStatus[] = ["INITIATED", "RINGING", "ANSWERED"];
 
 type CallsUiState = {
   presence: AgentPresence;
   liveCalls: Record<string, LiveCallSession>;
+  incomingCall: IncomingCallPayload | null;
   selectedCallId: string | null;
   selectedLeadId: string | null;
   dialValue: string;
@@ -37,6 +46,8 @@ type CallsUiActions = {
     payload: CallRealtimePayload,
     options?: { currentUserId?: string; isAdmin?: boolean },
   ) => void;
+  setIncomingCall: (call: IncomingCallPayload | null) => void;
+  dismissIncomingCall: () => void;
   setCallMute: (callId: string, muted: boolean) => void;
   setCallHold: (callId: string, onHold: boolean) => void;
   endCallSession: (callId: string) => void;
@@ -51,7 +62,7 @@ function toLiveCall(
   const now = new Date().toISOString();
   return {
     id: partial.id,
-    provider: partial.provider ?? existing?.provider ?? "VONAGE",
+    provider: partial.provider ?? existing?.provider ?? "TELNYX",
     provider_call_id: partial.provider_call_id ?? existing?.provider_call_id ?? null,
     direction: partial.direction,
     status: partial.status,
@@ -84,6 +95,7 @@ function shouldTrackForUser(
 export const useCallsStore = create<CallsUiState & CallsUiActions>((set, get) => ({
   presence: "available",
   liveCalls: {},
+  incomingCall: null,
   selectedCallId: null,
   selectedLeadId: null,
   dialValue: "",
@@ -109,9 +121,20 @@ export const useCallsStore = create<CallsUiState & CallsUiActions>((set, get) =>
     }));
   },
 
+  setIncomingCall: (incomingCall) => set({ incomingCall }),
+  dismissIncomingCall: () => set({ incomingCall: null }),
+
   applyRealtimeEvent: (event, payload, options) => {
     const { currentUserId = "", isAdmin = false } = options ?? {};
     if (!shouldTrackForUser(payload, currentUserId, isAdmin)) return;
+
+    if (event === "CALL_INCOMING") {
+      set({
+        incomingCall: payload as IncomingCallPayload,
+        selectedCallId: payload.id,
+        selectedLeadId: payload.lead_id ?? get().selectedLeadId,
+      });
+    }
 
     const existing = get().liveCalls[payload.id];
     const eventAt = payload._realtime?.emittedAt ?? new Date().toISOString();
@@ -132,9 +155,12 @@ export const useCallsStore = create<CallsUiState & CallsUiActions>((set, get) =>
         id: payload.id,
         status,
         direction: payload.direction,
+        provider: payload.provider ?? existing?.provider,
         agent_id: payload.agent_id,
         lead_id: payload.lead_id,
         provider_call_id: payload.provider_call_id,
+        from_number: payload.from_number ?? existing?.from_number,
+        to_number: payload.to_number ?? existing?.to_number,
         failure_reason,
         started_at,
         answered_at,
@@ -150,6 +176,8 @@ export const useCallsStore = create<CallsUiState & CallsUiActions>((set, get) =>
         const { [payload.id]: _removed, ...rest } = liveCalls;
         return {
           liveCalls: rest,
+          incomingCall:
+            state.incomingCall?.id === payload.id ? null : state.incomingCall,
           selectedCallId: state.selectedCallId === payload.id ? null : state.selectedCallId,
         };
       }

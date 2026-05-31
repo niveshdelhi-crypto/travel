@@ -47,6 +47,32 @@ type CallRealtimePayload = {
   agent_id: string | null;
   lead_id: string | null;
   provider_call_id: string | null;
+  provider?: string;
+  from_number?: string;
+  to_number?: string;
+  started_at?: string | null;
+  caller?: unknown;
+};
+
+type PaymentSessionRealtimePayload = {
+  id: string;
+  booking_id: string;
+  lead_id: string;
+  status: string;
+  amount?: number;
+  currency?: string;
+  gateway_id?: string;
+  gateway_name?: string;
+  assigned_to?: string | null;
+  requested_by_id?: string;
+  processed_by_id?: string | null;
+};
+
+type FinanceQueueRealtimePayload = PaymentSessionRealtimePayload & {
+  customer_name: string;
+  agent_name: string;
+  checkout_path: string;
+  created_at: string;
 };
 
 type PaymentRealtimePayload = {
@@ -293,6 +319,14 @@ export class RealtimeGateway
     void this.emitCallEvent("CALL_CREATED", payload);
   }
 
+  emitIncomingCall(payload: CallRealtimePayload) {
+    void this.emitCallEvent("CALL_INCOMING", payload);
+  }
+
+  emitCallCompletedWithContext(payload: CallRealtimePayload, caller: unknown) {
+    void this.emitCallEvent("CALL_COMPLETED", { ...payload, caller });
+  }
+
   emitCallRinging(payload: CallRealtimePayload) {
     void this.emitCallEvent("CALL_RINGING", payload);
   }
@@ -319,6 +353,25 @@ export class RealtimeGateway
 
   emitPaymentFailed(payload: PaymentRealtimePayload & { failure_reason?: string }) {
     void this.emitPaymentEvent("PAYMENT_FAILED", payload);
+  }
+
+  emitPaymentSessionEvent(eventName: string, payload: PaymentSessionRealtimePayload) {
+    void this.emitDeduped({
+      eventName,
+      dedupeKey: `${eventName}:${payload.id}:${payload.status}`,
+      rooms: this.paymentSessionRealtimeRooms(payload),
+      payload,
+    });
+  }
+
+  emitFinancePaymentQueued(payload: FinanceQueueRealtimePayload) {
+    void this.emitDeduped({
+      eventName: "FINANCE_PAYMENT_QUEUED",
+      dedupeKey: `FINANCE_PAYMENT_QUEUED:${payload.id}`,
+      rooms: ["role:admin", "role:finance_admin"],
+      payload,
+    });
+    void this.emitPaymentSessionEvent("PAYMENT_SESSION_CREATED", payload);
   }
 
   emitBookingConfirmed(payload: BookingRealtimePayload) {
@@ -399,6 +452,20 @@ export class RealtimeGateway
       rooms: this.paymentRealtimeRooms(payload),
       payload,
     });
+  }
+
+  private paymentSessionRealtimeRooms(payload: PaymentSessionRealtimePayload): string[] {
+    const rooms = new Set<string>(["role:admin", "role:finance_admin"]);
+    if (payload.assigned_to) {
+      rooms.add(`user:${payload.assigned_to}`);
+    }
+    if (payload.requested_by_id) {
+      rooms.add(`user:${payload.requested_by_id}`);
+    }
+    if (payload.lead_id) {
+      rooms.add(`lead:${payload.lead_id}`);
+    }
+    return [...rooms];
   }
 
   private paymentRealtimeRooms(payload: PaymentRealtimePayload): string[] {

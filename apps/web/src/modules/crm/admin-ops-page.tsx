@@ -2,7 +2,14 @@
 
 import { useLeadMetricsQuery } from "@/hooks/api/use-leads-api";
 import { Activity, Database, Server, Users2, Zap } from "lucide-react";
-import { Badge, CrmPage, EmptyState, Panel, PanelHeader, StatCard } from "@/components/crm/primitives";
+import {
+  Badge,
+  CrmPage,
+  EmptyState,
+  Panel,
+  PanelHeader,
+  StatCard,
+} from "@/components/crm/primitives";
 
 export function AdminOpsPage() {
   const metricsQuery = useLeadMetricsQuery();
@@ -14,7 +21,10 @@ export function AdminOpsPage() {
         {metricsQuery.isLoading ? (
           <div className="grid gap-4 md:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="h-24 animate-pulse rounded-xl border border-[#d7dde8] bg-white" />
+              <div
+                key={index}
+                className="h-24 animate-pulse rounded-xl border border-[#d7dde8] bg-white"
+              />
             ))}
           </div>
         ) : metricsQuery.isError || !metrics ? (
@@ -29,7 +39,11 @@ export function AdminOpsPage() {
           <>
             <div className="grid gap-4 md:grid-cols-4">
               <StatCard label="API status" value="Online" delta="auth required" icon={Server} />
-              <StatCard label="Persisted leads" value={String(metrics.totalLeads)} icon={Database} />
+              <StatCard
+                label="Persisted leads"
+                value={String(metrics.totalLeads)}
+                icon={Database}
+              />
               <StatCard
                 label="Agents active"
                 value={String(metrics.activeAgents.length)}
@@ -52,7 +66,10 @@ export function AdminOpsPage() {
                 />
                 <div className="grid gap-3 p-5 sm:grid-cols-5">
                   {Object.entries(metrics.statusCounts).map(([status, count]) => (
-                    <div key={status} className="rounded-lg border border-[#d7dde8] bg-[#f8fafc] p-4">
+                    <div
+                      key={status}
+                      className="rounded-lg border border-[#d7dde8] bg-[#f8fafc] p-4"
+                    >
                       <div className="text-[10px] font-medium uppercase text-[#637083]">
                         {status.toLowerCase()}
                       </div>

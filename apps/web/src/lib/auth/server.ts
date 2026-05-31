@@ -3,10 +3,7 @@ import { redirect } from "next/navigation";
 import type { AuthUser, UserRole } from "./types";
 
 const API_INTERNAL_URL = process.env.API_INTERNAL_URL ?? "http://localhost:4000/api";
-const SESSION_FETCH_TIMEOUT_MS = Number.parseInt(
-  process.env.AUTH_SESSION_TIMEOUT_MS ?? "2000",
-  10,
-);
+const SESSION_FETCH_TIMEOUT_MS = Number.parseInt(process.env.AUTH_SESSION_TIMEOUT_MS ?? "2000", 10);
 
 export async function getServerSession(): Promise<AuthUser | null> {
   const cookieStore = await cookies();

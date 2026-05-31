@@ -19,9 +19,13 @@ import { RealtimeGateway } from "../../realtime/realtime.gateway";
 import { VonageConfigurationError } from "../vonage/vonage.errors";
 import { VonageService } from "../vonage/vonage.service";
 import { isValidVonageCallUuid } from "../vonage/utils/vonage-call-uuid";
+import { CallCustomerLookupService } from "./call-customer-lookup.service";
 import { CallStateManagerService } from "./call-state-manager.service";
+import { InboundCallOrchestratorService } from "./inbound-call-orchestrator.service";
 import { CreateOutboundCallDto } from "./dto/create-outbound-call.dto";
+import { QuickCreateLeadFromCallDto } from "./dto/quick-create-lead-from-call.dto";
 import { RegisterInboundCallDto } from "./dto/register-inbound-call.dto";
+import type { TelnyxWebhookDto } from "./dto/telnyx-webhook.dto";
 import { VonageAnswerWebhookDto } from "./dto/vonage-answer-webhook.dto";
 import { VonageRecordingWebhookDto } from "./dto/vonage-recording-webhook.dto";
 import { VonageWebhookEventDto } from "./dto/vonage-webhook-event.dto";
@@ -36,6 +40,8 @@ export class CallsService {
     private readonly vonage: VonageService,
     private readonly callState: CallStateManagerService,
     private readonly realtime: RealtimeGateway,
+    private readonly inboundOrchestrator: InboundCallOrchestratorService,
+    private readonly customerLookup: CallCustomerLookupService,
   ) {}
 
   async createOutbound(user: AuthenticatedUser, dto: CreateOutboundCallDto) {
@@ -108,6 +114,86 @@ export class CallsService {
       }
       throw error;
     }
+  }
+
+  handleTelnyxWebhook(dto: TelnyxWebhookDto) {
+    return this.inboundOrchestrator.handleTelnyxWebhook(dto);
+  }
+
+  async getCallContext(callId: string, user: AuthenticatedUser) {
+    const call = await this.prisma.call.findFirst({
+      where:
+        user.role === UserRole.admin
+          ? { id: callId }
+          : { id: callId, agent_id: user.id },
+      include: {
+        disposition: true,
+        recordings: { orderBy: { created_at: "desc" }, take: 5 },
+        lead: {
+          select: {
+            id: true,
+            customer_name: true,
+            customer_phone: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    if (!call) {
+      throw new NotFoundException("Call not found");
+    }
+
+    const caller = await this.customerLookup.resolveByPhone(call.from_number);
+    return { call, caller };
+  }
+
+  async quickCreateLeadFromCall(
+    callId: string,
+    user: AuthenticatedUser,
+    dto: QuickCreateLeadFromCallDto,
+  ) {
+    const call = await this.prisma.call.findFirst({
+      where:
+        user.role === UserRole.admin
+          ? { id: callId }
+          : { id: callId, agent_id: user.id },
+    });
+
+    if (!call) {
+      throw new NotFoundException("Call not found");
+    }
+
+    const phone = normalizeToE164(call.from_number);
+    const now = new Date();
+    const pickup = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const returnAt = new Date(pickup.getTime() + 3 * 24 * 60 * 60 * 1000);
+
+    const lead = await this.prisma.lead.create({
+      data: {
+        customer_name: dto.customer_name.trim(),
+        customer_email: (dto.customer_email ?? `unknown+${call.id.slice(0, 8)}@calls.local`).toLowerCase(),
+        customer_phone: phone,
+        pickup_location: dto.pickup_location?.trim() || "TBD — inbound call",
+        drop_location: dto.drop_location?.trim() || "TBD — inbound call",
+        pickup_datetime: pickup,
+        return_datetime: returnAt,
+        assigned_to: user.id,
+        last_contacted_at: now,
+      },
+    });
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { current_lead_count: { increment: 1 } },
+    });
+
+    await this.prisma.call.update({
+      where: { id: callId },
+      data: { lead_id: lead.id },
+    });
+
+    return { lead, call_id: callId };
   }
 
   async listForUser(user: AuthenticatedUser, page = 1, pageSize = 25) {
@@ -289,6 +375,7 @@ export class CallsService {
       format: dto.format,
       status: dto.recording_url ? "available" : "processing",
       metadata: dto as Prisma.InputJsonValue,
+      traveler_id: call.traveler_id,
     };
 
     if (recordingId) {
@@ -307,6 +394,13 @@ export class CallsService {
           call_id: call.id,
           ...recordingData,
         },
+      });
+    }
+
+    if (dto.recording_url) {
+      await this.prisma.call.update({
+        where: { id: call.id },
+        data: { recording_url: dto.recording_url },
       });
     }
 

@@ -8,6 +8,54 @@ import {
   Min,
 } from "class-validator";
 
+export class RequestPaymentDto {
+  @IsUUID()
+  lead_id!: string;
+
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0.01)
+  gross_revenue!: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(3)
+  currency?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  partner_name?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  confirmation_reference?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  notes?: string;
+
+  @IsOptional()
+  @IsUUID()
+  supplier_id?: string;
+
+  @IsOptional()
+  @IsUUID()
+  vehicle_id?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  finance_notes?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  idempotency_key?: string;
+}
+
 export class InitiateBookingDto {
   @IsUUID()
   lead_id!: string;

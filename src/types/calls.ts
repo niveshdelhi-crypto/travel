@@ -6,13 +6,14 @@ export type CallStatus =
   | "FAILED"
   | "BUSY"
   | "NO_ANSWER"
+  | "VOICEMAIL"
   | "CANCELLED";
 
 export type CallDirection = "INBOUND" | "OUTBOUND";
 
 export type CallRecord = {
   id: string;
-  provider: "VONAGE";
+  provider: "VONAGE" | "TELNYX";
   provider_call_id: string | null;
   direction: CallDirection;
   status: CallStatus;
@@ -25,6 +26,7 @@ export type CallRecord = {
   ended_at: string | null;
   duration_seconds: number | null;
   failure_reason: string | null;
+  recording_url?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -36,12 +38,18 @@ export type CallRealtimePayload = {
   agent_id: string | null;
   lead_id: string | null;
   provider_call_id: string | null;
+  provider?: "VONAGE" | "TELNYX";
+  from_number?: string;
+  to_number?: string;
+  started_at?: string | null;
+  caller?: import("@/types/call-center").CallerContext;
   failure_reason?: string | null;
   _realtime?: { eventId?: string; emittedAt?: string };
 };
 
 export type CallSocketEvent =
   | "CALL_CREATED"
+  | "CALL_INCOMING"
   | "CALL_RINGING"
   | "CALL_ANSWERED"
   | "CALL_COMPLETED"

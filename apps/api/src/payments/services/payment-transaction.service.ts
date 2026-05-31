@@ -121,6 +121,7 @@ export class PaymentTransactionService {
     bookingId: string;
     gatewayId: string;
     paymentRequestId?: string;
+    paymentSessionId?: string;
     amount: number;
     currency: string;
     idempotencyKey?: string;
@@ -138,6 +139,7 @@ export class PaymentTransactionService {
         booking_id: input.bookingId,
         gateway_id: input.gatewayId,
         payment_request_id: input.paymentRequestId ?? null,
+        payment_session_id: input.paymentSessionId ?? null,
         type: TransactionType.CHARGE,
         status: PaymentStatus.PENDING,
         amount: new Prisma.Decimal(input.amount),

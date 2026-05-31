@@ -3,7 +3,7 @@ import { Test } from "@nestjs/testing";
 import { PrismaClient, UserRole } from "@prisma/client";
 import * as bcrypt from "bcrypt";
 import cookieParser = require("cookie-parser");
-import request from "supertest";
+import request = require("supertest");
 import { AppModule } from "../src/app.module";
 import { PrismaExceptionFilter } from "../src/common/filters/prisma-exception.filter";
 
@@ -43,6 +43,8 @@ const shouldRunDatabaseE2E =
   let prisma: PrismaClient;
 
   beforeAll(async () => {
+    delete process.env.COOKIE_DOMAIN;
+
     if (!process.env.TEST_DATABASE_URL && process.env.FLEETNEXUS_ALLOW_DATABASE_E2E !== "true") {
       throw new Error(
         "TEST_DATABASE_URL is required for API E2E tests. Set FLEETNEXUS_ALLOW_DATABASE_E2E=true only for a disposable database.",
@@ -53,6 +55,7 @@ const shouldRunDatabaseE2E =
     await prisma.$connect();
     await resetTestData(prisma);
     await seedUsers(prisma, [admin, agent, secondAgent]);
+    await ensurePasswordHashes(prisma, [admin, agent, secondAgent]);
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = moduleRef.createNestApplication();
@@ -223,11 +226,18 @@ async function login(app: INestApplication, user: TestUser) {
     .send({ email: user.email, password: user.password })
     .expect(201);
 
-  const cookies = response.headers["set-cookie"] as unknown as string[];
-  const csrfCookie = cookies.find((cookie) => cookie.startsWith("csrf_token="));
+  const setCookie = response.headers["set-cookie"] as unknown as string[] | undefined;
+  const cookies = formatCookieHeader(setCookie);
+  const csrfCookie = (setCookie ?? []).find((cookie) => cookie.startsWith("csrf_token="));
   const csrfToken = csrfCookie?.split(";")[0]?.split("=")[1];
   if (!csrfToken) throw new Error("Login did not issue csrf_token cookie");
   return { cookies, csrfToken };
+}
+
+function formatCookieHeader(setCookie: string[] | undefined): string {
+  if (!setCookie?.length) return "";
+  const list = Array.isArray(setCookie) ? setCookie : [setCookie];
+  return list.map((c) => c.split(";")[0]?.trim()).filter(Boolean).join("; ");
 }
 
 function leadPayload(suffix: string) {
@@ -245,6 +255,15 @@ function leadPayload(suffix: string) {
   };
 }
 
+async function ensurePasswordHashes(prisma: PrismaClient, users: TestUser[]) {
+  for (const user of users) {
+    await prisma.user.update({
+      where: { email: user.email },
+      data: { password_hash: await bcrypt.hash(user.password, 12) },
+    });
+  }
+}
+
 async function seedUsers(prisma: PrismaClient, users: TestUser[]) {
   for (const user of users) {
     await prisma.user.upsert({
@@ -254,7 +273,7 @@ async function seedUsers(prisma: PrismaClient, users: TestUser[]) {
         role: user.role,
         is_active: true,
         current_lead_count: 0,
-        password_hash: await bcrypt.hash(user.password, 4),
+        password_hash: await bcrypt.hash(user.password, 12),
       },
       create: {
         email: user.email,
@@ -262,7 +281,7 @@ async function seedUsers(prisma: PrismaClient, users: TestUser[]) {
         role: user.role,
         is_active: true,
         current_lead_count: 0,
-        password_hash: await bcrypt.hash(user.password, 4),
+        password_hash: await bcrypt.hash(user.password, 12),
       },
     });
   }

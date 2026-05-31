@@ -6,6 +6,8 @@ import { Brand } from "@/components/brand";
 import { useAuthStore } from "@/store/auth.store";
 import { useNotificationStore } from "@/store/notifications.store";
 import { useCallsStore } from "@/store/call.store";
+import { IncomingCallPopup } from "@/components/call-center/incoming-call-popup";
+import { useCallRealtime } from "@/hooks/use-call-realtime";
 import { authService } from "@/services";
 import { disconnectSocket } from "@/services/socket";
 import { MobileAppNav } from "@/components/app/mobile-nav";
@@ -29,10 +31,12 @@ import {
   ChevronDown,
   Activity,
   ShieldCheck,
+  FlaskConical,
   PhoneCall,
   X,
   LogOut,
   FileText,
+  Wallet,
 } from "lucide-react";
 
 type NavItem = {
@@ -56,7 +60,8 @@ const navSections: Array<{ label: string; items: NavItem[] }> = [
         roles: ["sales_agent"],
       },
       { label: "Leads", to: "/app/leads", icon: Users2, roles: ["admin"] },
-      { label: "Calls", to: "/app/calls", icon: Phone, live: true },
+      { label: "Call center", to: "/app/call-center", icon: PhoneCall, live: true },
+      { label: "Calls", to: "/app/calls", icon: Phone },
       { label: "Bookings", to: "/app/bookings", icon: CalendarCheck, roles: ["admin"] },
       { label: "Providers", to: "/app/providers", icon: Building2, roles: ["admin"] },
     ],
@@ -66,6 +71,7 @@ const navSections: Array<{ label: string; items: NavItem[] }> = [
     items: [
       { label: "Analytics", to: "/app/analytics", icon: BarChart3, roles: ["admin"] },
       { label: "Payments", to: "/app/payments", icon: CreditCard, roles: ["admin", "finance_admin"] },
+      { label: "Finance", to: "/app/finance", icon: Wallet, roles: ["admin", "finance_admin"] },
       { label: "Booking Ops", to: "/app/booking-operations", icon: FileText, roles: ["admin", "finance_admin", "operations_manager"] },
     ],
   },
@@ -74,6 +80,7 @@ const navSections: Array<{ label: string; items: NavItem[] }> = [
     items: [
       { label: "Notifications", to: "/app/notifications", icon: Bell, badge: "3" },
       { label: "Team", to: "/app/team", icon: UsersRound },
+      { label: "Payment Testing", to: "/app/payment-testing", icon: FlaskConical, roles: ["admin"] },
       { label: "Admin Ops", to: "/app/admin", icon: ShieldCheck, roles: ["admin"] },
     ],
   },
@@ -112,6 +119,12 @@ export function AppShell({
   const signOutStore = useAuthStore((s) => s.signOut);
   const unread    = useNotificationStore((s) => s.unreadCount);
   const liveCallCount = useCallsStore((s) => Object.keys(s.liveCalls).length);
+
+  useCallRealtime({
+    userId: user?.id ?? "",
+    role: user?.role ?? "sales_agent",
+  });
+
   const logoutMutation = useMutation({
     mutationFn: authService.signOut,
     onSettled: async () => {
@@ -371,6 +384,7 @@ export function AppShell({
       </div>
 
       <MobileAppNav />
+      <IncomingCallPopup />
     </div>
   );
 }

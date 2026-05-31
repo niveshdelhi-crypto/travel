@@ -334,6 +334,17 @@ export interface SocketEvents {
   PAYMENT_CREATED: import("@/types/payments-orchestration").PaymentRealtimePayload;
   PAYMENT_SUCCESS: import("@/types/payments-orchestration").PaymentRealtimePayload;
   PAYMENT_FAILED: import("@/types/payments-orchestration").PaymentRealtimePayload;
+  PAYMENT_SESSION_CREATED: import("@/types/payments-orchestration").PaymentSessionRealtimePayload;
+  FINANCE_PAYMENT_QUEUED: import("@/types/payments-orchestration").PaymentSessionRealtimePayload & {
+    customer_name: string;
+    agent_name: string;
+    checkout_path: string;
+    created_at: string;
+  };
+  PAYMENT_SESSION_PROCESSING: import("@/types/payments-orchestration").PaymentSessionRealtimePayload;
+  PAYMENT_SESSION_SUCCESS: import("@/types/payments-orchestration").PaymentSessionRealtimePayload;
+  PAYMENT_SESSION_FAILED: import("@/types/payments-orchestration").PaymentSessionRealtimePayload;
+  PAYMENT_SESSION_CANCELLED: import("@/types/payments-orchestration").PaymentSessionRealtimePayload;
   BOOKING_CONFIRMED: import("@/types/payments-orchestration").BookingConfirmedPayload;
   BOOKING_CREATED: import("@/types/payments-orchestration").BookingConfirmedPayload;
   BOOKING_FAILED: import("@/types/payments-orchestration").BookingConfirmedPayload;

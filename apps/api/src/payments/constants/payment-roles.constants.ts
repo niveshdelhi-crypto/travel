@@ -2,6 +2,9 @@ import { UserRole } from "@prisma/client";
 
 export const PAYMENT_ADMIN_ROLES = [UserRole.admin, UserRole.finance_admin] as const;
 
+/** PayPal testing console — production admins only */
+export const PAYMENT_TESTING_ROLES = [UserRole.admin] as const;
+
 export const PAYMENT_READ_ROLES = [
   UserRole.admin,
   UserRole.finance_admin,

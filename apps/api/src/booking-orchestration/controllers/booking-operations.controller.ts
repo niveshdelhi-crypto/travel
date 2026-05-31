@@ -7,9 +7,10 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
+  Req,
   Res,
 } from "@nestjs/common";
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import { UserRole } from "@prisma/client";
 import type { AuthenticatedUser } from "../../auth/types/authenticated-user";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -23,6 +24,7 @@ import {
   ConfirmSupplierBookingDto,
   CreateRefundRequestDto,
   InitiateBookingDto,
+  RequestPaymentDto,
   StoreVaultEntryDto,
 } from "../dto/booking-orchestration.dto";
 import { BookingOrchestrationService } from "../services/booking-orchestration.service";
@@ -34,6 +36,16 @@ import { SupplierBookingService } from "../services/supplier-booking.service";
 import { TravelersService } from "../services/travelers.service";
 import { PaymentVaultService } from "../services/payment-vault.service";
 import { DocumentStorageService } from "../services/document-storage.service";
+import { PaymentSessionsService } from "../../payments/payment-sessions/payment-sessions.service";
+
+function requestContext(req: Request) {
+  return {
+    ipAddress: req.ip,
+    userAgent: req.headers["user-agent"],
+    requestMethod: req.method,
+    requestPath: req.originalUrl,
+  };
+}
 
 @Controller("booking-operations")
 export class BookingOperationsController {
@@ -47,6 +59,7 @@ export class BookingOperationsController {
     private readonly travelers: TravelersService,
     private readonly vault: PaymentVaultService,
     private readonly storage: DocumentStorageService,
+    private readonly paymentSessions: PaymentSessionsService,
   ) {}
 
   @Get("queue")
@@ -72,6 +85,47 @@ export class BookingOperationsController {
       vehicleId: dto.vehicle_id,
       idempotencyKey: dto.idempotency_key,
     });
+  }
+
+  @Post("request-payment")
+  @Roles(...BOOKING_AGENT_ROLES)
+  requestPaymentForLead(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: RequestPaymentDto,
+    @Req() req: Request,
+  ) {
+    return this.paymentSessions.requestPaymentForLead(
+      user,
+      {
+        leadId: dto.lead_id,
+        grossRevenue: dto.gross_revenue,
+        currency: dto.currency,
+        partnerName: dto.partner_name,
+        confirmationReference: dto.confirmation_reference,
+        notes: dto.notes,
+        supplierId: dto.supplier_id,
+        vehicleId: dto.vehicle_id,
+        idempotencyKey: dto.idempotency_key,
+        financeNotes: dto.finance_notes,
+      },
+      requestContext(req),
+    );
+  }
+
+  @Post("bookings/:bookingId/request-payment")
+  @Roles(...BOOKING_AGENT_ROLES)
+  async requestPayment(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("bookingId", ParseUUIDPipe) bookingId: string,
+    @Req() req: Request,
+  ) {
+    const session = await this.paymentSessions.requestPaymentForBooking(
+      user,
+      bookingId,
+      requestContext(req),
+    );
+    const booking = await this.lifecycle.getBookingOrThrow(bookingId);
+    return this.paymentSessions.wrapPaymentRequestResult(session, booking);
   }
 
   @Get("bookings/:id/timeline")

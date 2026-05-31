@@ -416,6 +416,34 @@ export const telephonyService = {
     return apiClient.get<BackendPaginatedResponse<CallRecord>>("/calls", { params });
   },
 
+  getCenterMetrics() {
+    return apiClient.get<import("@/types/call-center").CallCenterMetrics>("/calls/center/metrics");
+  },
+
+  getCallContext(callId: string) {
+    return apiClient.get<{
+      call: CallRecord & { disposition?: unknown; recordings?: unknown[] };
+      caller: import("@/types/call-center").CallerContext;
+    }>(`/calls/${callId}/context`);
+  },
+
+  setDisposition(
+    callId: string,
+    payload: { disposition: import("@/types/call-center").CallDispositionType; notes?: string },
+  ) {
+    return apiClient.post(`/calls/${callId}/disposition`, payload);
+  },
+
+  quickCreateLead(
+    callId: string,
+    payload: { customer_name: string; customer_email?: string; pickup_location?: string; drop_location?: string },
+  ) {
+    return apiClient.post<{ lead: { id: string }; call_id: string }>(
+      `/calls/${callId}/leads/quick-create`,
+      payload,
+    );
+  },
+
   createOutbound(payload: { to_number: string; from_number?: string; lead_id?: string }) {
     return apiClient.post<CallRecord>("/calls/outbound", payload);
   },

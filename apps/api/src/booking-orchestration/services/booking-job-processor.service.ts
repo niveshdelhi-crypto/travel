@@ -64,6 +64,7 @@ export class BookingJobProcessorService implements OnModuleInit {
       switch (job.job_type) {
         case BookingJobType.GENERATE_INVOICE:
           await this.invoices.generateInvoice(job.booking_id);
+          await this.invoices.generateReceipt(job.booking_id);
           break;
         case BookingJobType.GENERATE_VOUCHER:
           await this.invoices.generateVoucher(job.booking_id);

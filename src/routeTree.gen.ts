@@ -35,9 +35,12 @@ import { Route as AppTeamRouteImport } from './routes/app.team'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppProvidersRouteImport } from './routes/app.providers'
 import { Route as AppPaymentsRouteImport } from './routes/app.payments'
+import { Route as AppPaymentTestingRouteImport } from './routes/app.payment-testing'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
+import { Route as AppFinanceRouteImport } from './routes/app.finance'
 import { Route as AppCallsRouteImport } from './routes/app.calls'
+import { Route as AppCallCenterRouteImport } from './routes/app.call-center'
 import { Route as AppBookingsRouteImport } from './routes/app.bookings'
 import { Route as AppBookingOperationsRouteImport } from './routes/app.booking-operations'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
@@ -45,6 +48,7 @@ import { Route as AppAdminRouteImport } from './routes/app.admin'
 import { Route as CarRentalCitySlugRouteImport } from './routes/car-rental.city.$slug'
 import { Route as CarRentalAirportSlugRouteImport } from './routes/car-rental.airport.$slug'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
+import { Route as AppCheckoutConsoleSessionIdRouteImport } from './routes/app.checkout-console.$sessionId'
 
 const TermsAndConditionsRoute = TermsAndConditionsRouteImport.update({
   id: '/terms-and-conditions',
@@ -176,6 +180,11 @@ const AppPaymentsRoute = AppPaymentsRouteImport.update({
   path: '/payments',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPaymentTestingRoute = AppPaymentTestingRouteImport.update({
+  id: '/payment-testing',
+  path: '/payment-testing',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppNotificationsRoute = AppNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -186,9 +195,19 @@ const AppLeadsRoute = AppLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AppRoute,
 } as any)
+const AppFinanceRoute = AppFinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCallsRoute = AppCallsRouteImport.update({
   id: '/calls',
   path: '/calls',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCallCenterRoute = AppCallCenterRouteImport.update({
+  id: '/call-center',
+  path: '/call-center',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBookingsRoute = AppBookingsRouteImport.update({
@@ -226,6 +245,12 @@ const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   path: '/$leadId',
   getParentRoute: () => AppLeadsRoute,
 } as any)
+const AppCheckoutConsoleSessionIdRoute =
+  AppCheckoutConsoleSessionIdRouteImport.update({
+    id: '/checkout-console/$sessionId',
+    path: '/checkout-console/$sessionId',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -248,9 +273,12 @@ export interface FileRoutesByFullPath {
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/booking-operations': typeof AppBookingOperationsRoute
   '/app/bookings': typeof AppBookingsRoute
+  '/app/call-center': typeof AppCallCenterRoute
   '/app/calls': typeof AppCallsRoute
+  '/app/finance': typeof AppFinanceRoute
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/payment-testing': typeof AppPaymentTestingRoute
   '/app/payments': typeof AppPaymentsRoute
   '/app/providers': typeof AppProvidersRoute
   '/app/settings': typeof AppSettingsRoute
@@ -261,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/booking/success': typeof BookingSuccessRoute
   '/countries/$countrySlug': typeof CountriesCountrySlugRoute
   '/app/': typeof AppIndexRoute
+  '/app/checkout-console/$sessionId': typeof AppCheckoutConsoleSessionIdRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/car-rental/airport/$slug': typeof CarRentalAirportSlugRoute
   '/car-rental/city/$slug': typeof CarRentalCitySlugRoute
@@ -285,9 +314,12 @@ export interface FileRoutesByTo {
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/booking-operations': typeof AppBookingOperationsRoute
   '/app/bookings': typeof AppBookingsRoute
+  '/app/call-center': typeof AppCallCenterRoute
   '/app/calls': typeof AppCallsRoute
+  '/app/finance': typeof AppFinanceRoute
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/payment-testing': typeof AppPaymentTestingRoute
   '/app/payments': typeof AppPaymentsRoute
   '/app/providers': typeof AppProvidersRoute
   '/app/settings': typeof AppSettingsRoute
@@ -298,6 +330,7 @@ export interface FileRoutesByTo {
   '/booking/success': typeof BookingSuccessRoute
   '/countries/$countrySlug': typeof CountriesCountrySlugRoute
   '/app': typeof AppIndexRoute
+  '/app/checkout-console/$sessionId': typeof AppCheckoutConsoleSessionIdRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/car-rental/airport/$slug': typeof CarRentalAirportSlugRoute
   '/car-rental/city/$slug': typeof CarRentalCitySlugRoute
@@ -324,9 +357,12 @@ export interface FileRoutesById {
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/booking-operations': typeof AppBookingOperationsRoute
   '/app/bookings': typeof AppBookingsRoute
+  '/app/call-center': typeof AppCallCenterRoute
   '/app/calls': typeof AppCallsRoute
+  '/app/finance': typeof AppFinanceRoute
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/notifications': typeof AppNotificationsRoute
+  '/app/payment-testing': typeof AppPaymentTestingRoute
   '/app/payments': typeof AppPaymentsRoute
   '/app/providers': typeof AppProvidersRoute
   '/app/settings': typeof AppSettingsRoute
@@ -337,6 +373,7 @@ export interface FileRoutesById {
   '/booking/success': typeof BookingSuccessRoute
   '/countries/$countrySlug': typeof CountriesCountrySlugRoute
   '/app/': typeof AppIndexRoute
+  '/app/checkout-console/$sessionId': typeof AppCheckoutConsoleSessionIdRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/car-rental/airport/$slug': typeof CarRentalAirportSlugRoute
   '/car-rental/city/$slug': typeof CarRentalCitySlugRoute
@@ -364,9 +401,12 @@ export interface FileRouteTypes {
     | '/app/analytics'
     | '/app/booking-operations'
     | '/app/bookings'
+    | '/app/call-center'
     | '/app/calls'
+    | '/app/finance'
     | '/app/leads'
     | '/app/notifications'
+    | '/app/payment-testing'
     | '/app/payments'
     | '/app/providers'
     | '/app/settings'
@@ -377,6 +417,7 @@ export interface FileRouteTypes {
     | '/booking/success'
     | '/countries/$countrySlug'
     | '/app/'
+    | '/app/checkout-console/$sessionId'
     | '/app/leads/$leadId'
     | '/car-rental/airport/$slug'
     | '/car-rental/city/$slug'
@@ -401,9 +442,12 @@ export interface FileRouteTypes {
     | '/app/analytics'
     | '/app/booking-operations'
     | '/app/bookings'
+    | '/app/call-center'
     | '/app/calls'
+    | '/app/finance'
     | '/app/leads'
     | '/app/notifications'
+    | '/app/payment-testing'
     | '/app/payments'
     | '/app/providers'
     | '/app/settings'
@@ -414,6 +458,7 @@ export interface FileRouteTypes {
     | '/booking/success'
     | '/countries/$countrySlug'
     | '/app'
+    | '/app/checkout-console/$sessionId'
     | '/app/leads/$leadId'
     | '/car-rental/airport/$slug'
     | '/car-rental/city/$slug'
@@ -439,9 +484,12 @@ export interface FileRouteTypes {
     | '/app/analytics'
     | '/app/booking-operations'
     | '/app/bookings'
+    | '/app/call-center'
     | '/app/calls'
+    | '/app/finance'
     | '/app/leads'
     | '/app/notifications'
+    | '/app/payment-testing'
     | '/app/payments'
     | '/app/providers'
     | '/app/settings'
@@ -452,6 +500,7 @@ export interface FileRouteTypes {
     | '/booking/success'
     | '/countries/$countrySlug'
     | '/app/'
+    | '/app/checkout-console/$sessionId'
     | '/app/leads/$leadId'
     | '/car-rental/airport/$slug'
     | '/car-rental/city/$slug'
@@ -662,6 +711,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPaymentsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/payment-testing': {
+      id: '/app/payment-testing'
+      path: '/payment-testing'
+      fullPath: '/app/payment-testing'
+      preLoaderRoute: typeof AppPaymentTestingRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/notifications': {
       id: '/app/notifications'
       path: '/notifications'
@@ -676,11 +732,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeadsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/finance': {
+      id: '/app/finance'
+      path: '/finance'
+      fullPath: '/app/finance'
+      preLoaderRoute: typeof AppFinanceRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/calls': {
       id: '/app/calls'
       path: '/calls'
       fullPath: '/app/calls'
       preLoaderRoute: typeof AppCallsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/call-center': {
+      id: '/app/call-center'
+      path: '/call-center'
+      fullPath: '/app/call-center'
+      preLoaderRoute: typeof AppCallCenterRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/bookings': {
@@ -732,6 +802,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeadsLeadIdRouteImport
       parentRoute: typeof AppLeadsRoute
     }
+    '/app/checkout-console/$sessionId': {
+      id: '/app/checkout-console/$sessionId'
+      path: '/checkout-console/$sessionId'
+      fullPath: '/app/checkout-console/$sessionId'
+      preLoaderRoute: typeof AppCheckoutConsoleSessionIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -752,15 +829,19 @@ interface AppRouteChildren {
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppBookingOperationsRoute: typeof AppBookingOperationsRoute
   AppBookingsRoute: typeof AppBookingsRoute
+  AppCallCenterRoute: typeof AppCallCenterRoute
   AppCallsRoute: typeof AppCallsRoute
+  AppFinanceRoute: typeof AppFinanceRoute
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppNotificationsRoute: typeof AppNotificationsRoute
+  AppPaymentTestingRoute: typeof AppPaymentTestingRoute
   AppPaymentsRoute: typeof AppPaymentsRoute
   AppProvidersRoute: typeof AppProvidersRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppTeamRoute: typeof AppTeamRoute
   AppWorkspaceRoute: typeof AppWorkspaceRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppCheckoutConsoleSessionIdRoute: typeof AppCheckoutConsoleSessionIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -768,15 +849,19 @@ const AppRouteChildren: AppRouteChildren = {
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppBookingOperationsRoute: AppBookingOperationsRoute,
   AppBookingsRoute: AppBookingsRoute,
+  AppCallCenterRoute: AppCallCenterRoute,
   AppCallsRoute: AppCallsRoute,
+  AppFinanceRoute: AppFinanceRoute,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppNotificationsRoute: AppNotificationsRoute,
+  AppPaymentTestingRoute: AppPaymentTestingRoute,
   AppPaymentsRoute: AppPaymentsRoute,
   AppProvidersRoute: AppProvidersRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppTeamRoute: AppTeamRoute,
   AppWorkspaceRoute: AppWorkspaceRoute,
   AppIndexRoute: AppIndexRoute,
+  AppCheckoutConsoleSessionIdRoute: AppCheckoutConsoleSessionIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

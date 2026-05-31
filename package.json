@@ -18,6 +18,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:api": "npm --prefix apps/api run test:api",
+    "verify:call-center": "npm --prefix apps/api run verify:call-center",
     "test:e2e": "npm --prefix apps/web run test:e2e",
     "test:load:leads": "k6 run tests/load/lead-submissions.k6.js",
     "test:load:auth": "k6 run tests/load/auth-bursts.k6.js",
