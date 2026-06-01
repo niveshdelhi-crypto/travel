@@ -18,11 +18,15 @@ function resolveSameSite(config: Pick<CookieConfig, "sameSite">): SameSiteMode {
 function baseCookie(config: CookieConfig): CookieOptions {
   const sameSite = resolveSameSite(config);
   const production = config.nodeEnv === "production";
+  const domain = config.domain?.trim();
+  // Avoid misconfigured localhost scoping in production (cookies would never be sent to the real domain).
+  const normalizedDomain =
+    domain && domain.toLowerCase() !== "localhost" && domain !== "127.0.0.1" && domain !== "::1" ? domain : undefined;
   return {
     httpOnly: true,
     secure: sameSite === "none" ? true : production,
     sameSite,
-    domain: config.domain || undefined,
+    domain: normalizedDomain,
   };
 }
 

@@ -69,7 +69,7 @@ function MarqueeTrack({
         {suppliers.map((supplier, index) => (
           <div
             key={`${keyPrefix}-${supplier.id}-${index}`}
-            className="flex h-10 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/95 px-1 py-0.5 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.45)] backdrop-blur-sm md:h-11 md:px-1.5"
+            className="flex h-10 shrink-0 items-center justify-center px-0 py-0 md:h-11"
           >
             <SupplierLogoContent supplier={supplier} variant="hero" />
           </div>
