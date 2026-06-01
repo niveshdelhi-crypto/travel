@@ -8,6 +8,7 @@ import type {
   PaymentSessionMetrics,
   PaymentSessionAttemptRow,
   PaymentSessionQueueItem,
+  QuickCollectPaymentResponse,
   CheckoutConfigResponse,
   CreateCheckoutOrderResponse,
   GatewayHealthRow,
@@ -69,6 +70,16 @@ export const paymentsOrchestrationService = {
     finance_notes?: string;
   }) {
     return apiClient.post<PaymentSessionDetail>("/payment-sessions", body);
+  },
+
+  quickCollectPayment(body: {
+    customer_name: string;
+    amount: number;
+    customer_email: string;
+    customer_phone: string;
+    currency?: string;
+  }) {
+    return apiClient.post<QuickCollectPaymentResponse>("/payment-sessions/quick-collect", body);
   },
 
   listPaymentSessionQueue() {

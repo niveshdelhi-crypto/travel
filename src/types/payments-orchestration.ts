@@ -183,6 +183,14 @@ export type PaymentSessionQueueItem = {
   checkout_path?: string;
 };
 
+export type QuickCollectPaymentResponse = {
+  session_id: string;
+  checkout_path: string;
+  queue_item: PaymentSessionQueueItem;
+  lead_id: string;
+  booking_id: string;
+};
+
 export type PaymentSessionMetrics = {
   pending_payments: number;
   processing: number;

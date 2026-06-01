@@ -10,16 +10,19 @@ import {
   StatCard,
 } from "@/components/app/primitives";
 import { GatewayHealthPanel } from "@/components/finance/checkout/gateway-health-panel";
+import { QuickCollectPaymentModal } from "@/components/finance/quick-collect-payment-modal";
 import { usePaymentRealtime } from "@/hooks/use-payment-realtime";
 import { formatDateTime, formatMoney, statusTone } from "@/lib/payments/format";
 import { paymentQueryKeys } from "@/lib/payments/query-keys";
 import { paymentsOrchestrationService } from "@/services/payments-orchestration.service";
 import { getSocketStatus } from "@/services/socket";
 import type { PaymentSessionQueueItem } from "@/types/payments-orchestration";
+import { useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
   Clock,
+  CreditCard,
   DollarSign,
   Radio,
   TrendingUp,
@@ -102,6 +105,7 @@ function QueueTable({ rows, loading }: { rows: PaymentSessionQueueItem[]; loadin
 }
 
 export function FinanceDashboard() {
+  const [quickCollectOpen, setQuickCollectOpen] = useState(false);
   usePaymentRealtime();
   const socketStatus = getSocketStatus();
 
@@ -141,13 +145,25 @@ export function FinanceDashboard() {
             completed by finance administrators.
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-muted-foreground">
-          <Radio
-            className={`h-3.5 w-3.5 ${socketStatus === "connected" ? "text-success" : "text-warning"}`}
-          />
-          Realtime {socketStatus}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setQuickCollectOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90"
+          >
+            <CreditCard className="h-4 w-4" />
+            Quick card collect
+          </button>
+          <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-muted-foreground">
+            <Radio
+              className={`h-3.5 w-3.5 ${socketStatus === "connected" ? "text-success" : "text-warning"}`}
+            />
+            Realtime {socketStatus}
+          </div>
         </div>
       </header>
+
+      <QuickCollectPaymentModal open={quickCollectOpen} onOpenChange={setQuickCollectOpen} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         <StatCard

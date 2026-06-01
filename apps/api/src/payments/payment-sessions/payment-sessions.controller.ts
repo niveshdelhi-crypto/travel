@@ -21,6 +21,7 @@ import { CreatePaymentSessionDto } from "./dto/create-payment-session.dto";
 import { FailPaymentSessionDto } from "./dto/fail-payment-session.dto";
 import { CaptureCheckoutOrderDto } from "./dto/capture-checkout-order.dto";
 import { RecordCheckoutFailureDto } from "./dto/record-checkout-failure.dto";
+import { QuickCollectPaymentDto } from "./dto/quick-collect-payment.dto";
 import { UpdateFinanceNotesDto } from "./dto/update-finance-notes.dto";
 import { PaymentSessionCheckoutService } from "./payment-session-checkout.service";
 import { PaymentSessionsService } from "./payment-sessions.service";
@@ -55,6 +56,16 @@ export class PaymentSessionsController {
   @Roles(...PAYMENT_PROCESS_ROLES)
   getGatewayHealth(@CurrentUser() user: AuthenticatedUser) {
     return this.checkoutService.getGatewayHealth(user);
+  }
+
+  @Post("quick-collect")
+  @Roles(...PAYMENT_PROCESS_ROLES)
+  quickCollect(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: QuickCollectPaymentDto,
+    @Req() req: Request,
+  ) {
+    return this.sessionsService.quickCollect(user, dto, requestContext(req));
   }
 
   @Get("queue")
