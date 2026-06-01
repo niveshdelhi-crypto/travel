@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLegacyCrmLoginUrl, getLegacyCrmUrl, mapNextPathToLegacy } from "./src/lib/crm-url";
+import { mapNextPathToLegacy, resolveCrmBaseUrl } from "./src/lib/crm-url";
 
 /** Next.js CRM routes are retired — staff always use the legacy CRM app. */
 const legacyRedirectPrefixes = [
@@ -23,13 +23,18 @@ export function middleware(request: NextRequest) {
 
   if (!shouldRedirect) return NextResponse.next();
 
+  // Prefer same-origin in production (avoid accidental `localhost:8080` env values).
+  const crmBaseUrl = resolveCrmBaseUrl(request.nextUrl.origin);
+
   if (pathname === "/login" || pathname.startsWith("/login/")) {
     const next = request.nextUrl.searchParams.get("next");
-    return NextResponse.redirect(getLegacyCrmLoginUrl(next));
+    const redirectPath = mapNextPathToLegacy(next ?? "/app");
+    const loginUrl = `${crmBaseUrl}/login?redirect=${encodeURIComponent(redirectPath)}`;
+    return NextResponse.redirect(loginUrl);
   }
 
   const legacyPath = mapNextPathToLegacy(pathname);
-  return NextResponse.redirect(getLegacyCrmUrl(legacyPath));
+  return NextResponse.redirect(`${crmBaseUrl}${legacyPath}`);
 }
 
 export const config = {

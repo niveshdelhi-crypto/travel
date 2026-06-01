@@ -3,15 +3,29 @@ import type { MarketplaceSupplier } from "./types";
 
 const API_INTERNAL_URL = process.env.API_INTERNAL_URL ?? "http://localhost:4000/api";
 
+const FALLBACK_SUPPLIER_LOGOS: Record<string, string> = {
+  hertz: "/suppliers/hertz.svg",
+  avis: "/suppliers/avis.svg",
+  enterprise: "/suppliers/enterprise.svg",
+  national: "/suppliers/national.svg",
+};
+
+function fallbackSlug(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, "-");
+}
+
 export function fallbackMarketplaceSuppliers(): MarketplaceSupplier[] {
-  return SUPPLIERS.map((name, index) => ({
-    id: `fallback-${name.toLowerCase()}`,
-    name,
-    slug: name.toLowerCase(),
-    website_url: null,
-    logo_url: null,
-    sort_order: index,
-  }));
+  return SUPPLIERS.map((name, index) => {
+    const slug = fallbackSlug(name);
+    return {
+      id: `fallback-${slug}`,
+      name,
+      slug,
+      website_url: null,
+      logo_url: FALLBACK_SUPPLIER_LOGOS[slug] ?? null,
+      sort_order: index,
+    };
+  });
 }
 
 export async function getServerMarketplaceSuppliers(): Promise<MarketplaceSupplier[]> {

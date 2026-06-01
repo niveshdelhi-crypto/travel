@@ -32,8 +32,8 @@ function SupplierLogoContent({
         alt={supplier.name}
         className={
           variant === "hero"
-            ? "h-6 max-w-[96px] object-contain"
-            : "h-10 max-w-[128px] object-contain"
+            ? "h-9 w-auto max-w-[120px] object-contain md:h-10 md:max-w-[128px]"
+            : "h-16 w-auto max-w-[155px] object-contain md:h-18 md:max-w-[175px]"
         }
         loading="lazy"
         draggable={false}
@@ -69,7 +69,7 @@ function MarqueeTrack({
         {suppliers.map((supplier, index) => (
           <div
             key={`${keyPrefix}-${supplier.id}-${index}`}
-            className="flex h-11 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/95 px-5 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.45)] backdrop-blur-sm md:h-12 md:px-6"
+            className="flex h-10 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-white/95 px-1 py-0.5 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.45)] backdrop-blur-sm md:h-11 md:px-1.5"
           >
             <SupplierLogoContent supplier={supplier} variant="hero" />
           </div>
@@ -84,7 +84,7 @@ function MarqueeTrack({
         <div
           key={`${keyPrefix}-${supplier.id}-${index}`}
           id={keyPrefix === "a" && index === 0 ? `suppliers-${supplier.slug}` : undefined}
-          className="supplier-logo flex h-20 w-44 shrink-0 items-center justify-center rounded-2xl border border-border bg-white px-4 shadow-card"
+          className="supplier-logo flex h-14 w-32 shrink-0 items-center justify-center rounded-xl border border-border bg-white px-1 py-0.5 shadow-card md:h-[4.1rem] md:w-36"
         >
           <SupplierLogoContent supplier={supplier} variant="section" />
         </div>

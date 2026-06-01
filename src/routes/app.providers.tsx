@@ -158,12 +158,12 @@ function ProvidersPage() {
                 />
               </label>
               <label className="block text-xs font-medium text-muted-foreground">
-                Logo URL (square favicon or brand asset)
+                Logo URL (hosted path or full URL)
                 <input
                   value={logo}
                   onChange={(e) => setLogo(e.target.value)}
                   className="mt-1.5 flex h-11 w-full rounded-lg border border-border bg-surface px-3 text-sm text-foreground shadow-sm focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="https://…/logo.png"
+                  placeholder="/suppliers/national.svg"
                 />
               </label>
               <label className="block text-xs font-medium text-muted-foreground sm:col-span-2">

@@ -376,50 +376,50 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
     },
   ];
 
-  const favicon = (host: string) =>
-    `https://www.google.com/s2/favicons?domain=${host}&sz=128`;
+  /** Brand SVGs served from apps/web and CRM `public/suppliers/`. */
+  const supplierLogo = (slug: string) => `/suppliers/${slug}.svg`;
 
   const suppliers = [
     {
       slug: "hertz",
       name: "Hertz",
       website_url: "https://www.hertz.com",
-      logo_url: favicon("hertz.com"),
+      logo_url: supplierLogo("hertz"),
       sort_order: 10,
     },
     {
       slug: "enterprise",
       name: "Enterprise Rent-A-Car",
       website_url: "https://www.enterprise.com",
-      logo_url: favicon("enterprise.com"),
+      logo_url: supplierLogo("enterprise"),
       sort_order: 20,
     },
     {
       slug: "avis",
       name: "Avis",
       website_url: "https://www.avis.com",
-      logo_url: favicon("avis.com"),
+      logo_url: supplierLogo("avis"),
       sort_order: 30,
     },
     {
       slug: "sixt",
       name: "SIXT",
       website_url: "https://www.sixt.com",
-      logo_url: favicon("sixt.com"),
+      logo_url: supplierLogo("sixt"),
       sort_order: 40,
     },
     {
       slug: "national",
       name: "National Car Rental",
       website_url: "https://www.nationalcar.com",
-      logo_url: favicon("nationalcar.com"),
+      logo_url: supplierLogo("national"),
       sort_order: 50,
     },
     {
       slug: "europcar",
       name: "Europcar",
       website_url: "https://www.europcar.com",
-      logo_url: favicon("europcar.com"),
+      logo_url: supplierLogo("europcar"),
       sort_order: 60,
     },
   ];
