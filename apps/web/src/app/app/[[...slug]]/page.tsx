@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { requireAuth } from "@/lib/auth/server";
 
 type AppCompatPageProps = {
   params: Promise<{
@@ -6,14 +7,15 @@ type AppCompatPageProps = {
   }>;
 };
 
-function legacyAppPathToNextPath(parts: string[] | undefined): string {
+function legacyAppPathToNextPath(parts: string[] | undefined, role: string): string {
   const [section] = parts ?? [];
+  const roleHome = role === "sales_agent" ? "/sales" : "/leads";
 
   switch (section) {
     case undefined:
     case "":
     case "dashboard":
-      return "/dashboard";
+      return roleHome;
     case "leads":
       return "/leads";
     case "calls":
@@ -30,11 +32,12 @@ function legacyAppPathToNextPath(parts: string[] | undefined): string {
     case "sales":
       return "/sales";
     default:
-      return "/dashboard";
+      return roleHome;
   }
 }
 
 export default async function LegacyAppCompatPage({ params }: AppCompatPageProps) {
+  const user = await requireAuth();
   const { slug } = await params;
-  redirect(legacyAppPathToNextPath(slug) as never);
+  redirect(legacyAppPathToNextPath(slug, user.role) as never);
 }

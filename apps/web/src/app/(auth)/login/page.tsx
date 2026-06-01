@@ -13,14 +13,16 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const next = searchParams.get("next");
-  const targetAfterLogin = next?.startsWith("/") ? next : "/dashboard";
+  const requestedPath = next?.startsWith("/") ? next : "/app";
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      await authService.login({ email: email.trim(), password });
+      const result = await authService.login({ email: email.trim(), password });
+      const roleDefault = result.user.role === "sales_agent" ? "/sales" : "/leads";
+      const targetAfterLogin = requestedPath === "/app" ? roleDefault : requestedPath;
       window.location.replace(targetAfterLogin);
     } catch {
       setError("Invalid email or password.");
