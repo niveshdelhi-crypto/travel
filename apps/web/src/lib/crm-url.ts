@@ -1,35 +1,41 @@
-/** Legacy Book my Carz CRM (Vite + TanStack Router). Marketing site links here for all staff workflows. */
+/** Full staff CRM (Vite + TanStack Router). Marketing site must link here for all staff workflows. */
 export const DEFAULT_CRM_URL = "http://localhost:8080";
-
-const LOCALHOST_URL_RE = /(localhost|127\.0\.0\.1)(:\d+)?/i;
 
 function normalizeBaseUrl(url: string): string {
   return url.replace(/\/$/, "");
 }
 
-function resolveCrmBaseUrlFromEnvOrOrigin(originFromServer?: string): string {
-  const raw = process.env.NEXT_PUBLIC_CRM_URL;
+function crmOriginFromBase(crmBaseUrl: string): string | null {
+  try {
+    return new URL(crmBaseUrl).origin;
+  } catch {
+    return null;
+  }
+}
 
-  if (raw) {
-    const normalized = normalizeBaseUrl(raw);
-
-    // If env is accidentally pointed at localhost in production, prefer same-origin / relative URLs.
-    if (LOCALHOST_URL_RE.test(normalized)) {
-      if (typeof window !== "undefined") return window.location.origin;
-      if (originFromServer) return originFromServer;
-      if (process.env.NODE_ENV === "production") return "";
-      return normalized;
-    }
-
-    return normalized;
+/**
+ * CRM base URL for staff redirects.
+ * When `NEXT_PUBLIC_CRM_URL` is set (e.g. http://localhost:8080), always use it — even on localhost.
+ */
+export function resolveCrmBaseUrl(originFromServer?: string): string {
+  const configured = process.env.NEXT_PUBLIC_CRM_URL?.trim();
+  if (configured) {
+    return normalizeBaseUrl(configured);
   }
 
-  // No env var set: use same-origin when possible.
-  if (typeof window !== "undefined") return window.location.origin;
   if (originFromServer) return originFromServer;
+  if (typeof window !== "undefined") return window.location.origin;
   if (process.env.NODE_ENV === "production") return "";
 
   return normalizeBaseUrl(DEFAULT_CRM_URL);
+}
+
+/** True when marketing and CRM run on different origins (e.g. :3000 vs :8080). */
+export function isExternalCrmDeployment(marketingOrigin: string): boolean {
+  const crmBase = resolveCrmBaseUrl(marketingOrigin);
+  if (!crmBase) return false;
+  const crmOrigin = crmOriginFromBase(crmBase);
+  return Boolean(crmOrigin && crmOrigin !== marketingOrigin);
 }
 
 /** Maps old Next.js CRM paths to legacy `/app/*` routes. */
@@ -41,13 +47,10 @@ const NEXT_TO_LEGACY: Record<string, string> = {
   "/calls": "/app/calls",
   "/bookings": "/app/bookings",
   "/payments": "/app/payments",
+  "/finance": "/app/finance",
   "/team": "/app/team",
   "/admin-ops": "/app/admin",
 };
-
-export function resolveCrmBaseUrl(originFromServer?: string): string {
-  return resolveCrmBaseUrlFromEnvOrOrigin(originFromServer);
-}
 
 export function getCrmBaseUrl(): string {
   return resolveCrmBaseUrl();
@@ -71,14 +74,5 @@ export function getLegacyCrmUrl(legacyPath = "/app"): string {
 
 export function getLegacyCrmLoginUrl(nextPath?: string | null): string {
   const redirect = mapNextPathToLegacy(nextPath ?? "/app");
-  const base = getCrmBaseUrl();
-
-  // When CRM base resolves to this same origin, `/login` would hit this Next.js route again and loop.
-  // In that deployment shape, jump straight to legacy `/app*` target.
-  if (typeof window !== "undefined") {
-    const sameOriginBase = !base || base === window.location.origin;
-    if (sameOriginBase) return `${base}${redirect}`;
-  }
-
-  return `${base}/login?redirect=${encodeURIComponent(redirect)}`;
+  return `${getCrmBaseUrl()}/login?redirect=${encodeURIComponent(redirect)}`;
 }
