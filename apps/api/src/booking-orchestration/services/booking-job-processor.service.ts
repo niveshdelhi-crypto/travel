@@ -9,6 +9,7 @@ import { SupplierBookingService } from "./supplier-booking.service";
 export class BookingJobProcessorService implements OnModuleInit {
   private readonly logger = new Logger(BookingJobProcessorService.name);
   private interval?: NodeJS.Timeout;
+  private processing = false;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -17,7 +18,12 @@ export class BookingJobProcessorService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    this.interval = setInterval(() => void this.processPendingJobs(), 10_000);
+    this.interval = setInterval(() => {
+      void this.processPendingJobs().catch((error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.error(JSON.stringify({ message: "job.poll.failed", error: message }));
+      });
+    }, 10_000);
   }
 
   onModuleDestroy() {
@@ -37,17 +43,24 @@ export class BookingJobProcessorService implements OnModuleInit {
   }
 
   private async processPendingJobs() {
-    const jobs = await this.prisma.bookingBackgroundJob.findMany({
-      where: {
-        status: BookingJobStatus.PENDING,
-        scheduled_for: { lte: new Date() },
-      },
-      take: 10,
-      orderBy: { scheduled_for: "asc" },
-    });
+    if (this.processing) return;
+    this.processing = true;
 
-    for (const job of jobs) {
-      await this.processJob(job.id);
+    try {
+      const jobs = await this.prisma.bookingBackgroundJob.findMany({
+        where: {
+          status: BookingJobStatus.PENDING,
+          scheduled_for: { lte: new Date() },
+        },
+        take: 5,
+        orderBy: { scheduled_for: "asc" },
+      });
+
+      for (const job of jobs) {
+        await this.processJob(job.id);
+      }
+    } finally {
+      this.processing = false;
     }
   }
 

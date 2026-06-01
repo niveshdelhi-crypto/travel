@@ -19,6 +19,8 @@ export const paymentQueryKeys = {
     [...paymentQueryKeys.paymentSessions(), "audit", id] as const,
   checkoutConfig: (id: string) =>
     [...paymentQueryKeys.paymentSessions(), "checkout-config", id] as const,
+  checkoutPrepare: (id: string) =>
+    [...paymentQueryKeys.paymentSessions(), "checkout-prepare", id] as const,
   paymentSessionAttempts: (id: string) =>
     [...paymentQueryKeys.paymentSessions(), "attempts", id] as const,
   gatewayHealth: () => [...paymentQueryKeys.paymentSessions(), "gateway-health"] as const,

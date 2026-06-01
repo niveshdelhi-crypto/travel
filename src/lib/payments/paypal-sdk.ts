@@ -15,7 +15,7 @@ type PayPalCardFieldsInstance = {
 };
 
 type PayPalButtonsInstance = {
-  render: (selector: string) => Promise<void>;
+  render: (selector: string | HTMLElement) => Promise<void>;
   close: () => void;
   isEligible: () => boolean;
 };
@@ -55,6 +55,28 @@ function sdkCacheKey(options: PayPalSdkOptions): string {
   return `${options.environment ?? "sandbox"}:${options.clientId}:${options.currency}:${components}`;
 }
 
+/** Parse PayPal JS SDK / Card Fields rejection payloads for display. */
+export function formatPayPalClientError(err: unknown): string {
+  if (err instanceof Error && err.message.trim()) return err.message;
+  if (err && typeof err === "object") {
+    const payload = err as {
+      message?: string;
+      details?: Array<{ description?: string; issue?: string }>;
+    };
+    const detail = payload.details?.[0];
+    if (detail?.description?.trim()) return detail.description.trim();
+    if (detail?.issue?.trim()) return detail.issue.replace(/_/g, " ");
+    if (payload.message?.trim()) return payload.message.trim();
+  }
+  return "PayPal checkout failed";
+}
+
+/** Warm PayPal SDK in the background (safe to call multiple times). */
+export function preloadPayPalSdk(options: PayPalSdkOptions): void {
+  if (typeof window === "undefined") return;
+  void loadPayPalSdk(options).catch(() => undefined);
+}
+
 export function loadPayPalSdk(options: PayPalSdkOptions): Promise<PayPalNamespace> {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("PayPal SDK requires a browser environment"));
@@ -75,6 +97,10 @@ export function loadPayPalSdk(options: PayPalSdkOptions): Promise<PayPalNamespac
       intent: "capture",
     });
     params.set("enable-funding", "venmo,paylater");
+    // Sandbox: align buyer country with test cards / billing (see PayPal card testing docs).
+    if (options.environment !== "live" && options.currency.toUpperCase() === "USD") {
+      params.set("buyer-country", "US");
+    }
     // Do NOT set disable-funding=card — that forces Card Fields ineligible.
 
     const script = document.createElement("script");

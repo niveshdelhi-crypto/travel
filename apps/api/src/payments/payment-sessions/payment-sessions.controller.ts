@@ -86,6 +86,16 @@ export class PaymentSessionsController {
     return this.checkoutService.listAttempts(user, id);
   }
 
+  @Post(":id/checkout/prepare")
+  @Roles(...PAYMENT_PROCESS_ROLES)
+  prepareCheckout(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Req() req: Request,
+  ) {
+    return this.checkoutService.prepareCheckout(user, id, requestContext(req));
+  }
+
   @Get(":id/checkout-config")
   @Roles(...PAYMENT_PROCESS_ROLES)
   getCheckoutConfig(@CurrentUser() user: AuthenticatedUser, @Param("id", ParseUUIDPipe) id: string) {

@@ -17,6 +17,7 @@ import { hasFinanceAccess } from "../constants/payment-roles.constants";
 import { AuditLogService } from "../services/audit-log.service";
 import { GatewayHealthService } from "../services/gateway-health.service";
 import { CheckoutGatewayRegistry } from "./checkout/checkout-gateway.registry";
+import { extractPaypalCaptureId } from "../utils/paypal-payload.util";
 import { sanitizeProviderResponse } from "./checkout/sanitize-provider-response.util";
 import { CaptureCheckoutOrderDto } from "./dto/capture-checkout-order.dto";
 import { RecordCheckoutFailureDto } from "./dto/record-checkout-failure.dto";
@@ -28,6 +29,15 @@ type RequestContext = {
   userAgent?: string;
   requestMethod?: string;
   requestPath?: string;
+};
+
+type LoadedPaymentSession = Awaited<
+  ReturnType<PaymentSessionsService["getSessionForFinance"]>
+>;
+
+type PrepareCheckoutOptions = {
+  /** When provided (e.g. quick-collect), skips redundant session reloads. */
+  session?: LoadedPaymentSession;
 };
 
 @Injectable()
@@ -46,15 +56,72 @@ export class PaymentSessionCheckoutService {
     }
   }
 
-  async getCheckoutConfig(user: AuthenticatedUser, sessionId: string) {
+  /**
+   * One round-trip: ensure PROCESSING, return PayPal config, create order when missing.
+   */
+  async prepareCheckout(
+    user: AuthenticatedUser,
+    sessionId: string,
+    ctx: RequestContext = {},
+    options: PrepareCheckoutOptions = {},
+  ) {
     this.assertFinance(user);
-    const session = await this.sessionsService.getSessionForFinance(sessionId);
-    const { gateway, adapter } = await this.checkoutRegistry.resolveCheckoutAdapter(session.gateway_id);
 
+    let session = options.session ?? (await this.sessionsService.getSessionForFinance(sessionId));
+
+    if (session.status === PaymentSessionStatus.PENDING) {
+      session = await this.sessionsService.start(user, sessionId, ctx);
+    }
+
+    const { gateway, adapter } = await this.checkoutRegistry.resolveCheckoutAdapter(session.gateway_id);
     if (!gateway.isActive) {
       throw new BadRequestException("Selected payment gateway is inactive");
     }
 
+    const configPayload = this.buildCheckoutConfigPayload(session, gateway, adapter);
+
+    let order: {
+      attempt_id: string;
+      order_id: string;
+      approve_url: string | null;
+      attempt_number: number;
+      status: PaymentAttemptStatus;
+    } | null = null;
+
+    const needsOrder =
+      session.status === PaymentSessionStatus.PROCESSING &&
+      !session.provider_order_id &&
+      configPayload.checkout.supported;
+
+    if (needsOrder) {
+      order = await this.createProviderOrderForSession(user, session, gateway, adapter, ctx);
+      session = {
+        ...session,
+        provider_order_id: order.order_id,
+        checkout_mode: adapter.checkoutMode,
+      };
+      configPayload.session.provider_order_id = order.order_id;
+    } else if (session.provider_order_id) {
+      order = {
+        attempt_id: "",
+        order_id: session.provider_order_id,
+        approve_url: null,
+        attempt_number: 0,
+        status: PaymentAttemptStatus.ORDER_CREATED,
+      };
+    }
+
+    return {
+      ...configPayload,
+      order,
+    };
+  }
+
+  private buildCheckoutConfigPayload(
+    session: LoadedPaymentSession,
+    gateway: Awaited<ReturnType<CheckoutGatewayRegistry["resolveCheckoutAdapter"]>>["gateway"],
+    adapter: Awaited<ReturnType<CheckoutGatewayRegistry["resolveCheckoutAdapter"]>>["adapter"],
+  ) {
     const publicConfig = adapter.getPublicConfig(gateway.credentials, gateway.settings, {
       amount: Number(session.amount),
       currency: session.currency,
@@ -80,6 +147,18 @@ export class PaymentSessionCheckoutService {
     };
   }
 
+  async getCheckoutConfig(user: AuthenticatedUser, sessionId: string) {
+    this.assertFinance(user);
+    const session = await this.sessionsService.getSessionForFinance(sessionId);
+    const { gateway, adapter } = await this.checkoutRegistry.resolveCheckoutAdapter(session.gateway_id);
+
+    if (!gateway.isActive) {
+      throw new BadRequestException("Selected payment gateway is inactive");
+    }
+
+    return this.buildCheckoutConfigPayload(session, gateway, adapter);
+  }
+
   async createProviderOrder(user: AuthenticatedUser, sessionId: string, ctx: RequestContext = {}) {
     this.assertFinance(user);
     const session = await this.sessionsService.getSessionForFinance(sessionId);
@@ -97,6 +176,17 @@ export class PaymentSessionCheckoutService {
       throw new BadRequestException(config.message ?? `Checkout is not supported for ${gateway.type}`);
     }
 
+    return this.createProviderOrderForSession(user, session, gateway, adapter, ctx);
+  }
+
+  private async createProviderOrderForSession(
+    user: AuthenticatedUser,
+    session: LoadedPaymentSession,
+    gateway: Awaited<ReturnType<CheckoutGatewayRegistry["resolveCheckoutAdapter"]>>["gateway"],
+    adapter: Awaited<ReturnType<CheckoutGatewayRegistry["resolveCheckoutAdapter"]>>["adapter"],
+    ctx: RequestContext,
+  ) {
+    const sessionId = session.id;
     const attemptNumber =
       (await this.prisma.paymentSessionAttempt.count({ where: { payment_session_id: sessionId } })) + 1;
 
@@ -108,18 +198,6 @@ export class PaymentSessionCheckoutService {
         status: PaymentAttemptStatus.INITIATED,
         initiated_by_id: user.id,
       },
-    });
-
-    await this.auditLog.log({
-      action: AuditLogAction.PAYMENT_ATTEMPT_CREATED,
-      resourceType: "payment_session_attempt",
-      resourceId: attempt.id,
-      userId: user.id,
-      ipAddress: ctx.ipAddress,
-      userAgent: ctx.userAgent,
-      requestMethod: ctx.requestMethod,
-      requestPath: ctx.requestPath,
-      metadata: { sessionId, attemptNumber, gatewayType: gateway.type },
     });
 
     try {
@@ -150,7 +228,7 @@ export class PaymentSessionCheckoutService {
         },
       });
 
-      await this.auditLog.log({
+      void this.auditLog.log({
         action:
           gateway.type === PaymentGatewayType.paypal
             ? AuditLogAction.PAYPAL_ORDER_CREATED
@@ -159,10 +237,15 @@ export class PaymentSessionCheckoutService {
         resourceId: sessionId,
         userId: user.id,
         ipAddress: ctx.ipAddress,
+        userAgent: ctx.userAgent,
+        requestMethod: ctx.requestMethod,
+        requestPath: ctx.requestPath,
         metadata: {
           orderId: order.orderId,
           attemptId: attempt.id,
+          attemptNumber,
           gatewayId: gateway.id,
+          gatewayType: gateway.type,
         },
       });
 
@@ -241,7 +324,24 @@ export class PaymentSessionCheckoutService {
       throw new BadRequestException(captureResult.failureReason ?? "Payment capture failed");
     }
 
-    const captureId = extractCaptureId(captureResult.rawResponse) ?? captureResult.providerReference;
+    const captureId =
+      extractPaypalCaptureId(captureResult.rawResponse, captureResult.providerReference) ??
+      extractCaptureId(captureResult.rawResponse);
+
+    if (!captureId?.trim()) {
+      const message =
+        "PayPal did not return a capture ID — payment was not settled in PayPal. Check sandbox credentials and card approval.";
+      await this.recordAttemptFailureInternal(
+        attempt.id,
+        sessionId,
+        user,
+        message,
+        dto.order_id,
+        captureResult.rawResponse,
+        ctx,
+      );
+      throw new BadRequestException(message);
+    }
 
     await this.auditLog.log({
       action:

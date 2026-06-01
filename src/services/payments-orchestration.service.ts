@@ -10,6 +10,7 @@ import type {
   PaymentSessionQueueItem,
   QuickCollectPaymentResponse,
   CheckoutConfigResponse,
+  CheckoutPrepareResponse,
   CreateCheckoutOrderResponse,
   GatewayHealthRow,
   PaymentTransactionRow,
@@ -116,6 +117,10 @@ export const paymentsOrchestrationService = {
 
   getCheckoutConfig(id: string) {
     return apiClient.get<CheckoutConfigResponse>(`/payment-sessions/${id}/checkout-config`);
+  },
+
+  prepareCheckout(id: string) {
+    return apiClient.post<CheckoutPrepareResponse>(`/payment-sessions/${id}/checkout/prepare`, {});
   },
 
   createCheckoutOrder(id: string) {

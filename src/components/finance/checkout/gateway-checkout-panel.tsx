@@ -1,9 +1,10 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Panel, PanelHeader } from "@/components/app/primitives";
 import { PayPalHostedCheckout, type PayPalCheckoutMode } from "@/components/finance/checkout/paypal-hosted-checkout";
-import { formatMoney, statusTone } from "@/lib/payments/format";
+import { formatMoney } from "@/lib/payments/format";
 import { paymentQueryKeys } from "@/lib/payments/query-keys";
+import { formatPayPalClientError, preloadPayPalSdk } from "@/lib/payments/paypal-sdk";
 import { paymentsOrchestrationService } from "@/services/payments-orchestration.service";
 import type { PaymentSessionDetail, PaymentSessionStatus } from "@/types/payments-orchestration";
 import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
@@ -56,13 +57,15 @@ export function GatewayCheckoutPanel({
   onFinanceNotesChange: (value: string) => void;
   onInvalidate: () => void;
 }) {
+  const queryClient = useQueryClient();
   const [orderId, setOrderId] = useState<string | null>(session.provider_order_id ?? null);
   const [approveUrl, setApproveUrl] = useState<string | null>(null);
   const [checkoutMode, setCheckoutMode] = useState<PayPalCheckoutMode | null>(null);
-  const [submitCardPayment, setSubmitCardPayment] = useState<(() => Promise<string | undefined>) | null>(null);
+  const [submitCardPayment, setSubmitCardPayment] = useState<(() => Promise<string | undefined>) | null>(
+    null,
+  );
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const autoStartAttempted = useRef(false);
-  const autoOrderAttempted = useRef(false);
+  const sdkPreloaded = useRef(false);
 
   useEffect(() => {
     if (session.provider_order_id) {
@@ -70,58 +73,49 @@ export function GatewayCheckoutPanel({
     }
   }, [session.provider_order_id]);
 
-  const configQuery = useQuery({
-    queryKey: paymentQueryKeys.checkoutConfig(sessionId),
-    queryFn: () => paymentsOrchestrationService.getCheckoutConfig(sessionId),
-    enabled: status === "PROCESSING" || status === "PENDING",
-  });
+  const canPrepare =
+    status === "PENDING" || status === "PROCESSING" || status === "FAILED";
 
-  const startMutation = useMutation({
-    mutationFn: () => paymentsOrchestrationService.startPaymentSession(sessionId),
-    onSuccess: () => {
-      setCheckoutError(null);
-      onInvalidate();
-    },
-    onError: (err: Error) => {
-      autoStartAttempted.current = false;
-      setCheckoutError(err.message);
-    },
-  });
-
-  const createOrderMutation = useMutation({
-    mutationFn: () => paymentsOrchestrationService.createCheckoutOrder(sessionId),
-    onSuccess: (data) => {
-      setOrderId(data.order_id);
-      setApproveUrl(data.approve_url ?? null);
-      setCheckoutError(null);
-      onInvalidate();
-    },
-    onError: (err: Error) => {
-      autoOrderAttempted.current = false;
-      setCheckoutError(err.message);
-    },
+  const prepareQuery = useQuery({
+    queryKey: paymentQueryKeys.checkoutPrepare(sessionId),
+    queryFn: () => paymentsOrchestrationService.prepareCheckout(sessionId),
+    enabled: canPrepare,
+    staleTime: 60_000,
+    retry: 1,
+    initialData: () =>
+      queryClient.getQueryData(paymentQueryKeys.checkoutPrepare(sessionId)),
+    refetchOnMount: (query) => (query.state.data?.order?.order_id ? false : "always"),
   });
 
   useEffect(() => {
-    if (status !== "PENDING" || autoStartAttempted.current || startMutation.isPending) return;
-    autoStartAttempted.current = true;
-    startMutation.mutate();
-  }, [status, startMutation]);
+    if (!prepareQuery.data) return;
 
-  useEffect(() => {
-    const checkoutConfig = configQuery.data?.checkout;
-    if (status !== "PROCESSING" || orderId || autoOrderAttempted.current || createOrderMutation.isPending) {
-      return;
+    const { checkout, order, session: preparedSession } = prepareQuery.data;
+
+    if (checkout.clientId && checkout.supported && !sdkPreloaded.current) {
+      sdkPreloaded.current = true;
+      preloadPayPalSdk({
+        clientId: checkout.clientId,
+        currency: checkout.currency,
+        environment: checkout.environment,
+      });
     }
-    if (
-      !configQuery.isSuccess ||
-      !checkoutConfig?.supported
-    ) {
-      return;
+
+    const resolvedOrderId = order?.order_id ?? preparedSession.provider_order_id ?? null;
+    if (resolvedOrderId) {
+      setOrderId(resolvedOrderId);
+      setApproveUrl(order?.approve_url ?? null);
     }
-    autoOrderAttempted.current = true;
-    createOrderMutation.mutate();
-  }, [status, orderId, configQuery.isSuccess, configQuery.data?.checkout, createOrderMutation]);
+
+    queryClient.setQueryData(paymentQueryKeys.paymentSessionDetail(sessionId), (current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        status: preparedSession.status,
+        provider_order_id: resolvedOrderId,
+      };
+    });
+  }, [prepareQuery.data, queryClient, sessionId]);
 
   const captureMutation = useMutation({
     mutationFn: (payload: { order_id: string }) =>
@@ -129,8 +123,9 @@ export function GatewayCheckoutPanel({
         order_id: payload.order_id,
         finance_notes: financeNotes || undefined,
       }),
-    onSuccess: () => {
+    onSuccess: (updatedSession) => {
       setCheckoutError(null);
+      queryClient.setQueryData(paymentQueryKeys.paymentSessionDetail(sessionId), updatedSession);
       onInvalidate();
     },
     onError: (err: Error) => setCheckoutError(err.message),
@@ -146,15 +141,25 @@ export function GatewayCheckoutPanel({
     onSuccess: () => {
       setOrderId(null);
       setSubmitCardPayment(null);
+      setCheckoutMode(null);
+      void prepareQuery.refetch();
       onInvalidate();
     },
   });
 
   const saveNotesMutation = useMutation({
-    mutationFn: () =>
-      paymentsOrchestrationService.updateFinanceNotes(sessionId, financeNotes),
+    mutationFn: () => paymentsOrchestrationService.updateFinanceNotes(sessionId, financeNotes),
     onSuccess: onInvalidate,
   });
+
+  const retryPrepare = useCallback(() => {
+    setCheckoutError(null);
+    setCheckoutMode(null);
+    setOrderId(null);
+    setApproveUrl(null);
+    sdkPreloaded.current = false;
+    void prepareQuery.refetch();
+  }, [prepareQuery]);
 
   const handlePayPalApproved = useCallback(
     async (approvedOrderId: string) => {
@@ -186,30 +191,40 @@ export function GatewayCheckoutPanel({
     try {
       await submitCardPayment();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Card submission failed";
+      const message = formatPayPalClientError(err);
       setCheckoutError(message);
       recordFailureMutation.mutate(message);
     }
   };
 
-  const checkout = configQuery.data?.checkout;
+  const checkout = prepareQuery.data?.checkout;
+  const effectiveStatus = prepareQuery.data?.session.status ?? status;
   const isBusy =
-    startMutation.isPending ||
-    createOrderMutation.isPending ||
+    prepareQuery.isFetching ||
     captureMutation.isPending ||
     recordFailureMutation.isPending;
 
+  const hasPreparedCheckout = Boolean(
+    prepareQuery.data?.order?.order_id ??
+      prepareQuery.data?.session.provider_order_id ??
+      orderId,
+  );
+
   const loadingPayPalCheckout =
-    status === "PROCESSING" &&
-    Boolean(orderId) &&
+    effectiveStatus === "PROCESSING" &&
+    hasPreparedCheckout &&
     !checkoutMode &&
-    !checkoutError;
+    !checkoutError &&
+    !prepareQuery.isError;
 
   const isPreparingCheckout =
-    status === "PENDING" ||
-    startMutation.isPending ||
-    createOrderMutation.isPending ||
-    (status === "PROCESSING" && (!checkout?.supported || !orderId || loadingPayPalCheckout));
+    canPrepare &&
+    !hasPreparedCheckout &&
+    (prepareQuery.isLoading || prepareQuery.isFetching);
+
+  const prepareError =
+    checkoutError ??
+    (prepareQuery.error instanceof Error ? prepareQuery.error.message : null);
 
   return (
     <Panel className="sticky top-4 h-fit">
@@ -251,114 +266,77 @@ export function GatewayCheckoutPanel({
         {isPreparingCheckout ? (
           <div className="flex items-center gap-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-3 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
-            {status === "PENDING"
-              ? "Starting PayPal checkout session…"
-              : !orderId
-                ? "Creating PayPal order…"
-                : "Opening PayPal checkout…"}
+            {prepareQuery.isLoading || prepareQuery.isFetching
+              ? "Preparing PayPal checkout…"
+              : "Opening PayPal card fields…"}
           </div>
         ) : null}
 
-        {status === "PENDING" && !autoStartAttempted.current ? (
-          <ActionButton
-            label="Begin Checkout"
-            tone="primary"
-            disabled={isBusy}
-            loading={startMutation.isPending}
-            onClick={() => {
-              autoStartAttempted.current = true;
-              startMutation.mutate();
-            }}
-          />
-        ) : null}
-
-        {status === "PROCESSING" && checkout?.supported ? (
+        {effectiveStatus === "PROCESSING" && checkout?.supported && hasPreparedCheckout ? (
           <>
-            {!orderId ? (
+            <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-xs">
+              <span className="text-muted-foreground">PayPal Order</span>
+              <code className="font-mono text-foreground">{orderId.slice(0, 16)}…</code>
+            </div>
+            <PayPalHostedCheckout
+              config={checkout}
+              orderId={orderId}
+              approveUrl={approveUrl}
+              disabled={captureMutation.isPending}
+              onReady={handleCheckoutReady}
+              onCardSubmitReady={handleReady}
+              onApproved={(id) => void handlePayPalApproved(id)}
+              onError={(message) => setCheckoutError(message)}
+            />
+            {checkoutMode === "card-fields" ? (
               <ActionButton
-                label="Create PayPal Order"
-                tone="primary"
-                disabled={isBusy || configQuery.isLoading}
-                loading={createOrderMutation.isPending}
-                onClick={() => createOrderMutation.mutate()}
+                label="Process Payment"
+                tone="success"
+                disabled={!submitCardPayment || isBusy}
+                loading={captureMutation.isPending}
+                onClick={() => void processPayment()}
               />
-            ) : (
-              <>
-                <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-xs">
-                  <span className="text-muted-foreground">PayPal Order</span>
-                  <code className="font-mono text-foreground">{orderId.slice(0, 16)}…</code>
-                </div>
-                <PayPalHostedCheckout
-                  config={checkout}
-                  orderId={orderId}
-                  approveUrl={approveUrl}
-                  disabled={captureMutation.isPending}
-                  onReady={handleCheckoutReady}
-                  onCardSubmitReady={handleReady}
-                  onApproved={(id) => void handlePayPalApproved(id)}
-                  onError={(message) => setCheckoutError(message)}
-                />
-                {checkoutMode === "card-fields" ? (
-                  <ActionButton
-                    label="Process Payment"
-                    tone="success"
-                    disabled={!submitCardPayment || isBusy}
-                    loading={captureMutation.isPending}
-                    onClick={() => void processPayment()}
-                  />
-                ) : null}
-                <ActionButton
-                  label="New attempt"
-                  tone="neutral"
-                  disabled={isBusy}
-                  loading={createOrderMutation.isPending}
-                  onClick={() => {
-                    setOrderId(null);
-                    setApproveUrl(null);
-                    setCheckoutMode(null);
-                    setSubmitCardPayment(null);
-                    autoOrderAttempted.current = false;
-                    createOrderMutation.mutate();
-                  }}
-                />
-              </>
-            )}
+            ) : null}
+            <ActionButton
+              label="New attempt"
+              tone="neutral"
+              disabled={isBusy}
+              onClick={retryPrepare}
+            />
           </>
         ) : null}
 
-        {status === "PROCESSING" && checkout && !checkout.supported ? (
+        {effectiveStatus === "PROCESSING" && checkout && !checkout.supported ? (
           <div className="rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-sm text-warning">
             <AlertTriangle className="mb-1 inline h-4 w-4" />
             {checkout.message ?? "This gateway checkout is not yet available."}
           </div>
         ) : null}
 
-        {checkoutError ? (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-            {checkoutError}
+        {prepareError ? (
+          <div className="space-y-2">
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              {prepareError}
+            </div>
+            <ActionButton label="Retry checkout" tone="primary" disabled={isBusy} onClick={retryPrepare} />
           </div>
         ) : null}
 
-        {status === "SUCCESS" ? (
+        {effectiveStatus === "SUCCESS" ? (
           <div className="flex items-center gap-2 rounded-lg border border-success/30 bg-success/5 px-3 py-2 text-sm text-success">
             <CheckCircle2 className="h-4 w-4" />
             Payment captured — booking confirmed.
           </div>
         ) : null}
 
-        {status === "FAILED" ? (
-          <ActionButton
-            label="Retry — reset to processing"
-            tone="primary"
-            disabled={isBusy}
-            onClick={() => startMutation.mutate()}
-          />
+        {effectiveStatus === "FAILED" ? (
+          <ActionButton label="Retry checkout" tone="primary" disabled={isBusy} onClick={retryPrepare} />
         ) : null}
 
         <ActionButton
           label="Cancel Session"
           tone="neutral"
-          disabled={status === "SUCCESS" || status === "CANCELLED" || isBusy}
+          disabled={effectiveStatus === "SUCCESS" || effectiveStatus === "CANCELLED" || isBusy}
           onClick={() => paymentsOrchestrationService.cancelPaymentSession(sessionId).then(onInvalidate)}
         />
       </div>

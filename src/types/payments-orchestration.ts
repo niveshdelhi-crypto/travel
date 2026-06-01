@@ -185,10 +185,16 @@ export type PaymentSessionQueueItem = {
 
 export type QuickCollectPaymentResponse = {
   session_id: string;
+  /** Full session payload so checkout console can render without a second round-trip. */
+  session?: PaymentSessionDetail;
   checkout_path: string;
   queue_item: PaymentSessionQueueItem;
   lead_id: string;
   booking_id: string;
+  provider_order_id?: string | null;
+  checkout?: CheckoutPublicConfig;
+  /** Null when the client should call checkout/prepare (faster quick-collect). */
+  prepare?: CheckoutPrepareResponse | null;
 };
 
 export type PaymentSessionMetrics = {
@@ -302,6 +308,16 @@ export type CheckoutConfigResponse = {
   };
   checkout: CheckoutPublicConfig;
   gateway: { id: string; name: string; type: PaymentGatewayType };
+};
+
+export type CheckoutPrepareResponse = CheckoutConfigResponse & {
+  order: {
+    attempt_id: string;
+    order_id: string;
+    approve_url: string | null;
+    attempt_number: number;
+    status: PaymentAttemptStatus;
+  } | null;
 };
 
 export type GatewayOperationalStatus = "CONNECTED" | "DEGRADED" | "FAILED";

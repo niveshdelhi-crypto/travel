@@ -3,6 +3,11 @@ import { PaymentGatewayType, PaymentStatus } from "@prisma/client";
 import {
   extractPaypalAuthorizationId,
   extractPaypalCaptureId,
+  formatPaypalApiError,
+  getPaypalOrderStatus,
+  isPaypalOrderCaptured,
+  type PayPalApiErrorPayload,
+  type PayPalOrderPayload,
 } from "../utils/paypal-payload.util";
 import type {
   CreatePaymentParams,
@@ -19,10 +24,16 @@ const PAYPAL_CARD_SCOPES = [
   "https://uri.paypal.com/services/payments/realtimepayment",
 ];
 
+type CachedOAuthToken = {
+  accessToken: string;
+  expiresAtMs: number;
+};
+
 @Injectable()
 export class PaypalPaymentProvider implements PaymentProviderStrategy {
   readonly gatewayType = PaymentGatewayType.paypal;
   private readonly logger = new Logger(PaypalPaymentProvider.name);
+  private readonly oauthTokenCache = new Map<string, CachedOAuthToken>();
 
   resolveEnvironment(
     credentials: ProviderCredentials,
@@ -142,8 +153,14 @@ export class PaypalPaymentProvider implements PaymentProviderStrategy {
     };
 
     if (!response.ok) {
-      const message = payload.message ?? "PayPal order creation failed";
-      this.logger.warn(JSON.stringify({ message: "paypal.create.failed", error: message }));
+      const message = formatPaypalApiError(payload as PayPalApiErrorPayload);
+      this.logger.warn(
+        JSON.stringify({
+          message: "paypal.create.failed",
+          environment: credentials.environment ?? "sandbox",
+          error: message,
+        }),
+      );
       return {
         providerReference: params.reference,
         status: PaymentStatus.FAILED,
@@ -153,6 +170,15 @@ export class PaypalPaymentProvider implements PaymentProviderStrategy {
     }
 
     const approveLink = payload.links?.find((link) => link.rel === "approve");
+
+    this.logger.log(
+      JSON.stringify({
+        message: "paypal.order.created",
+        environment: credentials.environment ?? "sandbox",
+        orderId: payload.id,
+        status: payload.status,
+      }),
+    );
 
     return {
       providerReference: payload.id ?? params.reference,
@@ -166,39 +192,126 @@ export class PaypalPaymentProvider implements PaymentProviderStrategy {
     credentials: ProviderCredentials,
     providerReference: string,
   ): Promise<ProviderPaymentResult> {
-    const accessToken = await this.getAccessToken(credentials);
-    const baseUrl = this.apiBase(credentials);
+    const resolved = this.resolveCredentials(credentials);
+    const accessToken = await this.getAccessToken(resolved);
+    const baseUrl = this.apiBase(resolved);
+    const captureUrl = `${baseUrl}/v2/checkout/orders/${providerReference}/capture`;
 
-    const response = await fetch(
-      `${baseUrl}/v2/checkout/orders/${providerReference}/capture`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      },
+    this.logger.log(
+      JSON.stringify({
+        message: "paypal.capture.request",
+        environment: resolved.environment ?? "sandbox",
+        orderId: providerReference,
+        url: captureUrl,
+      }),
     );
 
-    const payload = (await response.json()) as {
-      id?: string;
-      status?: string;
-      message?: string;
-    };
+    const response = await fetch(captureUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
+    });
+
+    const payload = (await response.json()) as PayPalApiErrorPayload & PayPalOrderPayload;
 
     if (!response.ok) {
+      const issue = payload.details?.[0]?.issue;
+      if (
+        response.status === 422 &&
+        (issue === "ORDER_ALREADY_CAPTURED" || issue === "ORDER_ALREADY_COMPLETED")
+      ) {
+        return this.resolveAlreadyCapturedOrder(resolved, providerReference, issue);
+      }
+
+      const failureReason = formatPaypalApiError(payload);
+      this.logger.warn(
+        JSON.stringify({
+          message: "paypal.capture.failed",
+          environment: resolved.environment ?? "sandbox",
+          orderId: providerReference,
+          httpStatus: response.status,
+          issue,
+          error: failureReason,
+        }),
+      );
       return {
         providerReference,
         status: PaymentStatus.FAILED,
-        failureReason: payload.message ?? "PayPal capture failed",
+        failureReason,
         rawResponse: payload,
       };
     }
 
+    if (!isPaypalOrderCaptured(payload)) {
+      const orderStatus = getPaypalOrderStatus(payload) ?? "unknown";
+      const failureReason = `PayPal capture response missing completed capture (order status: ${orderStatus})`;
+      this.logger.warn(
+        JSON.stringify({
+          message: "paypal.capture.incomplete",
+          environment: resolved.environment ?? "sandbox",
+          orderId: providerReference,
+          httpStatus: response.status,
+          orderStatus,
+        }),
+      );
+      return {
+        providerReference,
+        status: PaymentStatus.FAILED,
+        failureReason,
+        rawResponse: payload,
+      };
+    }
+
+    const captureId = extractPaypalCaptureId(payload, providerReference);
+    this.logger.log(
+      JSON.stringify({
+        message: "paypal.capture.succeeded",
+        environment: resolved.environment ?? "sandbox",
+        orderId: providerReference,
+        captureId,
+      }),
+    );
+
     return {
-      providerReference: payload.id ?? providerReference,
-      status: this.mapPaypalStatus(payload.status),
+      providerReference: captureId ?? providerReference,
+      status: PaymentStatus.SUCCESS,
       rawResponse: payload,
+    };
+  }
+
+  private async resolveAlreadyCapturedOrder(
+    credentials: ProviderCredentials,
+    orderId: string,
+    issue?: string,
+  ): Promise<ProviderPaymentResult> {
+    const orderStatus = await this.getPaymentStatus(credentials, orderId);
+    if (isPaypalOrderCaptured(orderStatus.rawResponse)) {
+      const captureId = extractPaypalCaptureId(orderStatus.rawResponse, orderId);
+      this.logger.log(
+        JSON.stringify({
+          message: "paypal.capture.already_completed",
+          environment: credentials.environment ?? "sandbox",
+          orderId,
+          captureId,
+          issue,
+        }),
+      );
+      return {
+        providerReference: captureId ?? orderId,
+        status: PaymentStatus.SUCCESS,
+        rawResponse: orderStatus.rawResponse,
+      };
+    }
+
+    return {
+      providerReference: orderId,
+      status: PaymentStatus.FAILED,
+      failureReason:
+        "PayPal reported the order was already captured, but no completed capture was found on the order",
+      rawResponse: orderStatus.rawResponse,
     };
   }
 
@@ -362,15 +475,70 @@ export class PaypalPaymentProvider implements PaymentProviderStrategy {
     return extractPaypalCaptureId(rawResponse, fallback) ?? fallback ?? "";
   }
 
+  async verifyWebhookSignature(
+    credentials: ProviderCredentials,
+    input: {
+      webhookId: string;
+      authAlgo: string;
+      certUrl: string;
+      transmissionId: string;
+      transmissionSig: string;
+      transmissionTime: string;
+      webhookEvent: unknown;
+    },
+  ): Promise<boolean> {
+    const resolved = this.resolveCredentials(credentials);
+    const accessToken = await this.getAccessToken(resolved);
+    const baseUrl = this.apiBase(resolved);
+
+    const response = await fetch(`${baseUrl}/v1/notifications/verify-webhook-signature`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        auth_algo: input.authAlgo,
+        cert_url: input.certUrl,
+        transmission_id: input.transmissionId,
+        transmission_sig: input.transmissionSig,
+        transmission_time: input.transmissionTime,
+        webhook_id: input.webhookId,
+        webhook_event: input.webhookEvent,
+      }),
+    });
+
+    const payload = (await response.json()) as { verification_status?: string };
+    return payload.verification_status === "SUCCESS";
+  }
+
+  private oauthCacheKey(credentials: ProviderCredentials): string {
+    const environment = this.resolveEnvironment(credentials);
+    return `${environment}:${credentials.client_id ?? ""}`;
+  }
+
   private async getAccessToken(credentials: ProviderCredentials): Promise<string> {
-    const { accessToken } = await this.issueAccessToken(credentials);
-    return accessToken;
+    const key = this.oauthCacheKey(credentials);
+    const cached = this.oauthTokenCache.get(key);
+    const skewMs = 60_000;
+    if (cached && cached.expiresAtMs > Date.now() + skewMs) {
+      return cached.accessToken;
+    }
+
+    const issued = await this.issueAccessToken(credentials);
+    const ttlMs = Math.max((issued.expiresInSec - 120) * 1000, 60_000);
+    this.oauthTokenCache.set(key, {
+      accessToken: issued.accessToken,
+      expiresAtMs: Date.now() + ttlMs,
+    });
+    return issued.accessToken;
   }
 
   private async issueAccessToken(credentials: ProviderCredentials): Promise<{
     accessToken: string;
     scope: string;
     latencyMs: number;
+    expiresInSec: number;
   }> {
     const clientId = credentials.client_id;
     const clientSecret = credentials.client_secret;
@@ -394,6 +562,7 @@ export class PaypalPaymentProvider implements PaymentProviderStrategy {
     const payload = (await response.json()) as {
       access_token?: string;
       scope?: string;
+      expires_in?: number;
       error_description?: string;
       error?: string;
     };
@@ -412,6 +581,7 @@ export class PaypalPaymentProvider implements PaymentProviderStrategy {
       accessToken: payload.access_token,
       scope: payload.scope ?? "",
       latencyMs,
+      expiresInSec: typeof payload.expires_in === "number" ? payload.expires_in : 32_400,
     };
   }
 

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import {
   Badge,
@@ -26,7 +26,7 @@ import { paymentQueryKeys } from "@/lib/payments/query-keys";
 import { paymentsOrchestrationService } from "@/services/payments-orchestration.service";
 import { getSocketStatus } from "@/services/socket";
 import { useAuthStore } from "@/store/auth.store";
-import type { PaymentSessionStatus } from "@/types/payments-orchestration";
+import type { PaymentSessionDetail, PaymentSessionStatus } from "@/types/payments-orchestration";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -63,25 +63,33 @@ export function CheckoutConsoleDashboard({ sessionId }: { sessionId: string }) {
   const role = user?.role ?? "sales_agent";
   const canProcess = canProcessPayments(role);
   const [financeNotes, setFinanceNotes] = useState("");
+  const queryClient = useQueryClient();
 
   usePaymentRealtime(sessionId);
 
   const sessionQuery = useQuery({
     queryKey: paymentQueryKeys.paymentSessionDetail(sessionId),
     queryFn: () => paymentsOrchestrationService.getPaymentSession(sessionId),
-    staleTime: 5_000,
+    staleTime: 30_000,
+    initialData: () =>
+      queryClient.getQueryData<PaymentSessionDetail>(
+        paymentQueryKeys.paymentSessionDetail(sessionId),
+      ),
+    refetchOnMount: (query) => (query.state.data ? "always" : true),
   });
 
   const auditQuery = useQuery({
     queryKey: paymentQueryKeys.paymentSessionAudit(sessionId),
     queryFn: () => paymentsOrchestrationService.getPaymentSessionAudit(sessionId),
-    enabled: canProcess,
+    enabled: canProcess && Boolean(sessionQuery.data),
+    staleTime: 60_000,
   });
 
   const attemptsQuery = useQuery({
     queryKey: paymentQueryKeys.paymentSessionAttempts(sessionId),
     queryFn: () => paymentsOrchestrationService.listPaymentSessionAttempts(sessionId),
-    enabled: canProcess,
+    enabled: canProcess && Boolean(sessionQuery.data),
+    staleTime: 15_000,
   });
 
   const invalidate = () => {
@@ -153,7 +161,7 @@ export function CheckoutConsoleDashboard({ sessionId }: { sessionId: string }) {
         </div>
       </header>
 
-      {sessionQuery.isLoading ? (
+      {!session && sessionQuery.isLoading ? (
         <div className="grid gap-4 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-80 w-full" />

@@ -2,11 +2,12 @@
  * Upserts PayPal sandbox credentials into payment_gateways (encrypted at rest).
  *
  * Reads from env (or apps/api/.env):
- *   PAYPAL_SANDBOX_CLIENT_ID
- *   PAYPAL_SANDBOX_CLIENT_SECRET
+ *   Sandbox (default): PAYPAL_SANDBOX_CLIENT_ID, PAYPAL_SANDBOX_CLIENT_SECRET
+ *   Live (--live):     PAYPAL_LIVE_CLIENT_ID, PAYPAL_LIVE_CLIENT_SECRET
  *
  * Usage:
  *   node scripts/update-paypal-gateway-credentials.mjs
+ *   node scripts/update-paypal-gateway-credentials.mjs --live
  */
 import { createCipheriv, randomBytes, scryptSync } from "crypto";
 import { existsSync, readFileSync } from "fs";
@@ -65,11 +66,20 @@ function encryptPaymentCredentials(plaintext, key) {
 async function main() {
   loadDotEnv();
 
-  const clientId = process.env.PAYPAL_SANDBOX_CLIENT_ID?.trim();
-  const clientSecret = process.env.PAYPAL_SANDBOX_CLIENT_SECRET?.trim();
+  const useLive = process.argv.includes("--live");
+  const clientId = (
+    useLive ? process.env.PAYPAL_LIVE_CLIENT_ID : process.env.PAYPAL_SANDBOX_CLIENT_ID
+  )?.trim();
+  const clientSecret = (
+    useLive ? process.env.PAYPAL_LIVE_CLIENT_SECRET : process.env.PAYPAL_SANDBOX_CLIENT_SECRET
+  )?.trim();
+  const environment = useLive ? "live" : "sandbox";
+
   if (!clientId || !clientSecret) {
     console.error(
-      "Missing PAYPAL_SANDBOX_CLIENT_ID or PAYPAL_SANDBOX_CLIENT_SECRET in environment or apps/api/.env",
+      useLive
+        ? "Missing PAYPAL_LIVE_CLIENT_ID or PAYPAL_LIVE_CLIENT_SECRET"
+        : "Missing PAYPAL_SANDBOX_CLIENT_ID or PAYPAL_SANDBOX_CLIENT_SECRET in environment or apps/api/.env",
     );
     process.exit(1);
   }
@@ -77,7 +87,7 @@ async function main() {
   const credentials = {
     client_id: clientId,
     client_secret: clientSecret,
-    environment: "sandbox",
+    environment,
   };
 
   const prisma = new PrismaClient();
@@ -91,14 +101,14 @@ async function main() {
       update: {
         is_active: true,
         encrypted_credentials: encryptPaymentCredentials(credentials, encryptionKey),
-        settings: { default_currency: "USD", environment: "sandbox" },
+        settings: { default_currency: "USD", environment },
       },
       create: {
         name: "PayPal Primary",
         type: PaymentGatewayType.paypal,
         is_active: true,
         encrypted_credentials: encryptPaymentCredentials(credentials, encryptionKey),
-        settings: { default_currency: "USD", environment: "sandbox" },
+        settings: { default_currency: "USD", environment },
       },
       select: { id: true, name: true, type: true, is_active: true, updated_at: true },
     });
@@ -109,7 +119,7 @@ async function main() {
           ok: true,
           message: "PayPal Primary gateway credentials updated",
           gateway,
-          environment: "sandbox",
+          environment,
           client_id_prefix: `${clientId.slice(0, 8)}…`,
         },
         null,

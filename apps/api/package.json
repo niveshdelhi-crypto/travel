@@ -24,6 +24,7 @@
     "verify:call-center": "node scripts/verify-call-center.mjs",
     "verify:gateway-health": "node scripts/verify-paypal-gateway-health.mjs",
     "sync:paypal-credentials": "node scripts/update-paypal-gateway-credentials.mjs",
+    "sync:paypal-credentials:live": "node scripts/update-paypal-gateway-credentials.mjs --live",
     "seed:payment-queue": "node scripts/seed-payment-queue-demo.mjs",
     "verify:checkout-flow": "node scripts/verify-checkout-flow.mjs"
   },

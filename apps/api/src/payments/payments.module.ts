@@ -13,6 +13,7 @@ import {
 } from "./controllers/payment-gateways.controller";
 import { PaymentTestingController } from "./controllers/payment-testing.controller";
 import { PaymentTransactionsController } from "./controllers/payment-transactions.controller";
+import { PaypalWebhookController } from "./controllers/paypal-webhook.controller";
 import { CredentialsCryptoService } from "./crypto/credentials-crypto.service";
 import { PaymentAuditMiddleware } from "./middleware/payment-audit.middleware";
 import { PaymentSessionsController } from "./payment-sessions/payment-sessions.controller";
@@ -27,6 +28,7 @@ import { GatewayHealthService } from "./services/gateway-health.service";
 import { PaymentGatewayAdminService } from "./services/payment-gateway-admin.service";
 import { PaymentTestingService } from "./services/payment-testing.service";
 import { PaymentTransactionService } from "./services/payment-transaction.service";
+import { PaypalWebhookService } from "./services/paypal-webhook.service";
 
 @Module({
   imports: [PrismaModule, RealtimeModule, BookingsModule, forwardRef(() => BookingOrchestrationModule), forwardRef(() => PaymentSessionsModule)],
@@ -39,6 +41,7 @@ import { PaymentTransactionService } from "./services/payment-transaction.servic
     BookingPaymentRequestsController,
     PaymentAuditLogsController,
     LedgerPaymentsController,
+    PaypalWebhookController,
   ],
   providers: [
     CredentialsCryptoService,
@@ -51,6 +54,7 @@ import { PaymentTransactionService } from "./services/payment-transaction.servic
     BookingPaymentWorkflowService,
     PaymentGatewayAdminService,
     GatewayHealthService,
+    PaypalWebhookService,
     AuditLogService,
     PaymentAuditMiddleware,
   ],
@@ -78,6 +82,7 @@ export class PaymentsModule implements NestModule {
       LedgerPaymentsController,
       PaymentSessionsController,
       PaymentTestingController,
+      PaypalWebhookController,
     );
   }
 }

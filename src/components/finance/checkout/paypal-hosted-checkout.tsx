@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { ExternalLink, Loader2, Lock, ShieldCheck } from "lucide-react";
-import { loadPayPalSdk } from "@/lib/payments/paypal-sdk";
+import {
+  formatPayPalClientError,
+  loadPayPalSdk,
+  type PayPalButtonsInstance,
+} from "@/lib/payments/paypal-sdk";
 import type { CheckoutPublicConfig } from "@/types/payments-orchestration";
 
 export type PayPalCheckoutMode = "card-fields" | "smart-buttons" | "approve-link";
@@ -28,8 +32,8 @@ export function PayPalHostedCheckout({
 }: PayPalHostedCheckoutProps) {
   const buttonsHostRef = useRef<HTMLDivElement>(null);
   const cardButtonsHostRef = useRef<HTMLDivElement>(null);
-  const buttonsInstanceRef = useRef<{ close: () => void } | null>(null);
-  const cardButtonsInstanceRef = useRef<{ close: () => void } | null>(null);
+  const buttonsInstanceRef = useRef<PayPalButtonsInstance | null>(null);
+  const cardButtonsInstanceRef = useRef<PayPalButtonsInstance | null>(null);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<PayPalCheckoutMode | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +73,7 @@ export function PayPalHostedCheckout({
         };
 
         const handleSdkError = (err: unknown) => {
-          const message = err instanceof Error ? err.message : "PayPal checkout failed";
+          const message = formatPayPalClientError(err);
           if (!cancelled) {
             setError(message);
             onError?.(message);
@@ -82,10 +86,12 @@ export function PayPalHostedCheckout({
           });
 
           if (cardFields.isEligible()) {
-            await cardFields.NumberField().render(`#${fieldIds.number}`);
-            await cardFields.NameField().render(`#${fieldIds.name}`);
-            await cardFields.ExpiryField().render(`#${fieldIds.expiry}`);
-            await cardFields.CVVField().render(`#${fieldIds.cvv}`);
+            await Promise.all([
+              cardFields.NumberField().render(`#${fieldIds.number}`),
+              cardFields.NameField().render(`#${fieldIds.name}`),
+              cardFields.ExpiryField().render(`#${fieldIds.expiry}`),
+              cardFields.CVVField().render(`#${fieldIds.cvv}`),
+            ]);
 
             if (cancelled) return;
 
@@ -113,24 +119,31 @@ export function PayPalHostedCheckout({
             onError: handleSdkError,
           };
 
-          buttonsInstanceRef.current = paypal.Buttons({
-            ...buttonConfig,
-            style: { ...buttonConfig.style, label: "paypal" },
-          });
-          await buttonsInstanceRef.current.render(buttonsHostRef.current);
+          const renderTasks: Promise<void>[] = [
+            (async () => {
+              buttonsInstanceRef.current = paypal.Buttons!({
+                ...buttonConfig,
+                style: { ...buttonConfig.style, label: "paypal" },
+              });
+              await buttonsInstanceRef.current.render(buttonsHostRef.current!);
+            })(),
+          ];
 
-          if (
-            paypal.FUNDING?.CARD &&
-            paypal.isFundingEligible?.(paypal.FUNDING.CARD) &&
-            cardButtonsHostRef.current
-          ) {
-            cardButtonsInstanceRef.current = paypal.Buttons({
-              ...buttonConfig,
-              fundingSource: paypal.FUNDING.CARD,
-              style: { ...buttonConfig.style, label: "pay" },
-            });
-            await cardButtonsInstanceRef.current.render(cardButtonsHostRef.current);
+          const cardFunding = paypal.FUNDING?.CARD;
+          if (cardFunding && paypal.isFundingEligible?.(cardFunding) && cardButtonsHostRef.current) {
+            renderTasks.push(
+              (async () => {
+                cardButtonsInstanceRef.current = paypal.Buttons!({
+                  ...buttonConfig,
+                  fundingSource: cardFunding,
+                  style: { ...buttonConfig.style, label: "pay" },
+                });
+                await cardButtonsInstanceRef.current.render(cardButtonsHostRef.current!);
+              })(),
+            );
           }
+
+          await Promise.all(renderTasks);
 
           if (cancelled) return;
 
@@ -154,7 +167,7 @@ export function PayPalHostedCheckout({
           onReady?.("approve-link");
           return;
         }
-        const message = err instanceof Error ? err.message : "Failed to load PayPal checkout";
+        const message = formatPayPalClientError(err);
         if (!cancelled) {
           setError(message);
           onError?.(message);
@@ -196,6 +209,14 @@ export function PayPalHostedCheckout({
             : mode === "smart-buttons"
               ? "Customer pays via PayPal — use Debit/Credit Card or PayPal wallet below."
               : "Open PayPal checkout in a new window for the customer to pay."}
+          {config.environment === "sandbox" ? (
+            <>
+              {" "}
+              Sandbox only: use PayPal-generated test cards (e.g. Visa{" "}
+              <span className="font-mono">4012888888881881</span>) — not{" "}
+              <span className="font-mono">4111…</span> or real cards.
+            </>
+          ) : null}
         </p>
       </div>
 
@@ -245,8 +266,29 @@ export function PayPalHostedCheckout({
       {mode === "approve-link" && approveUrl ? (
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Inline card fields are not enabled on this PayPal app. Open hosted checkout:
+            Inline card fields are not enabled on this PayPal app. Pay on PayPal&apos;s hosted page
+            (URL must be <span className="font-mono">sandbox.paypal.com</span>).
           </p>
+          {config.environment === "sandbox" ? (
+            <div className="rounded-lg border border-warning/30 bg-warning/5 px-3 py-2 text-xs text-muted-foreground">
+              <p className="font-semibold text-warning">Sandbox test cards</p>
+              <p className="mt-1">
+                Do not use <span className="font-mono">4111…</span> or real cards — PayPal shows
+                &quot;We weren&apos;t able to add this card.&quot; Generate a fresh Visa from the{" "}
+                <a
+                  href="https://developer.paypal.com/tools/sandbox/card-testing/#link-creditcardgenerator"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline"
+                >
+                  PayPal card generator
+                </a>
+                , or try <span className="font-mono">4012888888881881</span> with expiry{" "}
+                <span className="font-mono">12/2028</span>, CVV <span className="font-mono">123</span>,
+                and a complete US billing address.
+              </p>
+            </div>
+          ) : null}
           <a
             href={approveUrl}
             target="_blank"

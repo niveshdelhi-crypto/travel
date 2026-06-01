@@ -8,7 +8,7 @@ import {
 } from "@prisma/client";
 import { createWriteStream, promises as fs } from "fs";
 import { join } from "path";
-import PDFDocument from "pdfkit";
+import { createPdfDocument } from "../../common/pdf/create-pdf-document";
 import { PrismaService } from "../../prisma/prisma.service";
 import { AuditLogService } from "../../payments/services/audit-log.service";
 import { RealtimeGateway } from "../../realtime/realtime.gateway";
@@ -231,7 +231,7 @@ export class InvoiceVoucherService {
     const absolutePath = join(uploadDir, input.fileName);
 
     await new Promise<void>((resolve, reject) => {
-      const doc = new PDFDocument({ margin: 50 });
+      const doc = createPdfDocument({ margin: 50 });
       const stream = createWriteStream(absolutePath);
       doc.pipe(stream);
       doc.fontSize(20).fillColor("#172033").text(input.title, { align: "center" });

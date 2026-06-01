@@ -32,7 +32,9 @@ import { CompletePaymentSessionDto } from "./dto/complete-payment-session.dto";
 import { CreatePaymentSessionDto } from "./dto/create-payment-session.dto";
 import { FailPaymentSessionDto } from "./dto/fail-payment-session.dto";
 import { QuickCollectPaymentDto } from "./dto/quick-collect-payment.dto";
+import { randomUUID } from "crypto";
 import { sanitizeProviderResponse } from "./checkout/sanitize-provider-response.util";
+import { PaymentSessionCheckoutService } from "./payment-session-checkout.service";
 
 const SESSION_TTL_HOURS = 24;
 
@@ -122,6 +124,8 @@ export class PaymentSessionsService {
     private readonly paymentTransactions: PaymentTransactionService,
     @Inject(forwardRef(() => BookingOrchestrationService))
     private readonly bookingOrchestration: BookingOrchestrationService,
+    @Inject(forwardRef(() => PaymentSessionCheckoutService))
+    private readonly paymentCheckout: PaymentSessionCheckoutService,
   ) {}
 
   private sessionAccessWhere(user: AuthenticatedUser): Prisma.PaymentSessionWhereInput {
@@ -277,7 +281,7 @@ export class PaymentSessionsService {
 
   /**
    * Finance quick collect: minimal lead + booking + PayPal session, started for immediate checkout.
-   * Intended for temporary ad-hoc card collection during live calls.
+   * Optimized for speed — single DB transaction, PROCESSING session, deferred audits, one prepare pass.
    */
   async quickCollect(
     user: AuthenticatedUser,
@@ -297,71 +301,172 @@ export class PaymentSessionsService {
     }
 
     const currency = (dto.currency ?? "USD").toUpperCase().slice(0, 3);
+    const customerEmail = dto.customer_email.toLowerCase().trim();
+    const customerName = dto.customer_name.trim();
+    const customerPhone = dto.customer_phone.trim();
+    const revenue = new Prisma.Decimal(dto.amount);
     const pickupAt = new Date();
     pickupAt.setDate(pickupAt.getDate() + 1);
     const returnAt = new Date(pickupAt);
     returnAt.setDate(returnAt.getDate() + 7);
-
-    const lead = await this.prisma.lead.create({
-      data: {
-        customer_name: dto.customer_name.trim(),
-        customer_email: dto.customer_email.toLowerCase().trim(),
-        customer_phone: dto.customer_phone.trim(),
-        pickup_location: "Finance quick collect",
-        drop_location: "Finance quick collect",
-        pickup_datetime: pickupAt,
-        return_datetime: returnAt,
-        assigned_to: user.id,
-        status: LeadStatus.NEGOTIATING,
-      },
-    });
-
-    await this.prisma.leadActivity.create({
-      data: {
-        lead_id: lead.id,
-        action: LeadActivityAction.LEAD_CREATED,
-        performed_by: user.id,
-        metadata: {
-          source: "finance_quick_collect",
-          amount: dto.amount,
-          currency,
-        },
-      },
-    });
-
-    const booking = await this.bookingOrchestration.initiateFromLead(user, {
-      leadId: lead.id,
-      grossRevenue: dto.amount,
-      currency,
-      notes: `Finance quick collect · ${dto.customer_name}`,
-      partnerName: "Finance desk",
-    });
+    const expiresAt = new Date(Date.now() + SESSION_TTL_HOURS * 60 * 60 * 1000);
 
     const financeNotes = [
       "Quick collect",
-      `Customer: ${dto.customer_name}`,
+      `Customer: ${customerName}`,
       `Email: ${dto.customer_email}`,
-      `Phone: ${dto.customer_phone}`,
+      `Phone: ${customerPhone}`,
     ].join(" · ");
 
-    const session = await this.requestPaymentForBooking(user, booking.id, ctx, {
-      finance_notes: financeNotes,
+    const { leadId, bookingId, sessionId } = await this.prisma.$transaction(async (tx) => {
+      const lead = await tx.lead.create({
+        data: {
+          customer_name: customerName,
+          customer_email: customerEmail,
+          customer_phone: customerPhone,
+          pickup_location: "Finance quick collect",
+          drop_location: "Finance quick collect",
+          pickup_datetime: pickupAt,
+          return_datetime: returnAt,
+          assigned_to: user.id,
+          status: LeadStatus.NEGOTIATING,
+        },
+      });
+
+      await tx.leadActivity.create({
+        data: {
+          lead_id: lead.id,
+          action: LeadActivityAction.LEAD_CREATED,
+          performed_by: user.id,
+          metadata: {
+            source: "finance_quick_collect",
+            amount: dto.amount,
+            currency,
+          },
+        },
+      });
+
+      const existingTraveler = await tx.traveler.findUnique({
+        where: { email: customerEmail },
+      });
+      const traveler =
+        existingTraveler ??
+        (await tx.traveler.create({
+          data: {
+            email: customerEmail,
+            full_name: customerName,
+            phone: customerPhone,
+          },
+        }));
+
+      if (existingTraveler) {
+        await tx.traveler.update({
+          where: { id: traveler.id },
+          data: {
+            full_name: customerName,
+            phone: customerPhone || existingTraveler.phone,
+          },
+        });
+      }
+
+      await tx.lead.update({
+        where: { id: lead.id },
+        data: { traveler_id: traveler.id },
+      });
+
+      const booking = await tx.booking.create({
+        data: {
+          lead_id: lead.id,
+          traveler_id: traveler.id,
+          gross_revenue: revenue,
+          currency,
+          status: BookingStatus.PAYMENT_PENDING,
+          lifecycle_status: BookingLifecycleStatus.PAYMENT_PROCESSING,
+          partner_name: "Finance desk",
+          notes: `Finance quick collect · ${customerName}`,
+          idempotency_key: `quick-collect-${randomUUID()}`,
+          recorded_by: user.id,
+        },
+      });
+
+      const session = await tx.paymentSession.create({
+        data: {
+          lead_id: lead.id,
+          booking_id: booking.id,
+          amount: revenue,
+          currency,
+          gateway_id: gateway.id,
+          requested_by_id: user.id,
+          processed_by_id: user.id,
+          status: PaymentSessionStatus.PROCESSING,
+          finance_notes: financeNotes,
+          expires_at: expiresAt,
+        },
+      });
+
+      return { leadId: lead.id, bookingId: booking.id, sessionId: session.id };
     });
 
-    const started =
-      session.status === PaymentSessionStatus.PROCESSING
-        ? session
-        : await this.start(user, session.id, ctx);
+    const session = await this.prisma.paymentSession.findUniqueOrThrow({
+      where: { id: sessionId },
+      include: sessionInclude,
+    });
 
-    const queueItem = this.buildQueueItem(started);
+    this.deferInBackground(
+      this.auditLog.log({
+        action: AuditLogAction.BOOKING_CREATED,
+        resourceType: "booking",
+        resourceId: bookingId,
+        userId: user.id,
+        metadata: { leadId, source: "finance_quick_collect" },
+      }),
+      this.auditLog.log({
+        action: AuditLogAction.PAYMENT_SESSION_CREATED,
+        resourceType: "payment_session",
+        resourceId: sessionId,
+        userId: user.id,
+        ipAddress: ctx.ipAddress,
+        metadata: { bookingId, gatewayId: gateway.id, amount: dto.amount, currency },
+      }),
+      this.auditLog.log({
+        action: AuditLogAction.PAYMENT_SESSION_PROCESSING,
+        resourceType: "payment_session",
+        resourceId: sessionId,
+        userId: user.id,
+        ipAddress: ctx.ipAddress,
+        metadata: { gatewayId: gateway.id, source: "finance_quick_collect" },
+      }),
+    );
+
+    this.emitSessionEvent("PAYMENT_SESSION_PROCESSING", session);
+
+    const queueItem = this.buildQueueItem(session);
+    const configPayload = await this.paymentCheckout.getCheckoutConfig(user, sessionId);
+
+    this.deferInBackground(this.notifyFinanceQueueAsync(session));
 
     return {
-      session_id: started.id,
+      session_id: sessionId,
+      session,
       checkout_path: queueItem.checkout_path,
       queue_item: queueItem,
-      lead_id: lead.id,
-      booking_id: booking.id,
+      lead_id: leadId,
+      booking_id: bookingId,
+      provider_order_id: session.provider_order_id,
+      checkout: configPayload.checkout,
+      /** Client calls POST …/checkout/prepare to create the PayPal order (faster modal open). */
+      prepare: null,
     };
+  }
+
+  private deferInBackground(...tasks: Array<Promise<unknown>>) {
+    for (const task of tasks) {
+      void task.catch(() => undefined);
+    }
+  }
+
+  private async notifyFinanceQueueAsync(session: SessionWithRelations) {
+    this.notifyFinanceQueue(session);
   }
 
   async requestPaymentForLead(
@@ -596,17 +701,19 @@ export class PaymentSessionsService {
     if (!session) throw new NotFoundException("Payment session not found");
 
     if (hasFinanceAccess(user.role)) {
-      await this.auditLog.log({
-        action: AuditLogAction.PAYMENT_SESSION_OPENED,
-        resourceType: "payment_session",
-        resourceId: session.id,
-        userId: user.id,
-        ipAddress: ctx.ipAddress,
-        userAgent: ctx.userAgent,
-        requestMethod: ctx.requestMethod,
-        requestPath: ctx.requestPath,
-        metadata: { gatewayId: session.gateway_id },
-      });
+      this.deferInBackground(
+        this.auditLog.log({
+          action: AuditLogAction.PAYMENT_SESSION_OPENED,
+          resourceType: "payment_session",
+          resourceId: session.id,
+          userId: user.id,
+          ipAddress: ctx.ipAddress,
+          userAgent: ctx.userAgent,
+          requestMethod: ctx.requestMethod,
+          requestPath: ctx.requestPath,
+          metadata: { gatewayId: session.gateway_id },
+        }),
+      );
     }
 
     return session;
@@ -671,6 +778,12 @@ export class PaymentSessionsService {
     }
 
     const session = await this.getSessionOrThrow(sessionId);
+    if (session.gateway.type === PaymentGatewayType.paypal) {
+      throw new BadRequestException(
+        "PayPal sessions must be completed via checkout capture (Process Payment), not manual complete",
+      );
+    }
+
     this.assertNotExpired(session);
     this.assertSessionTransition(session.status, PaymentSessionStatus.SUCCESS);
 
