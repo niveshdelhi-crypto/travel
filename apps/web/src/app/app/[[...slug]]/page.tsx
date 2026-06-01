@@ -9,7 +9,7 @@ type AppCompatPageProps = {
 
 function legacyAppPathToNextPath(parts: string[] | undefined, role: string): string {
   const [section] = parts ?? [];
-  const roleHome = role === "sales_agent" ? "/sales" : "/leads";
+  const roleHome = role === "admin" ? "/dashboard" : "/sales";
 
   switch (section) {
     case undefined:

@@ -1,11 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { authService } from "@/services/auth.service";
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,14 +14,30 @@ export default function LoginPage() {
   const next = searchParams.get("next");
   const requestedPath = next?.startsWith("/") ? next : "/app";
 
+  function isBlockedForSalesAgent(path: string): boolean {
+    return (
+      path.startsWith("/leads") ||
+      path.startsWith("/bookings") ||
+      path.startsWith("/payments") ||
+      path.startsWith("/finance") ||
+      path.startsWith("/checkout-console") ||
+      path.startsWith("/analytics") ||
+      path.startsWith("/admin")
+    );
+  }
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
       const result = await authService.login({ email: email.trim(), password });
-      const roleDefault = result.user.role === "sales_agent" ? "/sales" : "/leads";
-      const targetAfterLogin = requestedPath === "/app" ? roleDefault : requestedPath;
+      const roleDefault = result.user.role === "admin" ? "/dashboard" : "/sales";
+      const rawTarget = requestedPath === "/app" ? roleDefault : requestedPath;
+      const targetAfterLogin =
+        result.user.role === "sales_agent" && isBlockedForSalesAgent(rawTarget)
+          ? roleDefault
+          : rawTarget;
       window.location.replace(targetAfterLogin);
     } catch {
       setError("Invalid email or password.");
