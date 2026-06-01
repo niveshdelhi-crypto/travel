@@ -39,7 +39,7 @@ export function HeroSection({ leadMode = false, suppliers = [] }: HeroSectionPro
             <br className="hidden md:block" />
             Anywhere in the world.
           </h1>
-          <p className="mt-4 max-w-xl text-base text-white/85 md:text-lg">
+          <p className="mt-4 hidden max-w-xl text-base text-white/85 md:block md:text-lg">
             Compare 800+ rental suppliers across 30,000+ locations. Best price guarantee, secure
             booking, and 24/7 worldwide support.
           </p>

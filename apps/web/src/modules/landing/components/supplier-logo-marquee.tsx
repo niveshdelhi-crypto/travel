@@ -27,7 +27,6 @@ function SupplierLogoContent({
   if (supplier.logo_url) {
     return (
       // Admin-managed URLs may come from any host; plain img avoids Next image domain config.
-      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={supplier.logo_url}
         alt={supplier.name}
