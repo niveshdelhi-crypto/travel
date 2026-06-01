@@ -17,13 +17,21 @@ const legacyRedirectPrefixes = [
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const envCrmUrl = process.env.NEXT_PUBLIC_CRM_URL?.trim();
+  const shouldUseLegacyRedirect = Boolean(
+    envCrmUrl &&
+      !/localhost|127\.0\.0\.1|::1/i.test(envCrmUrl) &&
+      resolveCrmBaseUrl(request.nextUrl.origin) !== request.nextUrl.origin,
+  );
+
+  if (!shouldUseLegacyRedirect) return NextResponse.next();
+
   const shouldRedirect = legacyRedirectPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 
   if (!shouldRedirect) return NextResponse.next();
 
-  // Prefer same-origin in production (avoid accidental `localhost:8080` env values).
   const crmBaseUrl = resolveCrmBaseUrl(request.nextUrl.origin);
 
   if (pathname === "/login" || pathname.startsWith("/login/")) {
