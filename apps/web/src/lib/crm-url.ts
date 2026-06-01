@@ -71,5 +71,14 @@ export function getLegacyCrmUrl(legacyPath = "/app"): string {
 
 export function getLegacyCrmLoginUrl(nextPath?: string | null): string {
   const redirect = mapNextPathToLegacy(nextPath ?? "/app");
-  return `${getCrmBaseUrl()}/login?redirect=${encodeURIComponent(redirect)}`;
+  const base = getCrmBaseUrl();
+
+  // When CRM base resolves to this same origin, `/login` would hit this Next.js route again and loop.
+  // In that deployment shape, jump straight to legacy `/app*` target.
+  if (typeof window !== "undefined") {
+    const sameOriginBase = !base || base === window.location.origin;
+    if (sameOriginBase) return `${base}${redirect}`;
+  }
+
+  return `${base}/login?redirect=${encodeURIComponent(redirect)}`;
 }

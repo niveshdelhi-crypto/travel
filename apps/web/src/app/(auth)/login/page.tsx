@@ -17,7 +17,21 @@ function LoginRedirect() {
 
   useEffect(() => {
     const next = searchParams.get("next");
-    window.location.replace(getLegacyCrmLoginUrl(next));
+    const target = getLegacyCrmLoginUrl(next);
+    const targetUrl = new URL(target, window.location.origin);
+    const sameAsCurrent =
+      targetUrl.origin === window.location.origin &&
+      targetUrl.pathname === window.location.pathname &&
+      targetUrl.search === window.location.search;
+
+    if (sameAsCurrent) {
+      // Safety guard against accidental self-redirect loops.
+      const fallback = next?.startsWith("/app") ? next : "/app";
+      window.location.replace(fallback);
+      return;
+    }
+
+    window.location.replace(targetUrl.toString());
   }, [searchParams]);
 
   return <RedirectFallback />;

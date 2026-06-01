@@ -5,15 +5,12 @@ import type { Route } from "next";
 import { Globe, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand/brand-logo";
-import { getLegacyCrmLoginUrl } from "@/lib/crm-url";
 
 const navLinks = [
   { href: "/faq", label: "FAQ" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
-
-const crmSignInUrl = getLegacyCrmLoginUrl();
 
 export function LandingNavbar() {
   const [open, setOpen] = useState(false);
@@ -42,12 +39,6 @@ export function LandingNavbar() {
           >
             <Globe className="size-3.5" /> EN · USD
           </button>
-          <a
-            href={crmSignInUrl}
-            className="rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
-          >
-            Staff sign in
-          </a>
         </div>
 
         <button
@@ -73,13 +64,6 @@ export function LandingNavbar() {
                 {l.label}
               </Link>
             ))}
-            <a
-              href={crmSignInUrl}
-              onClick={() => setOpen(false)}
-              className="rounded-lg px-3 py-2.5 text-sm font-medium text-brand-accent hover:bg-white/5"
-            >
-              Staff sign in
-            </a>
           </div>
         </div>
       )}

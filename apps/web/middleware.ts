@@ -29,6 +29,13 @@ export function middleware(request: NextRequest) {
   if (pathname === "/login" || pathname.startsWith("/login/")) {
     const next = request.nextUrl.searchParams.get("next");
     const redirectPath = mapNextPathToLegacy(next ?? "/app");
+
+    const sameOriginBase = !crmBaseUrl || crmBaseUrl === request.nextUrl.origin;
+    if (sameOriginBase) {
+      if (redirectPath === pathname) return NextResponse.next();
+      return NextResponse.redirect(`${request.nextUrl.origin}${redirectPath}`);
+    }
+
     const loginUrl = `${crmBaseUrl}/login?redirect=${encodeURIComponent(redirectPath)}`;
     return NextResponse.redirect(loginUrl);
   }
