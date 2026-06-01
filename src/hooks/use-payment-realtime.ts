@@ -28,59 +28,93 @@ function dedupeHandler<T extends { _realtime?: { eventId?: string } }>(
   };
 }
 
-function invalidatePaymentQueries(queryClient: ReturnType<typeof useQueryClient>) {
-  void queryClient.invalidateQueries({ queryKey: paymentQueryKeys.root });
+/** Invalidate only queue/metrics surfaces — avoid refetching entire payment console. */
+function invalidateLivePaymentSurfaces(queryClient: ReturnType<typeof useQueryClient>) {
+  void queryClient.invalidateQueries({ queryKey: paymentQueryKeys.bookingRequests() });
+  void queryClient.invalidateQueries({ queryKey: paymentQueryKeys.paymentSessionQueue() });
+  void queryClient.invalidateQueries({ queryKey: paymentQueryKeys.paymentSessionMetrics() });
+  void queryClient.invalidateQueries({ queryKey: paymentQueryKeys.transactions({}, 1) });
 }
 
-export function usePaymentRealtime() {
+function invalidatePaymentSessionDetail(
+  queryClient: ReturnType<typeof useQueryClient>,
+  sessionId?: string,
+) {
+  if (!sessionId) return;
+  void queryClient.invalidateQueries({ queryKey: paymentQueryKeys.paymentSessionDetail(sessionId) });
+  void queryClient.invalidateQueries({ queryKey: paymentQueryKeys.checkoutConfig(sessionId) });
+  void queryClient.invalidateQueries({ queryKey: paymentQueryKeys.paymentSessionAttempts(sessionId) });
+}
+
+export function usePaymentRealtime(activeSessionId?: string) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const invalidate = () => invalidatePaymentQueries(queryClient);
+    const invalidateQueues = () => invalidateLivePaymentSurfaces(queryClient);
+    const invalidateSession = (payload: PaymentSessionRealtimePayload) =>
+      invalidatePaymentSessionDetail(queryClient, payload.id ?? activeSessionId);
 
     const disposers = [
       onSocketEvent(
         "PAYMENT_CREATED",
-        dedupeHandler((_payload: PaymentRealtimePayload) => invalidate()),
+        dedupeHandler((_payload: PaymentRealtimePayload) => invalidateQueues()),
       ),
       onSocketEvent(
         "PAYMENT_SUCCESS",
-        dedupeHandler((_payload: PaymentRealtimePayload) => invalidate()),
+        dedupeHandler((_payload: PaymentRealtimePayload) => invalidateQueues()),
       ),
       onSocketEvent(
         "PAYMENT_FAILED",
-        dedupeHandler((_payload: PaymentRealtimePayload) => invalidate()),
+        dedupeHandler((_payload: PaymentRealtimePayload) => invalidateQueues()),
       ),
       onSocketEvent(
         "BOOKING_CONFIRMED",
-        dedupeHandler((_payload: BookingConfirmedPayload) => invalidate()),
+        dedupeHandler((_payload: BookingConfirmedPayload) => invalidateQueues()),
       ),
       onSocketEvent(
         "PAYMENT_SESSION_CREATED",
-        dedupeHandler((_payload: PaymentSessionRealtimePayload) => invalidate()),
+        dedupeHandler((payload: PaymentSessionRealtimePayload) => {
+          invalidateQueues();
+          invalidateSession(payload);
+        }),
       ),
       onSocketEvent(
         "FINANCE_PAYMENT_QUEUED",
-        dedupeHandler((_payload: PaymentSessionRealtimePayload) => invalidate()),
+        dedupeHandler((payload: PaymentSessionRealtimePayload) => {
+          invalidateQueues();
+          invalidateSession(payload);
+        }),
       ),
       onSocketEvent(
         "PAYMENT_SESSION_PROCESSING",
-        dedupeHandler((_payload: PaymentSessionRealtimePayload) => invalidate()),
+        dedupeHandler((payload: PaymentSessionRealtimePayload) => {
+          invalidateQueues();
+          invalidateSession(payload);
+        }),
       ),
       onSocketEvent(
         "PAYMENT_SESSION_SUCCESS",
-        dedupeHandler((_payload: PaymentSessionRealtimePayload) => invalidate()),
+        dedupeHandler((payload: PaymentSessionRealtimePayload) => {
+          invalidateQueues();
+          invalidateSession(payload);
+        }),
       ),
       onSocketEvent(
         "PAYMENT_SESSION_FAILED",
-        dedupeHandler((_payload: PaymentSessionRealtimePayload) => invalidate()),
+        dedupeHandler((payload: PaymentSessionRealtimePayload) => {
+          invalidateQueues();
+          invalidateSession(payload);
+        }),
       ),
       onSocketEvent(
         "PAYMENT_SESSION_CANCELLED",
-        dedupeHandler((_payload: PaymentSessionRealtimePayload) => invalidate()),
+        dedupeHandler((payload: PaymentSessionRealtimePayload) => {
+          invalidateQueues();
+          invalidateSession(payload);
+        }),
       ),
     ];
 
     return () => disposers.forEach((dispose) => dispose());
-  }, [queryClient]);
+  }, [queryClient, activeSessionId]);
 }

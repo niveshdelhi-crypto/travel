@@ -53,6 +53,8 @@ const DEFAULT_FILTERS: PaymentConsoleFilters = {
   recurringOnly: false,
 };
 
+const PAYMENT_QUERY_STALE_MS = 30_000;
+
 export function PaymentAdminDashboard() {
   const user = useAuthStore((s) => s.user);
   const role = user?.role ?? "sales_agent";
@@ -70,12 +72,14 @@ export function PaymentAdminDashboard() {
     queryKey: paymentQueryKeys.gateways(),
     queryFn: () => paymentsOrchestrationService.listGateways(),
     enabled: Boolean(user),
+    staleTime: PAYMENT_QUERY_STALE_MS,
   });
 
   const gatewayHealthQuery = useQuery({
     queryKey: paymentQueryKeys.paymentsGatewayHealth(),
     queryFn: () => paymentsOrchestrationService.getGatewayHealth(),
     enabled: Boolean(user),
+    staleTime: 120_000,
     refetchInterval: 120_000,
   });
 
@@ -88,36 +92,44 @@ export function PaymentAdminDashboard() {
         status: filters.status === "ALL" ? undefined : filters.status,
       }),
     enabled: Boolean(user),
+    staleTime: PAYMENT_QUERY_STALE_MS,
   });
 
   const bookingRequestsQuery = useQuery({
     queryKey: paymentQueryKeys.bookingRequests(),
     queryFn: () => paymentsOrchestrationService.listBookingRequests({ page: 1, pageSize: 100 }),
     enabled: Boolean(user),
+    staleTime: PAYMENT_QUERY_STALE_MS,
   });
 
   const auditQuery = useQuery({
     queryKey: paymentQueryKeys.auditLogs(),
     queryFn: () => paymentsOrchestrationService.listAuditLogs({ page: 1, pageSize: 30 }),
     enabled: Boolean(user),
+    staleTime: PAYMENT_QUERY_STALE_MS,
   });
+
+  const needsCustomerDetail = Boolean(selectedQueueId || selectedTransaction);
 
   const bookingsIndexQuery = useQuery({
     queryKey: paymentQueryKeys.bookingsIndex(),
     queryFn: () => bookingsService.list({ page: 1, pageSize: 200 }),
-    enabled: Boolean(user),
+    enabled: Boolean(user) && needsCustomerDetail,
+    staleTime: PAYMENT_QUERY_STALE_MS,
   });
 
   const leadsIndexQuery = useQuery({
     queryKey: [...paymentQueryKeys.root, "leads-index"] as const,
     queryFn: () => leadsService.admin({ page: 1, pageSize: 200 }),
-    enabled: Boolean(user),
+    enabled: Boolean(user) && needsCustomerDetail,
+    staleTime: PAYMENT_QUERY_STALE_MS,
   });
 
   const agentsQuery = useQuery({
     queryKey: paymentQueryKeys.agents(),
     queryFn: () => leadsService.metrics(),
     enabled: Boolean(user),
+    staleTime: PAYMENT_QUERY_STALE_MS,
   });
 
   const gatewayOptions = useMemo(
@@ -152,13 +164,33 @@ export function PaymentAdminDashboard() {
 
   const recurringByLeadId = useMemo(() => {
     const map = new Map<string, number>();
+    const nameCounts = new Map<string, number>();
+
     for (const booking of bookingsIndexQuery.data?.data ?? []) {
       const email = booking.lead.customer_email.toLowerCase();
-      const count = customerIndex.byEmail.get(email)?.count ?? 1;
-      map.set(booking.lead.id, count);
+      nameCounts.set(email, (nameCounts.get(email) ?? 0) + 1);
     }
+
+    for (const req of bookingRequestsQuery.data?.data ?? []) {
+      const nameKey = req.booking.lead.customer_name.toLowerCase();
+      if (!nameCounts.has(nameKey)) {
+        nameCounts.set(nameKey, (nameCounts.get(nameKey) ?? 0) + 1);
+      }
+    }
+
+    for (const booking of bookingsIndexQuery.data?.data ?? []) {
+      const email = booking.lead.customer_email.toLowerCase();
+      map.set(booking.lead.id, nameCounts.get(email) ?? 1);
+    }
+
+    for (const req of bookingRequestsQuery.data?.data ?? []) {
+      if (map.has(req.booking.lead_id)) continue;
+      const nameKey = req.booking.lead.customer_name.toLowerCase();
+      map.set(req.booking.lead_id, nameCounts.get(nameKey) ?? 1);
+    }
+
     return map;
-  }, [bookingsIndexQuery.data, customerIndex.byEmail]);
+  }, [bookingsIndexQuery.data, bookingRequestsQuery.data]);
 
   const filteredTransactions = useMemo(() => {
     let rows = transactionsQuery.data?.data ?? [];

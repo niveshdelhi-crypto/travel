@@ -169,6 +169,7 @@ export class PaymentSessionCheckoutService {
       return {
         attempt_id: attempt.id,
         order_id: order.orderId,
+        approve_url: order.approveUrl ?? null,
         attempt_number: attemptNumber,
         status: PaymentAttemptStatus.ORDER_CREATED,
       };

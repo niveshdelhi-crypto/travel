@@ -89,7 +89,7 @@ function QueueTable({ rows, loading }: { rows: PaymentSessionQueueItem[]; loadin
                   params={{ sessionId: row.id }}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10"
                 >
-                  Open Checkout
+                  Open PayPal Checkout
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </td>
@@ -108,16 +108,20 @@ export function FinanceDashboard() {
   const metricsQuery = useQuery({
     queryKey: paymentQueryKeys.paymentSessionMetrics(),
     queryFn: () => paymentsOrchestrationService.getPaymentSessionMetrics(),
+    staleTime: 30_000,
   });
 
   const queueQuery = useQuery({
     queryKey: paymentQueryKeys.paymentSessionQueue(),
     queryFn: () => paymentsOrchestrationService.listPaymentSessionQueue(),
+    staleTime: 15_000,
   });
 
   const gatewayHealthQuery = useQuery({
     queryKey: paymentQueryKeys.gatewayHealth(),
     queryFn: () => paymentsOrchestrationService.getFinanceGatewayHealth(),
+    staleTime: 120_000,
+    refetchInterval: 120_000,
   });
 
   const metrics = metricsQuery.data;

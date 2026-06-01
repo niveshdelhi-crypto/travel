@@ -217,6 +217,50 @@ function PillTrust({ icon: Icon, children }: { icon: typeof BadgeCheck; children
 }
 
 function SupplierStrip({ query }: { query: ReturnType<typeof useMarketplaceSuppliers> }) {
+  const marqueeItems = useMemo(() => {
+    if (!Array.isArray(query.data) || query.data.length === 0) return [];
+    const expanded = [];
+    while (expanded.length < 8) {
+      expanded.push(...query.data);
+    }
+    return expanded;
+  }, [query.data]);
+
+  const renderSupplierCard = (
+    supplier: (typeof marqueeItems)[number],
+    idx: number,
+    keyPrefix: string,
+  ) => (
+    <div
+      id={keyPrefix === "a" && idx === 0 ? `suppliers-${supplier.slug}` : undefined}
+      key={`${keyPrefix}-${supplier.id}-${idx}`}
+      className="relative flex w-[200px] shrink-0 flex-col gap-3 rounded-xl border border-white/14 bg-[#0F172A]/70 px-4 py-4 text-sm font-semibold text-[#E2E8F0]"
+    >
+      <div className="relative flex flex-col gap-3">
+        {supplier.logo_url ? (
+          <img
+            src={supplier.logo_url}
+            alt={supplier.name}
+            className="h-11 max-w-[180px] object-contain brightness-105"
+            draggable={false}
+          />
+        ) : (
+          <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#94A3B8]">
+            {supplier.slug.replace(/-/g, " ")}
+          </span>
+        )}
+        <a
+          className="text-[11px] font-semibold text-[#60A5FA]"
+          href={supplier.website_url ?? "#lead-form"}
+          rel="noreferrer"
+          target={supplier.website_url ? "_blank" : undefined}
+        >
+          View partner HQ ↗
+        </a>
+      </div>
+    </div>
+  );
+
   return (
     <section className="border-y border-white/10 bg-[#0a1524]/95">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:gap-14 lg:px-8">
@@ -243,42 +287,15 @@ function SupplierStrip({ query }: { query: ReturnType<typeof useMarketplaceSuppl
                 <Skeleton key={`sup-${idx}`} className="h-14 w-[128px] rounded-xl bg-white/10" />
               ))}
             </div>
-          ) : Array.isArray(query.data) && query.data.length > 0 ? (
-            <div className="group/marquee relative overflow-hidden rounded-2xl border border-white/12 bg-[#060f1c]/80 py-5">
-              <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-[#0a1524] to-transparent" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-[#0a1524] to-transparent" />
-              <div className="flex w-max gap-10 px-6 animate-fleet-marquee group-hover/marquee:[animation-play-state:paused]">
-                {[...query.data, ...query.data].map((supplier, idx) => (
-                  <motion.div
-                    id={idx === 0 ? `suppliers-${supplier.slug}` : undefined}
-                    layout
-                    key={`${supplier.id}-${idx}`}
-                    className="relative flex w-[200px] shrink-0 flex-col gap-3 rounded-xl border border-white/14 bg-[#0F172A]/70 px-4 py-4 text-sm font-semibold text-[#E2E8F0]"
-                  >
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#F5B301]/0 via-transparent to-[#3B82F6]/13 opacity-0 transition group-hover/marquee:opacity-100" />
-                    <div className="relative flex flex-col gap-3">
-                      {supplier.logo_url ? (
-                        <img
-                          src={supplier.logo_url}
-                          alt={supplier.name}
-                          className="h-11 max-w-[180px] object-contain brightness-105"
-                        />
-                      ) : (
-                        <span className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#94A3B8]">
-                          {supplier.slug.replace(/-/g, " ")}
-                        </span>
-                      )}
-                      <a
-                        className="text-[11px] font-semibold text-[#60A5FA]"
-                        href={supplier.website_url ?? "#lead-form"}
-                        rel="noreferrer"
-                        target={supplier.website_url ? "_blank" : undefined}
-                      >
-                        View partner HQ ↗
-                      </a>
-                    </div>
-                  </motion.div>
-                ))}
+          ) : marqueeItems.length > 0 ? (
+            <div className="logo-marquee relative overflow-hidden rounded-2xl border border-white/12 bg-[#060f1c]/80 py-5 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+              <div className="logo-marquee-track flex w-max flex-nowrap animate-fleet-marquee motion-reduce:animate-none">
+                <div className="flex shrink-0 gap-10 px-6">
+                  {marqueeItems.map((supplier, idx) => renderSupplierCard(supplier, idx, "a"))}
+                </div>
+                <div className="flex shrink-0 gap-10 px-6" aria-hidden>
+                  {marqueeItems.map((supplier, idx) => renderSupplierCard(supplier, idx, "b"))}
+                </div>
               </div>
             </div>
           ) : (

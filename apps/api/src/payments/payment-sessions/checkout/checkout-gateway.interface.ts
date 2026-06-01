@@ -24,6 +24,7 @@ export type CheckoutPublicConfig = {
 export type CheckoutOrderResult = {
   orderId: string;
   status: string;
+  approveUrl?: string;
   rawResponse?: unknown;
 };
 

@@ -58,12 +58,13 @@ export class AuthService {
     });
 
     this.setAuthCookies(response, accessToken, refreshToken);
-    this.setCsrfCookie(response);
+    const csrfToken = this.setCsrfCookie(response);
 
     return {
       user: this.toSafeUser(user),
       accessToken,
       refreshToken,
+      csrfToken,
     };
   }
 
@@ -130,12 +131,13 @@ export class AuthService {
     });
 
     this.setAuthCookies(response, accessToken, nextRefreshToken);
-    this.setCsrfCookie(response);
+    const csrfToken = this.setCsrfCookie(response);
 
     return {
       user: this.toSafeUser(session.user),
       accessToken,
       refreshToken: nextRefreshToken,
+      csrfToken,
     };
   }
 
@@ -187,9 +189,10 @@ export class AuthService {
     response.clearCookie("csrf_token", csrfCookieOptions(this.cookieConfig));
   }
 
-  private setCsrfCookie(response: Response) {
+  private setCsrfCookie(response: Response): string {
     const csrfToken = this.createOpaqueToken(32);
     response.cookie("csrf_token", csrfToken, csrfCookieOptions(this.cookieConfig));
+    return csrfToken;
   }
 
   private createOpaqueToken(bytes = 64) {

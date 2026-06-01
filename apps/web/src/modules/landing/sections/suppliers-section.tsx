@@ -1,8 +1,11 @@
-import { SUPPLIERS } from "../lib/constants";
+import type { MarketplaceSupplier } from "@/lib/marketplace/types";
+import { SupplierLogoMarquee } from "../components/supplier-logo-marquee";
 
-export function SuppliersSection() {
-  const marquee = [...SUPPLIERS, ...SUPPLIERS];
+type SuppliersSectionProps = {
+  suppliers: MarketplaceSupplier[];
+};
 
+export function SuppliersSection({ suppliers }: SuppliersSectionProps) {
   return (
     <section className="bg-surface-muted py-12 md:py-16">
       <div className="container-page">
@@ -20,19 +23,8 @@ export function SuppliersSection() {
           </p>
         </div>
 
-        <div className="relative mt-8 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-          <div className="flex w-max gap-4 animate-marquee">
-            {marquee.map((name, i) => (
-              <div
-                key={`${name}-${i}`}
-                className="supplier-logo flex h-20 w-44 shrink-0 items-center justify-center rounded-2xl border border-border bg-white shadow-card"
-              >
-                <span className="font-display text-lg font-bold tracking-tight text-navy">
-                  {name}
-                </span>
-              </div>
-            ))}
-          </div>
+        <div className="mt-8">
+          <SupplierLogoMarquee suppliers={suppliers} variant="section" />
         </div>
       </div>
     </section>

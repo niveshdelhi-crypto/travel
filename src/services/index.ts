@@ -594,6 +594,7 @@ export const authService = {
       user: BackendUser;
       accessToken?: string;
       refreshToken?: string;
+      csrfToken?: string;
     }>(
       "/auth/login",
       { email, password },

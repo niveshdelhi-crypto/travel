@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Panel, PanelHeader } from "@/components/app/primitives";
-import { PayPalCardFieldsCheckout } from "@/components/finance/checkout/paypal-card-fields-checkout";
+import { PayPalHostedCheckout, type PayPalCheckoutMode } from "@/components/finance/checkout/paypal-hosted-checkout";
 import { formatMoney, statusTone } from "@/lib/payments/format";
 import { paymentQueryKeys } from "@/lib/payments/query-keys";
 import { paymentsOrchestrationService } from "@/services/payments-orchestration.service";
@@ -57,8 +57,12 @@ export function GatewayCheckoutPanel({
   onInvalidate: () => void;
 }) {
   const [orderId, setOrderId] = useState<string | null>(session.provider_order_id ?? null);
+  const [approveUrl, setApproveUrl] = useState<string | null>(null);
+  const [checkoutMode, setCheckoutMode] = useState<PayPalCheckoutMode | null>(null);
   const [submitCardPayment, setSubmitCardPayment] = useState<(() => Promise<string | undefined>) | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const autoStartAttempted = useRef(false);
+  const autoOrderAttempted = useRef(false);
 
   useEffect(() => {
     if (session.provider_order_id) {
@@ -74,18 +78,50 @@ export function GatewayCheckoutPanel({
 
   const startMutation = useMutation({
     mutationFn: () => paymentsOrchestrationService.startPaymentSession(sessionId),
-    onSuccess: onInvalidate,
+    onSuccess: () => {
+      setCheckoutError(null);
+      onInvalidate();
+    },
+    onError: (err: Error) => {
+      autoStartAttempted.current = false;
+      setCheckoutError(err.message);
+    },
   });
 
   const createOrderMutation = useMutation({
     mutationFn: () => paymentsOrchestrationService.createCheckoutOrder(sessionId),
     onSuccess: (data) => {
       setOrderId(data.order_id);
+      setApproveUrl(data.approve_url ?? null);
       setCheckoutError(null);
       onInvalidate();
     },
-    onError: (err: Error) => setCheckoutError(err.message),
+    onError: (err: Error) => {
+      autoOrderAttempted.current = false;
+      setCheckoutError(err.message);
+    },
   });
+
+  useEffect(() => {
+    if (status !== "PENDING" || autoStartAttempted.current || startMutation.isPending) return;
+    autoStartAttempted.current = true;
+    startMutation.mutate();
+  }, [status, startMutation]);
+
+  useEffect(() => {
+    const checkoutConfig = configQuery.data?.checkout;
+    if (status !== "PROCESSING" || orderId || autoOrderAttempted.current || createOrderMutation.isPending) {
+      return;
+    }
+    if (
+      !configQuery.isSuccess ||
+      !checkoutConfig?.supported
+    ) {
+      return;
+    }
+    autoOrderAttempted.current = true;
+    createOrderMutation.mutate();
+  }, [status, orderId, configQuery.isSuccess, configQuery.data?.checkout, createOrderMutation]);
 
   const captureMutation = useMutation({
     mutationFn: (payload: { order_id: string }) =>
@@ -120,20 +156,35 @@ export function GatewayCheckoutPanel({
     onSuccess: onInvalidate,
   });
 
+  const handlePayPalApproved = useCallback(
+    async (approvedOrderId: string) => {
+      setCheckoutError(null);
+      try {
+        await paymentsOrchestrationService.markCheckoutSubmitted(sessionId, approvedOrderId);
+        captureMutation.mutate({ order_id: approvedOrderId });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Payment capture failed";
+        setCheckoutError(message);
+        recordFailureMutation.mutate(message);
+      }
+    },
+    [sessionId, captureMutation, recordFailureMutation],
+  );
+
   const handleReady = useCallback((submit: () => Promise<string | undefined>) => {
     setSubmitCardPayment(() => submit);
+  }, []);
+
+  const handleCheckoutReady = useCallback((mode: PayPalCheckoutMode) => {
+    setCheckoutMode(mode);
+    setCheckoutError(null);
   }, []);
 
   const processPayment = async () => {
     if (!submitCardPayment || !orderId) return;
     setCheckoutError(null);
     try {
-      const submittedOrderId = await submitCardPayment();
-      await paymentsOrchestrationService.markCheckoutSubmitted(
-        sessionId,
-        submittedOrderId ?? orderId,
-      );
-      captureMutation.mutate({ order_id: submittedOrderId ?? orderId });
+      await submitCardPayment();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Card submission failed";
       setCheckoutError(message);
@@ -147,6 +198,18 @@ export function GatewayCheckoutPanel({
     createOrderMutation.isPending ||
     captureMutation.isPending ||
     recordFailureMutation.isPending;
+
+  const loadingPayPalCheckout =
+    status === "PROCESSING" &&
+    Boolean(orderId) &&
+    !checkoutMode &&
+    !checkoutError;
+
+  const isPreparingCheckout =
+    status === "PENDING" ||
+    startMutation.isPending ||
+    createOrderMutation.isPending ||
+    (status === "PROCESSING" && (!checkout?.supported || !orderId || loadingPayPalCheckout));
 
   return (
     <Panel className="sticky top-4 h-fit">
@@ -185,17 +248,31 @@ export function GatewayCheckoutPanel({
           />
         </div>
 
-        {status === "PENDING" ? (
+        {isPreparingCheckout ? (
+          <div className="flex items-center gap-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-3 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+            {status === "PENDING"
+              ? "Starting PayPal checkout session…"
+              : !orderId
+                ? "Creating PayPal order…"
+                : "Opening PayPal checkout…"}
+          </div>
+        ) : null}
+
+        {status === "PENDING" && !autoStartAttempted.current ? (
           <ActionButton
             label="Begin Checkout"
             tone="primary"
             disabled={isBusy}
             loading={startMutation.isPending}
-            onClick={() => startMutation.mutate()}
+            onClick={() => {
+              autoStartAttempted.current = true;
+              startMutation.mutate();
+            }}
           />
         ) : null}
 
-        {status === "PROCESSING" && checkout?.supported && checkout.checkoutMode === "paypal_card_fields" ? (
+        {status === "PROCESSING" && checkout?.supported ? (
           <>
             {!orderId ? (
               <ActionButton
@@ -211,20 +288,25 @@ export function GatewayCheckoutPanel({
                   <span className="text-muted-foreground">PayPal Order</span>
                   <code className="font-mono text-foreground">{orderId.slice(0, 16)}…</code>
                 </div>
-                <PayPalCardFieldsCheckout
+                <PayPalHostedCheckout
                   config={checkout}
                   orderId={orderId}
+                  approveUrl={approveUrl}
                   disabled={captureMutation.isPending}
-                  onReady={handleReady}
+                  onReady={handleCheckoutReady}
+                  onCardSubmitReady={handleReady}
+                  onApproved={(id) => void handlePayPalApproved(id)}
                   onError={(message) => setCheckoutError(message)}
                 />
-                <ActionButton
-                  label="Process Payment"
-                  tone="success"
-                  disabled={!submitCardPayment || isBusy}
-                  loading={captureMutation.isPending}
-                  onClick={() => void processPayment()}
-                />
+                {checkoutMode === "card-fields" ? (
+                  <ActionButton
+                    label="Process Payment"
+                    tone="success"
+                    disabled={!submitCardPayment || isBusy}
+                    loading={captureMutation.isPending}
+                    onClick={() => void processPayment()}
+                  />
+                ) : null}
                 <ActionButton
                   label="New attempt"
                   tone="neutral"
@@ -232,7 +314,10 @@ export function GatewayCheckoutPanel({
                   loading={createOrderMutation.isPending}
                   onClick={() => {
                     setOrderId(null);
+                    setApproveUrl(null);
+                    setCheckoutMode(null);
                     setSubmitCardPayment(null);
+                    autoOrderAttempted.current = false;
                     createOrderMutation.mutate();
                   }}
                 />

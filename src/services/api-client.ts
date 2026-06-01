@@ -72,6 +72,12 @@ function clearTokens(): void {
 }
 
 /** Persist tokens returned in JSON (HttpOnly cookies may not stick when the SPA is on a different host than the API). */
+let cachedCsrfToken: string | null = null;
+
+export function setCsrfToken(token: string | null): void {
+  cachedCsrfToken = token;
+}
+
 export function extractAndStoreAuthTokens(body: unknown): void {
   if (!body || typeof body !== "object") return;
   const o = body as Record<string, unknown>;
@@ -80,10 +86,14 @@ export function extractAndStoreAuthTokens(body: unknown): void {
   if (typeof a === "string" && typeof r === "string" && a.length > 0 && r.length > 0) {
     setTokens(a, r);
   }
+  if (typeof o.csrfToken === "string" && o.csrfToken.length > 0) {
+    cachedCsrfToken = o.csrfToken;
+  }
 }
 
 export function clearStoredAuthCredentials(): void {
   clearTokens();
+  cachedCsrfToken = null;
 }
 
 function getCookie(name: string): string | null {
@@ -94,18 +104,25 @@ function getCookie(name: string): string | null {
 }
 
 async function ensureCsrfToken(): Promise<string | null> {
-  const existing = getCookie("csrf_token");
-  if (existing) return existing;
+  if (cachedCsrfToken) return cachedCsrfToken;
+
+  const cookieToken = getCookie("csrf_token");
+  if (cookieToken) {
+    cachedCsrfToken = cookieToken;
+    return cookieToken;
+  }
 
   try {
     const res = await fetch(`${API_BASE_URL}/auth/csrf`, {
       method: "GET",
       credentials: "include",
-      headers: { "Accept": "application/json", "X-Client": "bookmycarz-web/1.0" },
+      headers: { Accept: "application/json", "X-Client": "bookmycarz-web/1.0" },
     });
     if (!res.ok) return null;
     const body = (await res.json()) as { csrfToken?: string };
-    return body.csrfToken ?? getCookie("csrf_token");
+    const token = body.csrfToken ?? getCookie("csrf_token");
+    if (token) cachedCsrfToken = token;
+    return token;
   } catch {
     return null;
   }
@@ -276,6 +293,17 @@ async function request<T>(
 
     if (!res.ok) {
       const apiError = normaliseApiError(res, body);
+
+      if (
+        res.status === 403 &&
+        apiError.message.includes("CSRF") &&
+        attempt === 1 &&
+        ["POST", "PUT", "PATCH", "DELETE"].includes(method)
+      ) {
+        cachedCsrfToken = null;
+        await sleep(50);
+        return request<T>(endpoint, config, attempt + 1);
+      }
 
       // Retry on 5xx or network errors
       const shouldRetry = res.status >= 500 && attempt < retries;

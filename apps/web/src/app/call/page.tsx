@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getServerMarketplaceSuppliers } from "@/lib/marketplace/server";
 import { MarketingLeadsLandingPage } from "@/modules/landing/marketing-leads-page";
 
 export const metadata: Metadata = {
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function MarketingCallLandingPage() {
-  return <MarketingLeadsLandingPage />;
+export default async function MarketingCallLandingPage() {
+  const suppliers = await getServerMarketplaceSuppliers();
+  return <MarketingLeadsLandingPage suppliers={suppliers} />;
 }

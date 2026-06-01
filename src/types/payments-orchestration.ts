@@ -336,6 +336,7 @@ export type PaymentGatewayHealthResponse = {
 export type CreateCheckoutOrderResponse = {
   attempt_id: string;
   order_id: string;
+  approve_url?: string | null;
   attempt_number: number;
   status: PaymentAttemptStatus;
 };

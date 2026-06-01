@@ -12,6 +12,8 @@
     "dev:crm": "vite",
     "dev:legacy": "npm run dev:crm",
     "dev:api": "npm --prefix apps/api run start:dev",
+    "dev:api:clean": "npm --prefix apps/api run start:dev:clean",
+    "clean:api": "npm --prefix apps/api run clean",
     "clean:web": "npm --prefix apps/web run clean",
     "dev:stack": "concurrently -n api,crm,web -c magenta,green,cyan \"npm run dev:api\" \"wait-on -t 90000 -i 500 http-get://127.0.0.1:4000/ && npm run dev:crm\" \"wait-on -t 90000 -i 500 http-get://127.0.0.1:4000/ && npm run dev:web\"",
     "dev:full": "npm run dev:stack",

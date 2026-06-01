@@ -12,7 +12,7 @@ import type {
 @Injectable()
 export class PaypalCheckoutAdapter implements CheckoutGatewayAdapter {
   readonly gatewayType = PaymentGatewayType.paypal;
-  readonly checkoutMode = "paypal_card_fields";
+  readonly checkoutMode = "paypal_smart_checkout";
   private readonly logger = new Logger(PaypalCheckoutAdapter.name);
 
   constructor(private readonly paypal: PaypalPaymentProvider) {}
@@ -67,6 +67,7 @@ export class PaypalCheckoutAdapter implements CheckoutGatewayAdapter {
     return {
       orderId: result.providerReference,
       status: result.status,
+      approveUrl: result.checkoutUrl,
       rawResponse: result.rawResponse,
     };
   }

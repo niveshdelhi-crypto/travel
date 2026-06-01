@@ -289,12 +289,24 @@ html { color-scheme: dark; }
   }
 
   @keyframes fleet-marquee {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-50%, 0, 0); }
+  }
+
+  .logo-marquee-track {
+    width: max-content;
+    will-change: transform;
   }
 
   .animate-fleet-marquee {
-    animation: fleet-marquee 50s linear infinite;
+    animation: fleet-marquee 35s linear infinite;
+    animation-play-state: running;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fleet-marquee {
+      animation: none;
+    }
   }
 
   .react-datepicker {

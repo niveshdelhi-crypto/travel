@@ -5,6 +5,8 @@
   "type": "commonjs",
   "scripts": {
     "start:dev": "nest start --watch",
+    "clean": "node scripts/clean-dist.mjs",
+    "start:dev:clean": "npm run clean && npm run start:dev",
     "build": "npx nest build",
     "build:render": "prisma generate && npx nest build",
     "start:prod": "node dist/main.js",
@@ -22,7 +24,8 @@
     "verify:call-center": "node scripts/verify-call-center.mjs",
     "verify:gateway-health": "node scripts/verify-paypal-gateway-health.mjs",
     "sync:paypal-credentials": "node scripts/update-paypal-gateway-credentials.mjs",
-    "seed:payment-queue": "node scripts/seed-payment-queue-demo.mjs"
+    "seed:payment-queue": "node scripts/seed-payment-queue-demo.mjs",
+    "verify:checkout-flow": "node scripts/verify-checkout-flow.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",

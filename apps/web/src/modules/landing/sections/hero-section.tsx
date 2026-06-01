@@ -1,15 +1,18 @@
 import Image from "next/image";
 import { ShieldCheck, Sparkles } from "lucide-react";
+import type { MarketplaceSupplier } from "@/lib/marketplace/types";
 import { DirectCallButton } from "../components/direct-call-button";
 import { SearchForm } from "../components/search-form";
+import { SupplierLogoMarquee } from "../components/supplier-logo-marquee";
 import heroImg from "../assets/hero.jpg";
 
 type HeroSectionProps = {
   /** Marketing lead page: call CTA only, no search form. */
   leadMode?: boolean;
+  suppliers?: MarketplaceSupplier[];
 };
 
-export function HeroSection({ leadMode = false }: HeroSectionProps) {
+export function HeroSection({ leadMode = false, suppliers = [] }: HeroSectionProps) {
   return (
     <section className="relative isolate min-h-[88svh] overflow-hidden">
       <Image
@@ -22,13 +25,16 @@ export function HeroSection({ leadMode = false }: HeroSectionProps) {
       />
       <div className="absolute inset-0 -z-10 bg-hero-fade" aria-hidden />
 
-      <div className="container-page pb-10 pt-8 md:pb-16 md:pt-12">
+      <div className="container-page pb-20 pt-8 md:pb-32 md:pt-12">
         <div className="max-w-3xl text-brand-text">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur ring-1 ring-white/25">
             <Sparkles className="size-3.5 text-brand-accent" />
             Trusted by millions of travelers worldwide
           </span>
-          <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-balance md:text-6xl">
+          {suppliers.length > 0 ? (
+            <SupplierLogoMarquee suppliers={suppliers} variant="hero" heroPlacement="inline" />
+          ) : null}
+          <h1 className="mt-4 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-balance md:mt-5 md:text-6xl">
             Find your perfect car.
             <br className="hidden md:block" />
             Anywhere in the world.
@@ -70,6 +76,10 @@ export function HeroSection({ leadMode = false }: HeroSectionProps) {
           )}
         </div>
       </div>
+
+      {suppliers.length > 0 ? (
+        <SupplierLogoMarquee suppliers={suppliers} variant="hero" heroPlacement="bottom" />
+      ) : null}
     </section>
   );
 }

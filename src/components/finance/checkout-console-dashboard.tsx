@@ -64,11 +64,12 @@ export function CheckoutConsoleDashboard({ sessionId }: { sessionId: string }) {
   const canProcess = canProcessPayments(role);
   const [financeNotes, setFinanceNotes] = useState("");
 
-  usePaymentRealtime();
+  usePaymentRealtime(sessionId);
 
   const sessionQuery = useQuery({
     queryKey: paymentQueryKeys.paymentSessionDetail(sessionId),
     queryFn: () => paymentsOrchestrationService.getPaymentSession(sessionId),
+    staleTime: 5_000,
   });
 
   const auditQuery = useQuery({
