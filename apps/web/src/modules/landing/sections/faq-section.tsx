@@ -4,7 +4,7 @@ import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
-    q: "How does Book my Carz compare rental prices?",
+    q: "How does MarkleTravelBooking compare rental prices?",
     a: "We search 800+ suppliers in real time and surface transparent total prices — no hidden fees at checkout.",
   },
   {

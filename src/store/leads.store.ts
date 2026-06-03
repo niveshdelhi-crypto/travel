@@ -1,5 +1,5 @@
 // ============================================================
-// Book my Carz — Zustand Store: Leads
+// MarkleTravelBooking — Zustand Store: Leads
 // ============================================================
 import { create } from "zustand";
 import type { Lead, LeadStage } from "@/types";

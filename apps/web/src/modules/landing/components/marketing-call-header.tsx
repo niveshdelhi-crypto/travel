@@ -5,7 +5,7 @@ import { DirectCallButton } from "./direct-call-button";
 export function MarketingCallHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-brand-dark/90 backdrop-blur-md">
-      <div className="container-page flex h-16 items-center justify-between gap-3 sm:gap-4">
+      <div className="container-page flex h-[5.5rem] min-h-[5.5rem] items-center justify-between gap-3 sm:gap-4">
         <BrandLogo href="/call" size="nav" priority />
 
         <div className="flex min-w-0 flex-1 justify-end pl-1 sm:pl-2">

@@ -46,7 +46,7 @@ function Dashboard() {
         <div>
           <p className="text-sm text-muted-foreground">
             Welcome back{user?.name ? `, ${user.name}` : ""}. Live operational data is loaded from
-            Book my Carz APIs.
+            MarkleTravelBooking APIs.
           </p>
         </div>
 

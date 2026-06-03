@@ -14,6 +14,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
+import { BrandLogo } from "@/components/brand/brand-logo";
 
 type CrmRoute =
   | "/dashboard"
@@ -57,17 +58,10 @@ export function CrmShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-[1800px] items-center justify-between gap-4 px-4 md:px-6">
-          <div className="flex min-w-0 flex-1 items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="flex shrink-0 items-center gap-2 font-semibold text-white"
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-600 text-sm">
-                FN
-              </span>
-              <span className="hidden sm:inline">Book my Carz CRM</span>
-            </Link>
+        <div className="mx-auto flex h-16 min-h-16 max-w-[1800px] items-center justify-between gap-4 px-4 md:px-6">
+          <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
+            <BrandLogo href="/dashboard" size="md" priority />
+            <span className="hidden text-sm font-semibold text-white lg:inline">CRM</span>
             <nav className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto scrollbar-thin">
               {visibleNav.map((item) => {
                 const active = pathname === item.href || pathname.startsWith(`${item.href}/`);

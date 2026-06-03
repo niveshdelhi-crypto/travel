@@ -91,7 +91,7 @@ export function PayPalCardFieldsCheckout({
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
         <p>
           Card details are entered in PayPal-hosted fields. Card numbers, CVV, and expiry never
-          touch Fleet Nexus servers, databases, or logs.
+          touch MarkleTravelBooking servers, databases, or logs.
         </p>
       </div>
 

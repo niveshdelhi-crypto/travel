@@ -5,7 +5,7 @@ const reviews = [
     text: "Booked an SUV in Dubai in under 2 minutes. Pickup at DXB was seamless and the price beat every comparison site I tried.",
     img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80&auto=format&fit=crop" },
   { name: "Daniel Ortega", country: "Spain", rating: 5,
-    text: "Free cancellation saved me when plans changed. Refund hit my card the next morning. Will use Book my Carz again.",
+    text: "Free cancellation saved me when plans changed. Refund hit my card the next morning. Will use MarkleTravelBooking again.",
     img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80&auto=format&fit=crop" },
   { name: "Aiko Tanaka", country: "Japan", rating: 4,
     text: "Excellent supplier choice in Barcelona. The filters are super clear — found a hybrid in seconds.",

@@ -49,7 +49,7 @@ export class InvoiceVoucherService {
     const fileName = `${invoiceNumber}.pdf`;
     const { storageKey, publicUrl, byteSize } = await this.renderPdf({
       fileName,
-      title: "Book my Carz — Tax Invoice",
+      title: "MarkleTravelBooking — Tax Invoice",
       lines: [
         `Invoice: ${invoiceNumber}`,
         `Traveler: ${booking.traveler?.full_name ?? booking.lead.customer_name}`,
@@ -107,7 +107,7 @@ export class InvoiceVoucherService {
     const fileName = `${receiptNumber}.pdf`;
     const { storageKey, publicUrl, byteSize } = await this.renderPdf({
       fileName,
-      title: "Book my Carz — Payment Receipt",
+      title: "MarkleTravelBooking — Payment Receipt",
       lines: [
         `Receipt: ${receiptNumber}`,
         `Paid by: ${booking.traveler?.full_name ?? booking.lead.customer_name}`,
@@ -155,7 +155,7 @@ export class InvoiceVoucherService {
     const fileName = `${voucherNumber}.pdf`;
     const { storageKey, publicUrl, byteSize } = await this.renderPdf({
       fileName,
-      title: "Book my Carz — Travel Voucher",
+      title: "MarkleTravelBooking — Travel Voucher",
       lines: [
         `Voucher: ${voucherNumber}`,
         `Guest: ${booking.traveler?.full_name ?? booking.lead.customer_name}`,
@@ -242,7 +242,7 @@ export class InvoiceVoucherService {
         doc.moveDown(0.4);
       }
       doc.moveDown();
-      doc.fontSize(9).fillColor("#637083").text("Book my Carz — Premium Travel Operations", {
+      doc.fontSize(9).fillColor("#637083").text("MarkleTravelBooking — Premium Travel Operations", {
         align: "center",
       });
       doc.end();

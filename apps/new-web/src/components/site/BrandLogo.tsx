@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { PLATFORM_NAME } from "@/constants";
 
+export const BRAND_NAME = "MarkleTravelBooking";
 export const BRAND_LOGO_SRC = "/brand/travel.png";
 export const BRAND_LOGO_ALT = "MarkleTravelBooking — Explore. Book. Discover.";
 export const BRAND_LOGO_WIDTH = 677;
@@ -20,10 +20,9 @@ type BrandLogoProps = {
   to?: string;
   size?: BrandLogoSize;
   className?: string;
-  imageClassName?: string;
 };
 
-export function BrandLogo({ to = "/", size = "md", className = "", imageClassName = "" }: BrandLogoProps) {
+export function BrandLogo({ to = "/", size = "md", className = "" }: BrandLogoProps) {
   const img = (
     <img
       src={BRAND_LOGO_SRC}
@@ -32,21 +31,19 @@ export function BrandLogo({ to = "/", size = "md", className = "", imageClassNam
       height={BRAND_LOGO_HEIGHT}
       decoding="async"
       loading="lazy"
-      className={`block shrink-0 object-contain object-center ${sizeClasses[size]} ${imageClassName}`}
+      className={`block shrink-0 object-contain object-center ${sizeClasses[size]}`}
     />
   );
 
   const mark = <span className={`inline-flex shrink-0 items-center justify-center ${className}`}>{img}</span>;
 
-  if (!to) {
-    return mark;
-  }
+  if (!to) return mark;
 
   return (
     <Link
       to={to}
-      className="inline-flex shrink-0 items-center transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-      aria-label={`${PLATFORM_NAME} home`}
+      className="inline-flex shrink-0 items-center transition-opacity hover:opacity-90"
+      aria-label={`${BRAND_NAME} home`}
     >
       {mark}
     </Link>

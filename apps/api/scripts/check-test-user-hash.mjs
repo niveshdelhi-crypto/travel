@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
-const emails = ["test-admin@fleetnexus.test", "agent1@bookmycarz.com"];
+const emails = ["test-admin@fleetnexus.test", "agent1@markletravelbooking.com"];
 
 for (const email of emails) {
   const user = await prisma.user.findUnique({ where: { email } });

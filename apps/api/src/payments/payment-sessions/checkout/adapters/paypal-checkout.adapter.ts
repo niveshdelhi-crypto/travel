@@ -56,7 +56,7 @@ export class PaypalCheckoutAdapter implements CheckoutGatewayAdapter {
       amount: params.amount,
       currency: params.currency,
       reference: params.reference,
-      description: params.description ?? `Fleet Nexus booking payment ${params.sessionId.slice(0, 8)}`,
+      description: params.description ?? `MarkleTravelBooking payment ${params.sessionId.slice(0, 8)}`,
       metadata: { sessionId: params.sessionId, checkoutMode: this.checkoutMode },
     });
 

@@ -57,11 +57,11 @@ async function main() {
   try {
     const [admin, agent, paypalGateway] = await Promise.all([
       prisma.user.findFirst({
-        where: { email: "admin@bookmycarz.com", role: UserRole.admin },
+        where: { email: "admin@markletravelbooking.com", role: UserRole.admin },
         select: { id: true, name: true },
       }),
       prisma.user.findFirst({
-        where: { email: "agent1@bookmycarz.com", role: UserRole.sales_agent },
+        where: { email: "agent1@markletravelbooking.com", role: UserRole.sales_agent },
         select: { id: true, name: true },
       }),
       prisma.paymentGateway.findFirst({
@@ -71,8 +71,8 @@ async function main() {
       }),
     ]);
 
-    if (!admin) throw new Error("admin@bookmycarz.com not found — run prisma db seed first");
-    if (!agent) throw new Error("agent1@bookmycarz.com not found — run prisma db seed first");
+    if (!admin) throw new Error("admin@markletravelbooking.com not found — run prisma db seed first");
+    if (!agent) throw new Error("agent1@markletravelbooking.com not found — run prisma db seed first");
     if (!paypalGateway) {
       throw new Error("No active PayPal gateway — run npm run sync:paypal-credentials first");
     }

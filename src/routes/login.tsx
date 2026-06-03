@@ -17,7 +17,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const setUser = useAuthStore((state) => state.setUser);
-  const [email, setEmail] = useState("admin@bookmycarz.com");
+  const [email, setEmail] = useState("admin@markletravelbooking.com");
   const [password, setPassword] = useState("Admin@123");
   const [error, setError] = useState<string | null>(null);
   const { redirect } = Route.useSearch();
@@ -73,13 +73,13 @@ function LoginPage() {
         onSubmit={submit}
         className="w-full max-w-md rounded-xl border border-white/12 bg-[#0b1220] p-5 shadow-2xl shadow-black/45 sm:p-6"
       >
-        <BrandLogo to="/" size="lg" className="mx-auto !h-12 sm:!h-14" />
+        <BrandLogo to="/" size="lg" className="mx-auto" />
         <h1 className="mt-5 text-center text-xl font-semibold tracking-tight sm:text-2xl">Staff sign in</h1>
         <p className="mt-2 text-sm leading-6 text-white/60">
           Use your operations account to access the CRM dashboard.
         </p>
         <p className="mt-1 text-xs text-white/45">
-          Demo admin: <span className="text-white/65">admin@bookmycarz.com</span> / Admin@123
+          Demo admin: <span className="text-white/65">admin@markletravelbooking.com</span> / Admin@123
         </p>
 
         <label className="mt-6 block text-sm font-medium text-white/74">

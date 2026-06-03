@@ -1,5 +1,5 @@
 // ============================================================
-// Book my Carz — Zustand Store: Notifications
+// MarkleTravelBooking — Zustand Store: Notifications
 // ============================================================
 import { create } from "zustand";
 import type { Notification } from "@/types";

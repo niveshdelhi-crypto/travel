@@ -3,8 +3,8 @@ import Link from "next/link";
 import type { Route } from "next";
 
 export const metadata: Metadata = {
-  title: "FAQ | Book my Carz",
-  description: "Frequently asked questions about booking car rentals with Book my Carz.",
+  title: "FAQ | MarkleTravelBooking",
+  description: "Frequently asked questions about booking car rentals with MarkleTravelBooking.",
 };
 
 const items = [
@@ -22,7 +22,7 @@ const items = [
   },
   {
     q: "What payment methods are accepted?",
-    a: "Payment is handled per supplier at booking or pickup. Book my Carz does not store full card numbers on our servers.",
+    a: "Payment is handled per supplier at booking or pickup. MarkleTravelBooking does not store full card numbers on our servers.",
   },
   {
     q: "Where can I read rental terms?",

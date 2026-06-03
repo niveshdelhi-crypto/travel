@@ -8,7 +8,7 @@ export default function UnauthorizedPage() {
       <h1 className="text-2xl font-semibold">Unauthorized</h1>
       <p>Your account does not have permission to access this area.</p>
       <a href={crmHome} className="text-sm font-medium text-sky-700 hover:underline">
-        Open Book my Carz CRM
+        Open MarkleTravelBooking CRM
       </a>
     </main>
   );

@@ -16,7 +16,7 @@ function CityDestinationPage() {
 
   useDocumentMeta(
     destination?.seo_title ??
-      `${destination?.name ?? "City corridor"} concierge car rental assistance · Book my Carz`,
+      `${destination?.name ?? "City corridor"} concierge car rental assistance · MarkleTravelBooking`,
     destination?.seo_description ??
       "Operational dossier seeded from Postgres; advisors refine partner mix per itinerary.",
   );

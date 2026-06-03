@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { LegalDoc } from "@/modules/landing/components/legal-doc";
 
 export const metadata: Metadata = {
-  title: "Rental Conditions | Book my Carz",
-  description: "Standard rental conditions and requirements for Book my Carz bookings.",
+  title: "Rental Conditions | MarkleTravelBooking",
+  description: "Standard rental conditions and requirements for MarkleTravelBooking bookings.",
 };
 
 export default function RentalConditionsPage() {

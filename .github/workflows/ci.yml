@@ -160,9 +160,9 @@ jobs:
           NEXT_PUBLIC_GOOGLE_ADS_ID: AW-11460691521
           E2E_API_URL: http://127.0.0.1:4000/api
           E2E_CRM_URL: http://127.0.0.1:8080
-          E2E_ADMIN_EMAIL: admin@bookmycarz.com
+          E2E_ADMIN_EMAIL: admin@markletravelbooking.com
           E2E_ADMIN_PASSWORD: Admin@123
-          E2E_AGENT_EMAIL: agent1@bookmycarz.com
+          E2E_AGENT_EMAIL: agent1@markletravelbooking.com
           E2E_AGENT_PASSWORD: Agent@123
 
       - name: Upload Playwright report

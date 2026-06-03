@@ -59,9 +59,9 @@ export class UsersService {
   }
 }
 
-/** Until seed renames accounts, accept @bookmycarz.com logins against legacy @fleetnexus.com rows. */
+/** Until seed renames accounts, accept new-domain logins against legacy @fleetnexus.com rows. */
 function legacyFleetNexusAlias(email: string): string | null {
-  const match = /^([^@+]+)@bookmycarz\.com$/.exec(email);
+  const match = /^([^@+]+)@(markletravelbooking|bookmycarz)\.com$/.exec(email);
   if (!match) return null;
   return `${match[1]}@fleetnexus.com`;
 }

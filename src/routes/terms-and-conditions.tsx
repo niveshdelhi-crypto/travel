@@ -9,7 +9,7 @@ export const Route = createFileRoute("/terms-and-conditions")({
 
 function TermsPage() {
   useDocumentMeta(
-    "Book my Carz Terms & Conditions",
+    "MarkleTravelBooking Terms & Conditions",
     "Marketplace terms governing concierge booking requests, liability allocation, communications consent, force majeure, governing law, and arbitration posture.",
   );
 
@@ -25,7 +25,7 @@ function TermsPage() {
         <section className="mt-10">
           <h2 className="text-2xl font-semibold">1. Nature of service</h2>
           <p className="mt-4 text-base leading-relaxed">
-            Book my Carz assists with routing premium rental demand to verified partners. We are not the lessor
+            MarkleTravelBooking assists with routing premium rental demand to verified partners. We are not the lessor
             of record unless explicitly contracted; liability chains follow the executed rental agreement and
             applicable insurance stack.
           </p>
@@ -53,7 +53,7 @@ function TermsPage() {
           <h2 className="text-2xl font-semibold">4. Intellectual property</h2>
           <p className="mt-4 text-base leading-relaxed">
             UI chrome, typography pairings, motion behaviors, photographic assets in this SPA, plus `GET
-            /marketplace/*` payloads remain Book my Carz or licensor IP; scraping for model training violates
+            /marketplace/*` payloads remain MarkleTravelBooking or licensor IP; scraping for model training violates
             these terms absent written consent.
           </p>
         </section>
@@ -61,9 +61,9 @@ function TermsPage() {
         <section className="mt-10">
           <h2 className="text-2xl font-semibold">5. Limitation &amp; law</h2>
           <p className="mt-4 text-base leading-relaxed">
-            To the maximum extent permitted by law, Book my Carz disclaims incidental damages arising from ETA
+            To the maximum extent permitted by law, MarkleTravelBooking disclaims incidental damages arising from ETA
             miscalculations, partner outages, or force-majeure—subject to carve-outs for intentional
-            misconduct. Venue defaults to Book my Carz’ corporate domicile unless enterprise contracts steer
+            misconduct. Venue defaults to MarkleTravelBooking’ corporate domicile unless enterprise contracts steer
             elsewhere.
           </p>
         </section>

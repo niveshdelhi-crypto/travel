@@ -16,7 +16,7 @@ async function login() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      email: process.env.SMOKE_ADMIN_EMAIL ?? "admin@bookmycarz.com",
+      email: process.env.SMOKE_ADMIN_EMAIL ?? "admin@markletravelbooking.com",
       password: process.env.SMOKE_ADMIN_PASSWORD ?? "Admin@123",
     }),
   });

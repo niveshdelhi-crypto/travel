@@ -15,7 +15,7 @@ type Search = {
 export const Route = createFileRoute("/results")({
   head: () => ({
     meta: [
-      { title: "Search results — Book my Carz" },
+      { title: "Search results — MarkleTravelBooking" },
       { name: "description", content: "Compare car rental deals from top suppliers near you." },
     ],
   }),

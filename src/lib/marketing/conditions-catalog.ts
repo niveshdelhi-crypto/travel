@@ -30,7 +30,7 @@ export const CONDITION_SECTIONS: ConditionSection[] = [
     badge: "Cashflow guardrails",
     icon: Banknote,
     summary:
-      "Deposits are captured by contracted suppliers through certified acquirers. Book my Carz does not monetize interchange on those holds and surfaces only what your advisor confirms.",
+      "Deposits are captured by contracted suppliers through certified acquirers. MarkleTravelBooking does not monetize interchange on those holds and surfaces only what your advisor confirms.",
     bullets: [
       "Amounts correlate to vehicle collateral value, corridor risk, and length of itinerary.",
       "Preauthorized holds may appear several days ahead of pickup; release timing depends on bank rails (often up to seven business days).",
@@ -72,7 +72,7 @@ export const CONDITION_SECTIONS: ConditionSection[] = [
       "Core statutory coverage ships with contracted rates. Ancillary waiver products mirror what partners file with regulators—you choose stack depth with advisor guidance.",
     bullets: [
       "Collision / loss damage waivers may carry residual liabilities (windshield, underside, terrorism carve-outs—read annexes!).",
-      "Personal travel policies should be verified with brokers; Book my Carz is not selling regulated insurance instruments.",
+      "Personal travel policies should be verified with brokers; MarkleTravelBooking is not selling regulated insurance instruments.",
       "Incident documentation must capture police reports when authorities are engaged.",
     ],
   },
@@ -123,7 +123,7 @@ export const CONDITION_SECTIONS: ConditionSection[] = [
     summary:
       "Twenty-five-plus is typical for prestige inventory, but underwriting engines may carve exceptions tied to Fortune 500 travel programs.",
     bullets: [
-      "Young-driver fees are contractual pass-through charges; Book my Carz does not pocket margin on them.",
+      "Young-driver fees are contractual pass-through charges; MarkleTravelBooking does not pocket margin on them.",
       "Suspended, provisional, or digital-only credentials may disqualify corridors—bring physical cards when mandates require embossing.",
       "Additional authorized drivers incur identity verification workflows and sometimes daily premiums.",
     ],
@@ -138,7 +138,7 @@ export const CONDITION_SECTIONS: ConditionSection[] = [
     bullets: [
       "PIN-debit corridors may insist on refundable deposits lodged days before staging.",
       "Single-use virtual cards expire—Ops must reconcile before counter release or vehicles remain immobilized.",
-      "Book my Carz never stores PAN data on public landing surfaces.",
+      "MarkleTravelBooking never stores PAN data on public landing surfaces.",
     ],
   },
   {
@@ -160,7 +160,7 @@ export const CONDITION_SECTIONS: ConditionSection[] = [
     badge: "Infrastructure",
     icon: ParkingCircle,
     summary:
-      "Facility cost recovery flows through customer-of-record invoices; they are neither optional nor arbitrarily padded by Book my Carz.",
+      "Facility cost recovery flows through customer-of-record invoices; they are neither optional nor arbitrarily padded by MarkleTravelBooking.",
     bullets: [
       "Customer Facility Charges (CFC) differ by terminal—even inside the same IATA umbrella.",
       "Curbside meet-and-greet programs pay premium slotting premiums that appear as transparent line haul items.",

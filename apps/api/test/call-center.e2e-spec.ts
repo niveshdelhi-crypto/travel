@@ -17,7 +17,7 @@ const shouldRun =
 
 /** Uses seeded agent1 (direct_line +14155550199) — see prisma/seed.ts */
 const agent = {
-  email: "agent1@bookmycarz.com",
+  email: "agent1@markletravelbooking.com",
   password: "Agent@123",
   direct_line: "+14155550199",
 };

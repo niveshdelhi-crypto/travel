@@ -1,5 +1,5 @@
 // ============================================================
-// Book my Carz — Socket.IO Real-time Client
+// MarkleTravelBooking — Socket.IO Real-time Client
 // Manages persistent WebSocket connection with auto-reconnect,
 // event typing, and store integration
 // ============================================================

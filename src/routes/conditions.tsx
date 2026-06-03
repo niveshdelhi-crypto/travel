@@ -14,7 +14,7 @@ export const Route = createFileRoute("/conditions")({
 
 function ConditionsPage() {
   useDocumentMeta(
-    "Book my Carz Rental Conditions — Enterprise transparency",
+    "MarkleTravelBooking Rental Conditions — Enterprise transparency",
     "Searchable rental conditions covering deposits, fuel policy, mileage, insurance, cancellations, and airport fees.",
   );
 

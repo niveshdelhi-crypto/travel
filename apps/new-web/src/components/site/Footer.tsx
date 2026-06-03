@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/site/BrandLogo";
 import { Link } from "@tanstack/react-router";
 import { Facebook, Instagram, Twitter, Youtube, Apple, Smartphone } from "lucide-react";
 
@@ -63,10 +64,7 @@ export function Footer() {
       <div className="container-page py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 font-display font-bold">F</span>
-              <span className="font-display text-lg font-bold">Book my Carz</span>
-            </div>
+            <BrandLogo to="/" size="xl" />
             <p className="mt-4 text-sm text-white/70 leading-relaxed">
               Compare 800+ car rental suppliers in 190+ countries. Best price, free
               cancellation, no hidden fees.
@@ -97,7 +95,7 @@ export function Footer() {
 
         <div className="mt-12 rounded-2xl border border-white/10 bg-white/5 p-6 md:flex md:items-center md:justify-between">
           <div>
-            <h5 className="font-display text-base font-semibold">Get the Book my Carz app</h5>
+            <h5 className="font-display text-base font-semibold">Get the MarkleTravelBooking app</h5>
             <p className="mt-1 text-sm text-white/70">Manage bookings on the go. Exclusive in-app deals.</p>
           </div>
           <div className="mt-4 flex gap-3 md:mt-0">
@@ -113,7 +111,7 @@ export function Footer() {
 
       <div className="border-t border-white/10">
         <div className="container-page flex flex-col gap-2 py-6 text-xs text-white/60 md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} Book my Carz Rentals. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} MarkleTravelBooking Rentals. All rights reserved.</p>
           <p>Secured by 256-bit SSL · PCI DSS compliant · Trusted by millions worldwide</p>
         </div>
       </div>

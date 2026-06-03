@@ -3,8 +3,8 @@ import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Contact Book my Carz",
-  description: "Get in touch with Book my Carz customer support.",
+  title: "Contact MarkleTravelBooking",
+  description: "Get in touch with MarkleTravelBooking customer support.",
 };
 
 export default function ContactPage() {
@@ -19,10 +19,10 @@ export default function ContactPage() {
         <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">
           <Mail className="size-5 text-brand-primary" />
           <a
-            href="mailto:support@bookmycarz.com"
+            href="mailto:support@markletravelbooking.com"
             className="font-medium text-foreground hover:text-brand-primary"
           >
-            support@bookmycarz.com
+            support@markletravelbooking.com
           </a>
         </li>
         <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">

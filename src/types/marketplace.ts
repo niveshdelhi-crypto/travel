@@ -1,5 +1,5 @@
 // ============================================================
-// Book my Carz — Marketplace / public SEO catalog types
+// MarkleTravelBooking — Marketplace / public SEO catalog types
 // ============================================================
 
 export type MarketplaceTrustSnapshot = {

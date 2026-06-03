@@ -23,20 +23,20 @@ type SeedUser = {
 
 const seedUsers: SeedUser[] = [
   {
-    name: "Book my Carz Admin",
-    email: "admin@bookmycarz.com",
+    name: "MarkleTravelBooking Admin",
+    email: "admin@markletravelbooking.com",
     password: "Admin@123",
     role: UserRole.admin,
   },
   {
-    name: "Book my Carz Finance Admin",
-    email: "finance@bookmycarz.com",
+    name: "MarkleTravelBooking Finance Admin",
+    email: "finance@markletravelbooking.com",
     password: "Finance@123",
     role: UserRole.finance_admin,
   },
   {
-    name: "Book my Carz Operations Manager",
-    email: "ops@bookmycarz.com",
+    name: "MarkleTravelBooking Operations Manager",
+    email: "ops@markletravelbooking.com",
     password: "Ops@123",
     role: UserRole.operations_manager,
   },
@@ -44,8 +44,8 @@ const seedUsers: SeedUser[] = [
     const agentNumber = index + 1;
 
     return {
-      name: `Book my Carz Agent ${agentNumber}`,
-      email: `agent${agentNumber}@bookmycarz.com`,
+      name: `MarkleTravelBooking Agent ${agentNumber}`,
+      email: `agent${agentNumber}@markletravelbooking.com`,
       password: "Agent@123",
       role: UserRole.sales_agent,
       /** Telnyx inbound DID for agent 1 — matches smoke test / call-center verification */
@@ -56,10 +56,17 @@ const seedUsers: SeedUser[] = [
 
 /** Pre-rebrand accounts — renamed on seed so existing DBs keep the same user ids where possible. */
 const legacyUserEmailMap: { from: string; to: string }[] = [
-  { from: "admin@fleetnexus.com", to: "admin@bookmycarz.com" },
+  { from: "admin@fleetnexus.com", to: "admin@markletravelbooking.com" },
+  { from: "admin@bookmycarz.com", to: "admin@markletravelbooking.com" },
+  { from: "finance@bookmycarz.com", to: "finance@markletravelbooking.com" },
+  { from: "ops@bookmycarz.com", to: "ops@markletravelbooking.com" },
   ...Array.from({ length: 5 }, (_, index) => ({
     from: `agent${index + 1}@fleetnexus.com`,
-    to: `agent${index + 1}@bookmycarz.com`,
+    to: `agent${index + 1}@markletravelbooking.com`,
+  })),
+  ...Array.from({ length: 5 }, (_, index) => ({
+    from: `agent${index + 1}@bookmycarz.com`,
+    to: `agent${index + 1}@markletravelbooking.com`,
   })),
 ];
 
@@ -240,7 +247,7 @@ function assertUniqueEmails(users: SeedUser[]) {
 }
 
 function printSeededUsers(users: SeededUser[]) {
-  console.log("\nBook my Carz seed complete. Users ready:\n");
+  console.log("\nMarkleTravelBooking seed complete. Users ready:\n");
   console.table(
     users.map((user) => ({
       email: user.email,
@@ -267,7 +274,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "Priority arrival coordination across Terminals B and international gates.",
           iata_code: "LAX",
           trend_score: 98,
-          seo_title: "Premium car rental near LAX | Book my Carz",
+          seo_title: "Premium car rental near LAX | MarkleTravelBooking",
           seo_description:
             "Assisted concierge matching for arrivals at Los Angeles International with verified rental partners.",
         },
@@ -278,7 +285,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "Terminal-aware pickup planning for transatlantic and domestic arrivals.",
           iata_code: "JFK",
           trend_score: 96,
-          seo_title: "Premium car rental near JFK | Book my Carz",
+          seo_title: "Premium car rental near JFK | MarkleTravelBooking",
           seo_description:
             "Concierge desk support for JFK arrivals with premium vehicle classes and partner verification.",
         },
@@ -289,7 +296,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "Coastal executive travel, Art Basel season, and family resort routing.",
           iata_code: null,
           trend_score: 90,
-          seo_title: "Luxury car rental assistance in Miami | Book my Carz",
+          seo_title: "Luxury car rental assistance in Miami | MarkleTravelBooking",
           seo_description:
             "Route-aware premium rental matching for Miami beach corridors, downtown, and port arrivals.",
         },
@@ -300,7 +307,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "Hills, tech campuses, and SFO linkage with escalation paths.",
           iata_code: null,
           trend_score: 88,
-          seo_title: "Executive rentals in San Francisco | Book my Carz",
+          seo_title: "Executive rentals in San Francisco | MarkleTravelBooking",
           seo_description:
             "Assisted booking coordination across San Francisco, Silicon Valley arrivals, and SFO corridors.",
         },
@@ -319,7 +326,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "High-volume arrivals with baggage and terminal timing modeled into pickup.",
           iata_code: "YYZ",
           trend_score: 94,
-          seo_title: "Premium car rental at Toronto Pearson YYZ | Book my Carz",
+          seo_title: "Premium car rental at Toronto Pearson YYZ | MarkleTravelBooking",
           seo_description:
             "Concierge-assisted premium rentals for Toronto Pearson arrivals and downtown handoffs.",
         },
@@ -330,7 +337,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "Mountain routes, cruise links, and Pacific business travel.",
           iata_code: null,
           trend_score: 86,
-          seo_title: "Luxury rental assistance in Vancouver | Book my Carz",
+          seo_title: "Luxury rental assistance in Vancouver | MarkleTravelBooking",
           seo_description:
             "Premium vehicle coordination for Vancouver city, YVR airport, and Whistler corridor trips.",
         },
@@ -349,7 +356,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "Long-haul arrivals, terminal swaps, and West End transfers.",
           iata_code: "LHR",
           trend_score: 92,
-          seo_title: "Premium car rental at London Heathrow | Book my Carz",
+          seo_title: "Premium car rental at London Heathrow | MarkleTravelBooking",
           seo_description:
             "Concierge-style rental matching for London Heathrow arrivals and central London itineraries.",
         },
@@ -368,7 +375,7 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
           subtitle: "DXB arrivals, marina districts, and executive weekend routing.",
           iata_code: null,
           trend_score: 99,
-          seo_title: "Premium rental concierge in Dubai | Book my Carz",
+          seo_title: "Premium rental concierge in Dubai | MarkleTravelBooking",
           seo_description:
             "Verified partner coordination for Dubai arrivals with luxury SUV and chauffeur-style handoffs.",
         },
@@ -545,11 +552,11 @@ async function seedMarketplaceCatalog(client: PrismaClient) {
  */
 async function seedShowcasePipeline(client: PrismaClient) {
   const agent = await client.user.findFirst({
-    where: { email: normalizeEmail("agent1@bookmycarz.com") },
+    where: { email: normalizeEmail("agent1@markletravelbooking.com") },
   });
 
   if (!agent) {
-    console.warn("Showcase leads skipped — agent1@bookmycarz.com not found.");
+    console.warn("Showcase leads skipped — agent1@markletravelbooking.com not found.");
     return;
   }
 

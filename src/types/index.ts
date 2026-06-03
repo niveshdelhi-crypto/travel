@@ -1,5 +1,5 @@
 // ============================================================
-// Book my Carz — Core Platform Types
+// MarkleTravelBooking — Core Platform Types
 // Shared across CRM, Marketplace, Admin, and API layers
 // ============================================================
 

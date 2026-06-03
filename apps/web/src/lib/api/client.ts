@@ -13,7 +13,7 @@ import {
 import type { ApiRequestOptions } from "./types";
 import type { AuthResponse } from "@/lib/auth/types";
 
-type BookMyCarzRequestConfig = InternalAxiosRequestConfig & ApiRequestOptions & RetriableConfig;
+type MarkleTravelBookingRequestConfig = InternalAxiosRequestConfig & ApiRequestOptions & RetriableConfig;
 
 let refreshPromise: Promise<void> | null = null;
 
@@ -24,12 +24,12 @@ export const apiClient: AxiosInstance = axios.create({
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
-    "X-Client": "bookmycarz-next/1.0",
+    "X-Client": "markletravelbooking-next/1.0",
   },
 });
 
 apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-  const requestConfig = config as BookMyCarzRequestConfig;
+  const requestConfig = config as MarkleTravelBookingRequestConfig;
   const token = await getAccessToken();
 
   if (token) requestConfig.headers.Authorization = `Bearer ${token}`;
@@ -45,7 +45,7 @@ apiClient.interceptors.request.use(async (config: InternalAxiosRequestConfig) =>
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const config = error.config as BookMyCarzRequestConfig | undefined;
+    const config = error.config as MarkleTravelBookingRequestConfig | undefined;
 
     if (
       error.response?.status === 401 &&
@@ -67,7 +67,7 @@ apiClient.interceptors.response.use(
     }
 
     if (shouldRetryRequest(error)) {
-      const retryConfig = config as BookMyCarzRequestConfig;
+      const retryConfig = config as MarkleTravelBookingRequestConfig;
       retryConfig.__retryCount = (retryConfig.__retryCount ?? 0) + 1;
       await waitForRetry(retryConfig);
       return apiClient(retryConfig);

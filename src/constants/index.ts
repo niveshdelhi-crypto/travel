@@ -1,10 +1,10 @@
 // ============================================================
-// Book my Carz — Platform Constants
+// MarkleTravelBooking — Platform Constants
 // ============================================================
 
-export const PLATFORM_NAME = "Book my Carz";
+export const PLATFORM_NAME = "MarkleTravelBooking";
 export const PLATFORM_TAGLINE = "Car Rental Marketplace & Assisted Booking CRM";
-export const PLATFORM_DOMAIN = "app.bookmycarz.com";
+export const PLATFORM_DOMAIN = "app.markletravelbooking.com";
 export const SUPPORT_MARKETS = ["USA", "Canada"];
 export const CITY_COUNT = 142;
 export const PROVIDER_COUNT = 42;

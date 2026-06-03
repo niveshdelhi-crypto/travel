@@ -1,5 +1,5 @@
 // ============================================================
-// Book my Carz — Zustand Store: Auth
+// MarkleTravelBooking — Zustand Store: Auth
 // ============================================================
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";

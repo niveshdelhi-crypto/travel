@@ -27,7 +27,7 @@ function RedirectFallback() {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm items-center justify-center px-6">
       <p className="text-sm text-muted-foreground">
-        Opening Book my Carz staff panel…
+        Opening MarkleTravelBooking staff panel…
       </p>
     </main>
   );

@@ -1,5 +1,5 @@
 // ============================================================
-// Book my Carz — SPA Client Entry Point
+// MarkleTravelBooking — SPA Client Entry Point
 // Pure client-side rendering with TanStack Router
 // ============================================================
 import React from "react";

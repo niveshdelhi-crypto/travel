@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { MarketplaceSupplier } from "@/lib/marketplace/types";
 
 type SupplierLogoMarqueeProps = {
@@ -7,7 +10,7 @@ type SupplierLogoMarqueeProps = {
   heroPlacement?: "bottom" | "inline";
   className?: string;
 };
-/** Expand supplier list so the strip fills wide viewports before duplicating for the loop. */
+
 function buildMarqueeLoop(suppliers: MarketplaceSupplier[], minTiles = 10): MarketplaceSupplier[] {
   if (suppliers.length === 0) return [];
   const expanded: MarketplaceSupplier[] = [];
@@ -24,33 +27,29 @@ function SupplierLogoContent({
   supplier: MarketplaceSupplier;
   variant: "hero" | "section";
 }) {
-  if (supplier.logo_url) {
-    return (
-      // Admin-managed URLs may come from any host; plain img avoids Next image domain config.
-      <img
-        src={supplier.logo_url}
-        alt={supplier.name}
-        className={
-          variant === "hero"
-            ? "h-9 w-auto max-w-[120px] object-contain md:h-10 md:max-w-[128px]"
-            : "h-16 w-auto max-w-[155px] object-contain md:h-18 md:max-w-[175px]"
-        }
-        loading="lazy"
-        draggable={false}
-      />
-    );
+  const [failed, setFailed] = useState(false);
+  const textClass =
+    variant === "hero"
+      ? "font-display text-xs font-bold tracking-tight text-white"
+      : "font-display text-[11px] font-bold uppercase tracking-wide text-navy md:text-xs";
+
+  if (!supplier.logo_url || failed) {
+    return <span className={textClass}>{supplier.name}</span>;
   }
 
   return (
-    <span
+    <img
+      src={supplier.logo_url}
+      alt={supplier.name}
       className={
         variant === "hero"
-          ? "font-display text-sm font-bold tracking-tight text-navy"
-          : "font-display text-lg font-bold tracking-tight text-navy"
+          ? "max-h-8 max-w-[6.5rem] object-contain object-center md:max-h-9 md:max-w-[7rem]"
+          : "max-h-7 max-w-[5.75rem] object-contain object-center md:max-h-8 md:max-w-[6.25rem]"
       }
-    >
-      {supplier.name}
-    </span>
+      loading="lazy"
+      draggable={false}
+      onError={() => setFailed(true)}
+    />
   );
 }
 
@@ -69,7 +68,7 @@ function MarqueeTrack({
         {suppliers.map((supplier, index) => (
           <div
             key={`${keyPrefix}-${supplier.id}-${index}`}
-            className="flex h-10 shrink-0 items-center justify-center px-0 py-0 md:h-11"
+            className="flex h-10 shrink-0 items-center justify-center px-1 md:h-11"
           >
             <SupplierLogoContent supplier={supplier} variant="hero" />
           </div>
@@ -84,7 +83,7 @@ function MarqueeTrack({
         <div
           key={`${keyPrefix}-${supplier.id}-${index}`}
           id={keyPrefix === "a" && index === 0 ? `suppliers-${supplier.slug}` : undefined}
-          className="supplier-logo flex h-14 w-32 shrink-0 items-center justify-center rounded-xl border border-border bg-white px-1 py-0.5 shadow-card md:h-[4.1rem] md:w-36"
+          className="supplier-logo flex h-12 w-[7.25rem] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-white px-2.5 py-2 shadow-card md:h-12 md:w-[7.75rem]"
         >
           <SupplierLogoContent supplier={supplier} variant="section" />
         </div>
@@ -102,7 +101,7 @@ export function SupplierLogoMarquee({
   if (suppliers.length === 0) return null;
 
   const marqueeItems = buildMarqueeLoop(suppliers, variant === "hero" ? 12 : 10);
-  const gapClass = variant === "hero" ? "gap-3 md:gap-4" : "gap-4";
+  const gapClass = variant === "hero" ? "gap-3 md:gap-4" : "gap-3 md:gap-3.5";
 
   if (variant === "hero") {
     const isInline = heroPlacement === "inline";
@@ -138,6 +137,7 @@ export function SupplierLogoMarquee({
       </div>
     );
   }
+
   return (
     <div
       className={`logo-marquee relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)] ${className}`}

@@ -2,7 +2,7 @@
   "name": "fleetnexus",
   "private": true,
   "version": "1.0.0",
-  "description": "Book my Carz — Car Rental Marketplace & Assisted Booking CRM",
+  "description": "MarkleTravelBooking — Car Rental Marketplace & Assisted Booking CRM",
   "sideEffects": false,
   "type": "module",
   "scripts": {

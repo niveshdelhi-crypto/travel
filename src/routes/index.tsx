@@ -17,7 +17,7 @@ function RedirectToCanonicalWeb() {
     return (
       <main className="grid min-h-screen place-items-center bg-slate-950 px-6 text-center text-slate-200">
         <div className="max-w-md space-y-3">
-          <h1 className="text-xl font-semibold">Book my Carz has moved</h1>
+          <h1 className="text-xl font-semibold">MarkleTravelBooking has moved</h1>
           <p className="text-sm text-slate-400">
             The public marketing site is served from <code className="text-amber-300">apps/web</code>.
             Run <code className="text-amber-300">npm run dev</code> from the repo root or{" "}
@@ -30,7 +30,7 @@ function RedirectToCanonicalWeb() {
 
   return (
     <main className="grid min-h-screen place-items-center bg-slate-950 text-slate-300">
-      <p className="text-sm">Opening Book my Carz…</p>
+      <p className="text-sm">Opening MarkleTravelBooking…</p>
     </main>
   );
 }

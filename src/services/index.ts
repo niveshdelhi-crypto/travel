@@ -1,5 +1,5 @@
 // ============================================================
-// Book my Carz — Domain Service Layer
+// MarkleTravelBooking — Domain Service Layer
 // All API calls are organised by domain. Each service uses
 // the shared apiClient and returns typed responses.
 // ============================================================
@@ -211,7 +211,7 @@ export const leadsService = {
     if (isPublicLeadResponse(response)) return response;
     if (isWrappedPublicLeadResponse(response)) return response.data;
 
-    throw new Error("Unexpected lead submission response from Book my Carz API.");
+    throw new Error("Unexpected lead submission response from MarkleTravelBooking API.");
   },
 
   my(params?: { status?: BackendLeadStatus; page?: number; pageSize?: number }) {

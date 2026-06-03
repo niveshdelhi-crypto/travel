@@ -39,7 +39,7 @@ export function WhyUsSection() {
       <div className="container-page">
         <div className="max-w-2xl">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-primary">
-            Why Book my Carz
+            Why MarkleTravelBooking
           </p>
           <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl">
             The smartest way to book a rental car

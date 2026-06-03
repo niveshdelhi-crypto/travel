@@ -14,13 +14,13 @@ type TestUser = {
 
 /** Same accounts as `prisma/seed.ts` (and call-center E2E). Requires `npm run prisma:seed` before tests. */
 const admin: TestUser = {
-  email: "admin@bookmycarz.com",
+  email: "admin@markletravelbooking.com",
   password: "Admin@123",
   role: UserRole.admin,
 };
 
 const agent: TestUser = {
-  email: "agent1@bookmycarz.com",
+  email: "agent1@markletravelbooking.com",
   password: "Agent@123",
   role: UserRole.sales_agent,
 };

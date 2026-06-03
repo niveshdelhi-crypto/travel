@@ -9,9 +9,9 @@ export const Route = createFileRoute("/cars/$country")({
     const name = pretty(params.country);
     return {
       meta: [
-        { title: `Car rental ${name} — Compare deals | Book my Carz` },
+        { title: `Car rental ${name} — Compare deals | MarkleTravelBooking` },
         { name: "description", content: `Compare cheap car rental deals in ${name} from 800+ suppliers. Free cancellation, best price guarantee, 24/7 support.` },
-        { property: "og:title", content: `Car rental ${name} | Book my Carz` },
+        { property: "og:title", content: `Car rental ${name} | MarkleTravelBooking` },
         { property: "og:url", content: `/cars/${params.country}` },
       ],
       links: [{ rel: "canonical", href: `/cars/${params.country}` }],
@@ -93,7 +93,7 @@ function CountryPage() {
             <Section title="Frequently asked questions">
               <Faq q={`How old do I need to be to rent a car in ${name}?`} a="Most suppliers require drivers to be 21 or older, with a valid license held for at least 1 year. Young driver fees may apply under 25." />
               <Faq q="Is insurance included?" a="Basic third-party insurance is included. You can add full coverage at checkout for total peace of mind." />
-              <Faq q="Can I cancel for free?" a="Most rentals on Book my Carz offer free cancellation up to 48 hours before pickup." />
+              <Faq q="Can I cancel for free?" a="Most rentals on MarkleTravelBooking offer free cancellation up to 48 hours before pickup." />
             </Section>
           </div>
 

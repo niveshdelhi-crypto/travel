@@ -72,9 +72,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Book my Carz — Compare car rentals worldwide" },
+      { title: "MarkleTravelBooking — Compare car rentals worldwide" },
       { name: "description", content: "Compare 800+ car rental suppliers in 190+ countries. Best price, free cancellation, no hidden fees." },
-      { property: "og:site_name", content: "Book my Carz" },
+      { property: "og:site_name", content: "MarkleTravelBooking" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

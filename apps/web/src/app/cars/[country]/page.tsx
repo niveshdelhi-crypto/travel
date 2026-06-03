@@ -7,7 +7,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { country } = await params;
   const label = country.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   return {
-    title: `Car Rental ${label} | Book my Carz`,
+    title: `Car Rental ${label} | MarkleTravelBooking`,
     description: `Compare car rental prices in ${label}. 800+ suppliers, best price guarantee.`,
   };
 }

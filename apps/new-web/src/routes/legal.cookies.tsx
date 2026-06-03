@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { LegalDoc } from "@/components/site/LegalDoc";
 
 export const Route = createFileRoute("/legal/cookies")({
-  head: () => ({ meta: [{ title: "Cookie Policy — Book my Carz" }] }),
+  head: () => ({ meta: [{ title: "Cookie Policy — MarkleTravelBooking" }] }),
   component: () => (
     <LegalDoc
       title="Cookie Policy"

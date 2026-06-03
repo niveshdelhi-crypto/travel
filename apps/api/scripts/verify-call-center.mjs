@@ -83,7 +83,7 @@ async function main() {
   else fail("POST /calls/webhooks/telnyx", `${webhook.status} ${JSON.stringify(webhook.json)}`);
 
   const login = await post("/auth/login", {
-    email: process.env.SMOKE_AGENT_EMAIL ?? "agent1@bookmycarz.com",
+    email: process.env.SMOKE_AGENT_EMAIL ?? "agent1@markletravelbooking.com",
     password: process.env.SMOKE_AGENT_PASSWORD ?? "Agent@123",
   });
 
