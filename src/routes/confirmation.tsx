@@ -180,10 +180,10 @@ function ConfirmationPage() {
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <a
-                    href="tel:+18005551234"
+                    href="tel:+18332036829"
                     className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent"
                   >
-                    <Phone className="h-3.5 w-3.5" /> +1 (800) 555-1234
+                    <Phone className="h-3.5 w-3.5" /> +1 (833) 203-6829
                   </a>
                   <button className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90">
                     <Car className="h-3.5 w-3.5" /> Modify booking

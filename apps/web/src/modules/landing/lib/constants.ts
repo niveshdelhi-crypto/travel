@@ -1,8 +1,8 @@
 /**
  * Click-to-call number (E.164). Override with `NEXT_PUBLIC_DIRECT_CALL_PHONE` in apps/web/.env
- * Example UAE: +971501234567 · US: +18005550100
+ * Example UAE: +971501234567 · US: +18332036829
  */
-export const DIRECT_CALL_PHONE_NUMBER = "+12138550447";
+export const DIRECT_CALL_PHONE_NUMBER = "+18332036829";
 
 export const SUPPLIERS = ["Hertz", "Avis", "Enterprise", "Budget", "Alamo", "National"] as const;
 
