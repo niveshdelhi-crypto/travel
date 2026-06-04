@@ -26,9 +26,7 @@ function LoginRedirect() {
 function RedirectFallback() {
   return (
     <main className="mx-auto flex min-h-screen max-w-sm items-center justify-center px-6">
-      <p className="text-sm text-muted-foreground">
-        Opening MarkleTravelBooking staff panel…
-      </p>
+      <p className="text-sm text-muted-foreground">Opening MarkleTravelBooking staff panel…</p>
     </main>
   );
 }

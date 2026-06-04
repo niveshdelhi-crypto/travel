@@ -25,6 +25,8 @@ export const apiConfig = {
   retryDelayMs: Number(process.env.NEXT_PUBLIC_API_RETRY_DELAY_MS ?? 450),
   csrfCookieName: process.env.NEXT_PUBLIC_CSRF_COOKIE_NAME ?? "csrf_token",
   csrfHeaderName: process.env.NEXT_PUBLIC_CSRF_HEADER_NAME ?? "X-CSRF-Token",
-  accessTokenStorageKey: process.env.NEXT_PUBLIC_ACCESS_TOKEN_KEY ?? "markletravelbooking_access_token",
-  refreshTokenStorageKey: process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY ?? "markletravelbooking_refresh_token",
+  accessTokenStorageKey:
+    process.env.NEXT_PUBLIC_ACCESS_TOKEN_KEY ?? "markletravelbooking_access_token",
+  refreshTokenStorageKey:
+    process.env.NEXT_PUBLIC_REFRESH_TOKEN_KEY ?? "markletravelbooking_refresh_token",
 } as const;

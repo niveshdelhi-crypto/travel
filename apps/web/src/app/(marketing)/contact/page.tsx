@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
-import {
-  formatDirectCallLabel,
-  getDirectCallTelHref,
-} from "@/modules/landing/lib/direct-call";
+import { formatDirectCallLabel, getDirectCallTelHref } from "@/modules/landing/lib/direct-call";
 
 export const metadata: Metadata = {
   title: "Contact MarkleTravelBooking",
@@ -35,10 +32,7 @@ export default function ContactPage() {
         {telHref && phoneLabel ? (
           <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">
             <Phone className="size-5 text-brand-primary" />
-            <a
-              href={telHref}
-              className="font-medium text-foreground hover:text-brand-primary"
-            >
+            <a href={telHref} className="font-medium text-foreground hover:text-brand-primary">
               {phoneLabel}
             </a>
           </li>

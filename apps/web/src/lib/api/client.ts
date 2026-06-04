@@ -13,7 +13,9 @@ import {
 import type { ApiRequestOptions } from "./types";
 import type { AuthResponse } from "@/lib/auth/types";
 
-type MarkleTravelBookingRequestConfig = InternalAxiosRequestConfig & ApiRequestOptions & RetriableConfig;
+type MarkleTravelBookingRequestConfig = InternalAxiosRequestConfig &
+  ApiRequestOptions &
+  RetriableConfig;
 
 let refreshPromise: Promise<void> | null = null;
 

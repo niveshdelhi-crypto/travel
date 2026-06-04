@@ -3,7 +3,8 @@ import { LegalDoc } from "@/modules/landing/components/legal-doc";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions | MarkleTravelBooking",
-  description: "MarkleTravelBooking terms and conditions for using our car rental comparison platform.",
+  description:
+    "MarkleTravelBooking terms and conditions for using our car rental comparison platform.",
 };
 
 export default function TermsPage() {

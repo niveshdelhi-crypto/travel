@@ -35,11 +35,7 @@ export function BrandLogo({
       width={BRAND_LOGO_WIDTH}
       height={BRAND_LOGO_HEIGHT}
       priority={priority}
-      sizes={
-        size === "nav"
-          ? "(max-width: 640px) 304px, 368px"
-          : "(max-width: 640px) 320px, 384px"
-      }
+      sizes={size === "nav" ? "(max-width: 640px) 304px, 368px" : "(max-width: 640px) 320px, 384px"}
       className={`block shrink-0 object-contain object-center ${BRAND_LOGO_SIZE_CLASSES[size]} ${imageClassName}`}
     />
   );

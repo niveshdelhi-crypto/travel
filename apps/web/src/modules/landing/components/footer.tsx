@@ -96,7 +96,9 @@ export function LandingFooter() {
 
         <div className="mt-12 rounded-2xl border border-white/10 bg-white/5 p-6 md:flex md:items-center md:justify-between">
           <div>
-            <h5 className="font-display text-base font-semibold">Get the MarkleTravelBooking app</h5>
+            <h5 className="font-display text-base font-semibold">
+              Get the MarkleTravelBooking app
+            </h5>
             <p className="mt-1 text-sm text-white/70">Manage bookings on the go. Coming soon.</p>
           </div>
           <div className="mt-4 flex gap-3 md:mt-0">
