@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { Route } from "next";
-import { Apple, Globe, MessageCircle, Share2, Smartphone } from "lucide-react";
+import { Apple, Globe, MessageCircle, Phone, Share2, Smartphone } from "lucide-react";
 import { BrandLogo } from "@/components/brand/brand-logo";
+import { DIRECT_CALL_PHONE_NUMBER } from "../lib/constants";
+import { formatDirectCallLabel, getDirectCallTelHref } from "../lib/direct-call";
 
 const columns: { title: string; links: { label: string; href: string }[] }[] = [
   {
@@ -53,6 +55,9 @@ const columns: { title: string; links: { label: string; href: string }[] }[] = [
 ];
 
 export function LandingFooter() {
+  const supportTel = getDirectCallTelHref(DIRECT_CALL_PHONE_NUMBER);
+  const supportPhoneLabel = formatDirectCallLabel(DIRECT_CALL_PHONE_NUMBER);
+
   return (
     <footer className="bg-navy text-navy-foreground">
       <div className="container-page py-16">
@@ -63,6 +68,13 @@ export function LandingFooter() {
               Compare 800+ car rental suppliers in 190+ countries. Best price, free cancellation, no
               hidden fees.
             </p>
+            <a
+              href={supportTel!}
+              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-brand-accent"
+            >
+              <Phone className="size-4 shrink-0" />
+              {supportPhoneLabel}
+            </a>
             <div className="mt-6 flex gap-3 text-white/70">
               <a href="#" aria-label="Social" className="hover:text-white">
                 <Share2 className="size-5" />

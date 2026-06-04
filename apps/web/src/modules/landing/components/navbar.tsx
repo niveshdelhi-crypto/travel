@@ -5,6 +5,7 @@ import type { Route } from "next";
 import { Globe, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand/brand-logo";
+import { DirectCallButton } from "./direct-call-button";
 
 const navLinks = [
   { href: "/faq", label: "FAQ" },
@@ -39,6 +40,7 @@ export function LandingNavbar() {
           >
             <Globe className="size-3.5" /> EN · USD
           </button>
+          <DirectCallButton variant="header" className="shrink-0" />
         </div>
 
         <button
@@ -64,6 +66,9 @@ export function LandingNavbar() {
                 {l.label}
               </Link>
             ))}
+            <div className="px-3 pt-2">
+              <DirectCallButton variant="header" className="w-full justify-center" />
+            </div>
           </div>
         </div>
       )}

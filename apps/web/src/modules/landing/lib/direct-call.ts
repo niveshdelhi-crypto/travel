@@ -1,8 +1,7 @@
 import { DIRECT_CALL_PHONE_NUMBER } from "./constants";
 
+/** Support line — update `DIRECT_CALL_PHONE_NUMBER` in constants.ts (not a stale Vercel env). */
 function resolvePhone(): string {
-  const fromEnv = process.env.NEXT_PUBLIC_DIRECT_CALL_PHONE?.trim();
-  if (fromEnv) return fromEnv;
   return DIRECT_CALL_PHONE_NUMBER.trim();
 }
 

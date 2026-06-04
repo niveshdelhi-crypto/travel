@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
+import { DIRECT_CALL_PHONE_NUMBER } from "@/modules/landing/lib/constants";
 import { formatDirectCallLabel, getDirectCallTelHref } from "@/modules/landing/lib/direct-call";
 
 export const metadata: Metadata = {
@@ -9,8 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-  const telHref = getDirectCallTelHref();
-  const phoneLabel = formatDirectCallLabel();
+  const telHref = getDirectCallTelHref(DIRECT_CALL_PHONE_NUMBER);
+  const phoneLabel = formatDirectCallLabel(DIRECT_CALL_PHONE_NUMBER);
 
   return (
     <article className="max-w-3xl">
@@ -29,14 +30,12 @@ export default function ContactPage() {
             support@markletravelbooking.com
           </a>
         </li>
-        {telHref && phoneLabel ? (
-          <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">
-            <Phone className="size-5 text-brand-primary" />
-            <a href={telHref} className="font-medium text-foreground hover:text-brand-primary">
-              {phoneLabel}
-            </a>
-          </li>
-        ) : null}
+        <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">
+          <Phone className="size-5 text-brand-primary" />
+          <a href={telHref!} className="font-medium text-foreground hover:text-brand-primary">
+            {phoneLabel}
+          </a>
+        </li>
       </ul>
       <p className="mt-8 text-sm text-muted-foreground">
         Ready to compare rates?{" "}
