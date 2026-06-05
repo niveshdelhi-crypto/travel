@@ -5,6 +5,7 @@ import type { Route } from "next";
 import { Globe, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand/brand-logo";
+import { BRAND_NAVBAR_HEIGHT_CLASS } from "@/lib/brand";
 import { DirectCallButton } from "./direct-call-button";
 
 const navLinks = [
@@ -18,7 +19,9 @@ export function LandingNavbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-brand-dark/90 backdrop-blur-md">
-      <div className="container-page flex h-[5.5rem] min-h-[5.5rem] items-center justify-between gap-4 sm:gap-6">
+      <div
+        className={`container-page flex ${BRAND_NAVBAR_HEIGHT_CLASS} items-center justify-between gap-4 sm:gap-6`}
+      >
         <BrandLogo href="/" size="nav" priority />
 
         <nav className="hidden items-center gap-7 text-sm font-medium text-brand-muted lg:flex">

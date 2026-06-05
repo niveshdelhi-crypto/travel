@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { BrandLogo } from "@/components/brand-logo";
+import { BrandLogo, BRAND_NAVBAR_HEIGHT_CLASS } from "@/components/brand-logo";
 import { MegaFooter } from "@/components/marketing/mega-footer";
 
 type ShellProps = {
@@ -26,7 +26,9 @@ function MarketingNav({ variant }: { variant: NonNullable<ShellProps["navVariant
 
   return (
     <header className={`sticky top-0 z-40 ${wrapper}`}>
-      <nav className="mx-auto flex h-[5.5rem] min-h-[5.5rem] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+      <nav
+        className={`mx-auto flex ${BRAND_NAVBAR_HEIGHT_CLASS} max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8`}
+      >
         <BrandLogo to="/" size="nav" />
 
         <div className="hidden items-center gap-7 text-[13px] text-[#F8FAFC]/78 md:flex">

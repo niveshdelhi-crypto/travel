@@ -3,9 +3,12 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "sync:brand": "node -e \"const fs=require('fs');const p=require('path');const src=p.join(__dirname,'../../public/brand/markle.png');const dst=p.join(__dirname,'public/brand/markle.png');fs.mkdirSync(p.dirname(dst),{recursive:true});fs.copyFileSync(src,dst);\"",
     "dev": "next dev --turbo",
+    "predev": "npm run sync:brand",
     "clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\"",
     "dev:clean": "npm run clean && next dev --turbo",
+    "prebuild": "npm run sync:brand",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

@@ -16,15 +16,15 @@ export const metadata: Metadata = {
   description:
     "Compare 800+ car rental suppliers across 30,000+ locations. Best price guarantee, secure booking, and 24/7 support.",
   icons: {
-    icon: "/brand/travel.png",
-    apple: "/brand/travel.png",
+    icon: "/brand/markle.png",
+    apple: "/brand/markle.png",
   },
   openGraph: {
     title: "MarkleTravelBooking | Compare Car Rentals Worldwide",
     description:
       "Compare 800+ rental suppliers in 190+ countries. Best price, free cancellation, no hidden fees.",
     type: "website",
-    images: [{ url: "/brand/travel.png", alt: "MarkleTravelBooking — Explore. Book. Discover." }],
+    images: [{ url: "/brand/markle.png", alt: "Markle Travel Booking" }],
   },
 };
 

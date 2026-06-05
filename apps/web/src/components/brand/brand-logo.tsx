@@ -4,6 +4,7 @@ import type { Route } from "next";
 import {
   BRAND_LOGO_ALT,
   BRAND_LOGO_HEIGHT,
+  BRAND_LOGO_IMAGE_SIZES,
   BRAND_LOGO_SIZE_CLASSES,
   BRAND_LOGO_SRC,
   BRAND_LOGO_WIDTH,
@@ -35,8 +36,8 @@ export function BrandLogo({
       width={BRAND_LOGO_WIDTH}
       height={BRAND_LOGO_HEIGHT}
       priority={priority}
-      sizes={size === "nav" ? "(max-width: 640px) 304px, 368px" : "(max-width: 640px) 320px, 384px"}
-      className={`block shrink-0 object-contain object-center ${BRAND_LOGO_SIZE_CLASSES[size]} ${imageClassName}`}
+      sizes={BRAND_LOGO_IMAGE_SIZES[size]}
+      className={`block shrink-0 object-contain object-left ${BRAND_LOGO_SIZE_CLASSES[size]} ${imageClassName}`}
     />
   );
 
