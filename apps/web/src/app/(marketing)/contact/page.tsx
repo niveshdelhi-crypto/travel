@@ -20,33 +20,35 @@ export default function ContactPage() {
         Our support team is available 24/7. For the fastest response on an active booking, include
         your reference number.
       </p>
-      <ul className="mt-8 space-y-4">
-        <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">
-          <Mail className="size-5 text-brand-primary" />
-          <a
-            href="mailto:support@markletravelbooking.com"
-            className="font-medium text-foreground hover:text-brand-primary"
-          >
-            support@markletravelbooking.com
-          </a>
-        </li>
-        <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">
-          <Phone className="size-5 text-brand-primary" />
-          <a href={telHref!} className="font-medium text-foreground hover:text-brand-primary">
-            {phoneLabel}
-          </a>
-        </li>
-      <li className="flex items-start gap-3 rounded-2xl border border-border bg-white p-4">
-  <MapPin className="mt-1 size-5 text-brand-primary" />
-  <address className="not-italic font-medium text-foreground leading-relaxed">
-    30 N Gould St Ste R
-    <br />
-    SHERIDAN COUNTY
-    <br />
-    SHERIDAN, WYOMING 82801
-  </address>
-</li>
-      </ul>
+   <ul className="mt-8 space-y-4">
+  <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">
+    <Mail className="size-5 text-brand-primary" />
+    <a
+      href="mailto:support@markletravelbooking.com"
+      className="font-medium text-foreground hover:text-brand-primary"
+    >
+      support@markletravelbooking.com
+    </a>
+  </li>
+
+  <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">
+    <Phone className="size-5 text-brand-primary" />
+    <a href={telHref!} className="font-medium text-foreground hover:text-brand-primary">
+      {phoneLabel}
+    </a>
+  </li>
+
+  <li className="flex items-start gap-3 rounded-2xl border border-border bg-white p-4">
+    <MapPin className="mt-1 size-5 text-brand-primary" />
+    <address className="not-italic font-medium text-foreground leading-relaxed">
+      30 N Gould St Ste R
+      <br />
+      Sheridan, WY 82801
+      <br />
+      United States
+    </address>
+  </li>
+</ul>
       <p className="mt-8 text-sm text-muted-foreground">
         Ready to compare rates?{" "}
         <Link href="/#search" className="font-semibold text-brand-primary hover:underline">
