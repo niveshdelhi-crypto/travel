@@ -36,12 +36,14 @@ export default function ContactPage() {
             {phoneLabel}
           </a>
         </li>
-        <li className="flex items-start gap-3 rounded-2xl border border-border bg-white p-4">
+      <li className="flex items-start gap-3 rounded-2xl border border-border bg-white p-4">
   <MapPin className="mt-1 size-5 text-brand-primary" />
   <address className="not-italic font-medium text-foreground leading-relaxed">
-    30 N Gould St Ste R<br />
-    SHERIDAN COUNTRY<br />
-    SHERIDAN, WYOMING 82801<br />
+    30 N Gould St Ste R
+    <br />
+    SHERIDAN COUNTY
+    <br />
+    SHERIDAN, WYOMING 82801
   </address>
 </li>
       </ul>
