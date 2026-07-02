@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
 import { DIRECT_CALL_PHONE_NUMBER } from "@/modules/landing/lib/constants";
 import { formatDirectCallLabel, getDirectCallTelHref } from "@/modules/landing/lib/direct-call";
 
