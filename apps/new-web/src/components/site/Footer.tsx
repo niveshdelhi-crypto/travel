@@ -65,11 +65,18 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-1">
             <BrandLogo to="/" size="xl" />
-            <p className="mt-4 text-sm text-white/70 leading-relaxed">
-              Compare 800+ car rental suppliers in 190+ countries. Best price, free
-              cancellation, no hidden fees.
-               <h5 className="font-display text-base font-semibold">30 N Gould St Ste R <br> Sheridan Country<br> Sheridan, Wyoming 82801</h5>
-            </p>
+           <p className="mt-4 text-sm text-white/70 leading-relaxed">
+  Compare 800+ car rental suppliers in 190+ countries. Best price, free
+  cancellation, no hidden fees.
+</p>
+
+<address className="mt-4 not-italic text-sm text-white/70 leading-relaxed">
+  30 N Gould St Ste R
+  <br />
+  Sheridan County
+  <br />
+  Sheridan, Wyoming 82801
+</address>
             <div className="mt-6 flex gap-3 text-white/70">
               <a href="#" aria-label="Twitter" className="hover:text-white"><Twitter className="size-5" /></a>
               <a href="#" aria-label="Instagram" className="hover:text-white"><Instagram className="size-5" /></a>
