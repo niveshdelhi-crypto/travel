@@ -5,6 +5,6 @@
   "buildCommand": "npm run build",
   "env": {
     "NEXT_PUBLIC_GOOGLE_ADS_ID": "AW-11460691521",
-    "NEXT_PUBLIC_DIRECT_CALL_PHONE": "+18332036829"
+    "NEXT_PUBLIC_DIRECT_CALL_PHONE": "+13074453548"
   }
 }
