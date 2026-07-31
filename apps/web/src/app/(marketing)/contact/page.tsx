@@ -11,10 +11,9 @@
 
   <li className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4">
     <Phone className="size-5 text-brand-primary" />
-    <a
-      href={telHref!}
-      className="font-medium text-foreground hover:text-brand-primary"
-    >
+    <a href={telHref!} className="font-medium text-foreground hover:text-brand-primary">
+  {phoneLabel}
+</a>
       {phoneLabel}
     </a>
   </li>
